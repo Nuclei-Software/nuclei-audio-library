@@ -23,7 +23,24 @@
 extern "C" {
 #endif
 
-void* wav_read_open(const char *filename);
+#include <stddef.h>
+
+typedef struct {
+    void* ptr;       // 指向数组的指针
+    size_t size;     // 数组大小
+    size_t position; // 当前读写位置
+} MemoryFile;
+
+MemoryFile* memfopen(void* arr, size_t size);
+size_t memfwrite(const void* buffer, size_t itemSize, size_t count, MemoryFile* mf);
+size_t memfread(void* buffer, size_t itemSize, size_t count, MemoryFile* mf);
+int memfseek(MemoryFile* mf, long offset, int whence);
+int memfgetc(MemoryFile* mf);
+long memftell(MemoryFile* mf);
+int memfeof(MemoryFile* mf);
+void memfclose(MemoryFile* mf);
+
+void* wav_read_open(void* arr, size_t size);
 void wav_read_close(void* obj);
 
 int wav_get_header(void* obj, int* format, int* channels, int* sample_rate, int* bits_per_sample, unsigned int* data_length);

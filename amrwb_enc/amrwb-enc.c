@@ -23,11 +23,17 @@
 #include <stdlib.h>
 #include "wavreader.h"
 
+#include "input.h"
+#include "output.h"
+#include "nmsis_bench.h"
+
+BENCH_DECLARE_VAR();
+
 void usage(const char* name) {
-	fprintf(stderr, "%s [-r bitrate] [-d] in.wav out.amr\n", name);
+	printf("%s [-r bitrate] [-d] in.wav out.amr\n", name);
 }
 
-int findMode(const char* str) {
+int findMode(int rate) {
 	struct {
 		int mode;
 		int rate;
@@ -42,7 +48,6 @@ int findMode(const char* str) {
 		{ 7, 23050 },
 		{ 8, 23850 }
 	};
-	int rate = atoi(str);
 	int closest = -1;
 	int closestdiff = 0;
 	unsigned int i;
@@ -54,73 +59,57 @@ int findMode(const char* str) {
 			closestdiff = abs(modes[i].rate - rate);
 		}
 	}
-	fprintf(stderr, "Using bitrate %d\n", modes[closest].rate);
+	printf("Using bitrate %d\n", modes[closest].rate);
 	return modes[closest].mode;
 }
+
+extern unsigned char input_array[INPUTDATA_SIZE];
+extern unsigned char output_array[OUTPUTDATA_SIZE];
 
 int main(int argc, char *argv[]) {
 	int mode = 8;
 	int ch, dtx = 0;
-	const char *infile, *outfile;
-	FILE* out;
+	MemoryFile* out;
 	void *wav, *amr;
 	int format, sampleRate, channels, bitsPerSample;
 	int inputSize;
 	uint8_t* inputBuf;
-	while ((ch = getopt(argc, argv, "r:d")) != -1) {
-		switch (ch) {
-		case 'r':
-			mode = findMode(optarg);
-			break;
-		case 'd':
-			dtx = 1;
-			break;
-		case '?':
-		default:
-			usage(argv[0]);
-			return 1;
-		}
-	}
-	if (argc - optind < 2) {
-		usage(argv[0]);
-		return 1;
-	}
-	infile = argv[optind];
-	outfile = argv[optind + 1];
 
+	int rate = 23850;
+	dtx = 1;
+	mode = findMode(rate);
 
-	wav = wav_read_open(infile);
+	wav = wav_read_open(input_array, INPUTDATA_SIZE);
 	if (!wav) {
-		fprintf(stderr, "Unable to open wav file %s\n", infile);
+		printf("Unable to open wav file\n");
 		return 1;
 	}
 	if (!wav_get_header(wav, &format, &channels, &sampleRate, &bitsPerSample, NULL)) {
-		fprintf(stderr, "Bad wav file %s\n", infile);
+		printf("Bad wav file\n");
 		return 1;
 	}
 	if (format != 1) {
-		fprintf(stderr, "Unsupported WAV format %d\n", format);
+		printf( "Unsupported WAV format %d\n", format);
 		return 1;
 	}
 	if (bitsPerSample != 16) {
-		fprintf(stderr, "Unsupported WAV sample depth %d\n", bitsPerSample);
+		printf("Unsupported WAV sample depth %d\n", bitsPerSample);
 		return 1;
 	}
 	if (channels != 1)
-		fprintf(stderr, "Warning, only compressing one audio channel\n");
+		printf("Warning, only compressing one audio channel\n");
 	if (sampleRate != 16000)
-		fprintf(stderr, "Warning, AMR-WB uses 16000 Hz sample rate (WAV file has %d Hz)\n", sampleRate);
+		printf("Warning, AMR-WB uses 16000 Hz sample rate (WAV file has %d Hz)\n", sampleRate);
 	inputSize = channels*2*320;
 	inputBuf = (uint8_t*) malloc(inputSize);
 
 	amr = E_IF_init();
-	out = fopen(outfile, "wb");
+	out = memfopen(output_array, OUTPUTDATA_SIZE);
 	if (!out) {
-		perror(outfile);
 		return 1;
 	}
 
-	fwrite("#!AMR-WB\n", 1, 9, out);
+	memfwrite("#!AMR-WB\n", 1, 9, out);
 	while (1) {
 		int read, i, n;
 		short buf[320];
@@ -135,13 +124,16 @@ int main(int argc, char *argv[]) {
 			const uint8_t* in = &inputBuf[2*channels*i];
 			buf[i] = in[0] | (in[1] << 8);
 		}
+    BENCH_START(encode);
 		n = E_IF_encode(amr, mode, buf, outbuf, dtx);
-		fwrite(outbuf, 1, n, out);
+    BENCH_END(encode);
+		memfwrite(outbuf, 1, n, out);
 	}
 	free(inputBuf);
-	fclose(out);
+	memfclose(out);
 	E_IF_exit(amr);
 	wav_read_close(wav);
+  printf("finish\r\n");
 
 	return 0;
 }
