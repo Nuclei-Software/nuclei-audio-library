@@ -1,5 +1,3 @@
-Audio algorithm optimization
-
 # Audio Algorithm Optimization
 
 Here is the directory structure of this repository
