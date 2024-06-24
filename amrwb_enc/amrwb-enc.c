@@ -64,7 +64,8 @@ int findMode(int rate) {
 }
 
 extern unsigned char input_array[INPUTDATA_SIZE];
-extern unsigned char output_array[OUTPUTDATA_SIZE];
+extern unsigned char output_array[OUTPUTDATA_SIZE]; // reference data
+extern unsigned char output[OUTPUTDATA_SIZE]; // for store results
 
 int main(int argc, char *argv[]) {
 	int mode = 8;
@@ -74,6 +75,7 @@ int main(int argc, char *argv[]) {
 	int format, sampleRate, channels, bitsPerSample;
 	int inputSize;
 	uint8_t* inputBuf;
+	uint8_t* pref; // the reference data pointer
 
 	int rate = 23850;
 	dtx = 1;
@@ -110,10 +112,12 @@ int main(int argc, char *argv[]) {
 	}
 
 	memfwrite("#!AMR-WB\n", 1, 9, out);
+	// set reference data start from 9
+    pref = output_array + 9;
 	while (1) {
 		int read, i, n;
 		short buf[320];
-		uint8_t outbuf[500];
+		uint8_t outbuf[500], *p;
 
 		read = wav_read_data(wav, inputBuf, inputSize);
 		read /= channels;
@@ -128,6 +132,14 @@ int main(int argc, char *argv[]) {
 		n = E_IF_encode(amr, mode, buf, outbuf, dtx);
     BENCH_END(encode);
 		memfwrite(outbuf, 1, n, out);
+
+		// check result
+        for (p = outbuf, i = 0; i < n; i++) {
+            if (*p++ != *pref++) {
+                printf("error!\n");
+                return 1;
+            }
+        }
 	}
 	free(inputBuf);
 	memfclose(out);

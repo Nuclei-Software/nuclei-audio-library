@@ -62,3 +62,9 @@ Debug/
 Release/
 *.dep
 *.ewt
+
+# clangd cache files
+.cache
+
+# compile_commands.json generated from bear
+compile_commands.json
