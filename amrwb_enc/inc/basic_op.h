@@ -21,6 +21,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "typedef.h"
+#include "evalsoc.h"
+#include "nmsis_core.h"
 
 #define MAX_32 (Word32)0x7fffffffL
 #define MIN_32 (Word32)0x80000000L
@@ -564,6 +566,10 @@ static_vo Word32 L_msu (Word32 L_var3, Word16 var1, Word16 var2)
 static_vo Word32 L_add (Word32 L_var1, Word32 L_var2)
 {
 	Word32 L_var_out;
+#ifdef __riscv_dsp
+	L_var_out = __RV_KADDW(L_var1, L_var2);
+#else
+	
 	L_var_out = L_var1 + L_var2;
 	if (((L_var1 ^ L_var2) & MIN_32) == 0)
 	{
@@ -572,6 +578,7 @@ static_vo Word32 L_add (Word32 L_var1, Word32 L_var2)
 			L_var_out = (L_var1 < 0) ? MIN_32 : MAX_32;
 		}
 	}
+#endif
 	return (L_var_out);
 }
 
@@ -610,6 +617,9 @@ static_vo Word32 L_add (Word32 L_var1, Word32 L_var2)
 static_vo Word32 L_sub (Word32 L_var1, Word32 L_var2)
 {
 	Word32 L_var_out;
+#ifdef __riscv_dsp
+	L_var_out = __RV_KSUBW(L_var1, L_var2);
+#else
 	L_var_out = L_var1 - L_var2;
 	if (((L_var1 ^ L_var2) & MIN_32) != 0)
 	{
@@ -618,6 +628,7 @@ static_vo Word32 L_sub (Word32 L_var1, Word32 L_var2)
 			L_var_out = (L_var1 < 0L) ? MIN_32 : MAX_32;
 		}
 	}
+#endif
 	return (L_var_out);
 }
 
