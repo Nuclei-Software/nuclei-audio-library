@@ -145,7 +145,7 @@ int main(int argc, char *argv[]) {
 	memfclose(out);
 	E_IF_exit(amr);
 	wav_read_close(wav);
-  printf("finish\r\n");
+  	printf("finish\r\n");
 
 	return 0;
 }

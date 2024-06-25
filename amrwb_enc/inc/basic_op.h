@@ -33,7 +33,11 @@
 
 #define  static_vo  static __inline
 
+#ifdef __riscv_dsp
+#define saturate(L_var1) __RV_SCLIP16(L_var1, 15)
+#else
 #define saturate(L_var1) (((L_var1) > 0X00007fffL) ? (MAX_16): (((L_var1) < (Word32) 0xffff8000L) ? (MIN_16): ((L_var1) & 0xffff)))
+#endif
 
 #define abs_s(x)       ((Word16)(((x) != MIN_16) ? (((x) >= 0) ? (x) : (-(x))) : MAX_16))  /* Short abs,           1   */
 #define L_deposit_h(x) (((Word32)(x)) << 16)                                               /* 16 bit var1 -> MSB,     2 */
@@ -340,12 +344,16 @@ static_vo Word16 shr (Word16 var1, Word16 var2)
 static_vo Word16 mult (Word16 var1, Word16 var2)
 {
 	Word16 var_out;
+#ifdef __riscv_dsp
+	var_out = __RV_KHM16(var1, var2);
+#else
 	Word32 L_product;
 	L_product = (Word32) var1 *(Word32) var2;
 	L_product = (L_product & (Word32) 0xffff8000L) >> 15;
 	if (L_product & (Word32) 0x00010000L)
 		L_product = L_product | (Word32) 0xffff0000L;
 	var_out = saturate (L_product);
+#endif
 	return (var_out);
 }
 
@@ -387,6 +395,9 @@ static_vo Word16 mult (Word16 var1, Word16 var2)
 static_vo Word32 L_mult (Word16 var1, Word16 var2)
 {
 	Word32 L_var_out;
+#ifdef __riscv_dsp
+	L_var_out = __RV_KDMBB(var1, var2);
+#else
 	L_var_out = (Word32) var1 *(Word32) var2;
 	if (L_var_out != (Word32) 0x40000000L)
 	{
@@ -396,6 +407,7 @@ static_vo Word32 L_mult (Word16 var1, Word16 var2)
 	{
 		L_var_out = MAX_32;
 	}
+#endif
 	return (L_var_out);
 }
 
@@ -433,9 +445,13 @@ static_vo Word32 L_mult (Word16 var1, Word16 var2)
 static_vo Word16 voround (Word32 L_var1)
 {
 	Word16 var_out;
+#ifdef __riscv_dsp
+	var_out = __RV_KSLRAW(L_var1, -16);
+#else
 	Word32 L_rounded;
 	L_rounded = L_add (L_var1, (Word32) 0x00008000L);
 	var_out = extract_h (L_rounded);
+#endif
 	return (var_out);
 }
 
@@ -1087,11 +1103,15 @@ static_vo Word16 norm_l (Word32 L_var1)
 		var_out = 31;
 		if (L_var1 != (Word32) 0xffffffffL)
 		{
+#ifdef __riscv_dsp
+			var_out = __RV_CLRS32(L_var1) - 1;
+#else
 			L_var1 ^= (L_var1 >>31);
 			for (var_out = 0; L_var1 < (Word32) 0x40000000L; var_out++)
 			{
 				L_var1 <<= 1;
 			}
+#endif
 		}
 	}
 	return (var_out);
