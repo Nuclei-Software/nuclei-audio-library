@@ -111,25 +111,6 @@ static void Down_samp(
 		x = sig + i - NB_COEF_DOWN + 1;
 		y = (Word16 *)(fir_down1 + frac);
 
-#ifdef __riscv_dsp
-		L_sum = 0;
-
-		mult2x(&L_sum, x, y);
-		mult2x(&L_sum, x + 2, y + 2);
-		mult2x(&L_sum, x + 4, y + 4);
-		mult2x(&L_sum, x + 6, y + 6);
-		mult2x(&L_sum, x + 8, y + 8);
-		mult2x(&L_sum, x + 10, y + 10);
-		mult2x(&L_sum, x + 12, y + 12);
-		mult2x(&L_sum, x + 14, y + 14);
-		mult2x(&L_sum, x + 16, y + 16);
-		mult2x(&L_sum, x + 18, y + 18);
-		mult2x(&L_sum, x + 20, y + 20);
-		mult2x(&L_sum, x + 22, y + 22);
-		mult2x(&L_sum, x + 24, y + 24);
-		mult2x(&L_sum, x + 26, y + 26);
-		mult2x(&L_sum, x + 28, y + 28);
-#else
 		L_sum = vo_mult32((*x++),(*y++));
 		L_sum += vo_mult32((*x++),(*y++));
 		L_sum += vo_mult32((*x++),(*y++));
@@ -160,7 +141,6 @@ static void Down_samp(
 		L_sum += vo_mult32((*x++),(*y++));
 		L_sum += vo_mult32((*x++),(*y++));
 		L_sum += vo_mult32((*x),(*y));
-#endif
 
 		L_sum = L_shl2(L_sum, 2);
 		sig_d[j] = extract_h(L_add(L_sum, 0x8000));

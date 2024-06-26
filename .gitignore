@@ -68,3 +68,9 @@ Release/
 
 # compile_commands.json generated from bear
 compile_commands.json
+
+# personal gdb debug script
+.gdbinit
+
+# cycle model result
+*.rvtrace

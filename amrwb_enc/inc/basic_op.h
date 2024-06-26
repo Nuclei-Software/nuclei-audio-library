@@ -34,7 +34,7 @@
 #define  static_vo  static __inline
 
 #ifdef __riscv_dsp
-#define saturate(L_var1) __RV_SCLIP16(L_var1, 15)
+#define saturate(L_var1) __RV_SCLIP32(L_var1, 16)
 #else
 #define saturate(L_var1) (((L_var1) > 0X00007fffL) ? (MAX_16): (((L_var1) < (Word32) 0xffff8000L) ? (MIN_16): ((L_var1) & 0xffff)))
 #endif
@@ -132,9 +132,15 @@ static_vo Word16 norm_l (Word32 L_var1);           				/* Long norm,            
 static_vo Word16 add (Word16 var1, Word16 var2)
 {
 	Word16 var_out;
+#if 0
+	// NOTE: not using P-ext, because seperating commands is more 
+	// efficient for dual-issue CPU
+	var_out = __RV_KADD16(var1, var2);
+#else
 	Word32 L_sum;
 	L_sum = (Word32) var1 + var2;
 	var_out = saturate (L_sum);
+#endif
 	return (var_out);
 }
 
@@ -175,9 +181,15 @@ static_vo Word16 add (Word16 var1, Word16 var2)
 static_vo Word16 sub (Word16 var1, Word16 var2)
 {
 	Word16 var_out;
+#if 0
+	// NOTE: not using P-ext, because seperating commands is more 
+	// efficient for dual-issue CPU
+	var_out = __RV_KSUB16(var1, var2);
+#else
 	Word32 L_diff;
 	L_diff = (Word32) var1 - var2;
 	var_out = saturate (L_diff);
+#endif
 	return (var_out);
 }
 
@@ -219,6 +231,10 @@ static_vo Word16 sub (Word16 var1, Word16 var2)
 static_vo Word16 shl (Word16 var1, Word16 var2)
 {
 	Word16 var_out;
+#ifdef __riscv_dsp
+	var2 = __RV_SCLIP32(var2, 4);
+	var_out = __RV_KSLRA16(var1, var2);
+#else
 	Word32 result;
 	if (var2 < 0)
 	{
@@ -238,6 +254,7 @@ static_vo Word16 shl (Word16 var1, Word16 var2)
 			var_out = extract_l (result);
 		}
 	}
+#endif
 	return (var_out);
 }
 
@@ -279,6 +296,10 @@ static_vo Word16 shl (Word16 var1, Word16 var2)
 static_vo Word16 shr (Word16 var1, Word16 var2)
 {
 	Word16 var_out;
+#ifdef __riscv_dsp
+	var2 = __RV_SCLIP32(-var2, 4);
+	var_out = __RV_KSLRA16(var1, var2);
+#else
 	if (var2 < 0)
 	{
 		if (var2 < -16)
@@ -303,6 +324,7 @@ static_vo Word16 shr (Word16 var1, Word16 var2)
 			}
 		}
 	}
+#endif
 	return (var_out);
 }
 
@@ -496,8 +518,12 @@ static_vo Word32 L_mac (Word32 L_var3, Word16 var1, Word16 var2)
 {
 	Word32 L_var_out;
 	Word32 L_product;
+#ifdef __riscv_dsp
+	L_var_out = __RV_KDMABB(L_var3, var1, var2);
+#else
 	L_product = ((var1 * var2) << 1);
 	L_var_out = L_add (L_var3, L_product);
+#endif
 	return (L_var_out);
 }
 
@@ -542,7 +568,11 @@ static_vo Word32 L_msu (Word32 L_var3, Word16 var1, Word16 var2)
 {
 	Word32 L_var_out;
 	Word32 L_product;
+#ifdef __riscv_dsp
+	L_product = __RV_KDMBB(var1, var2);
+#else
 	L_product = (var1 * var2)<<1;
+#endif
 	L_var_out = L_sub (L_var3, L_product);
 	return (L_var_out);
 }
@@ -736,6 +766,10 @@ static_vo Word16 mult_r (Word16 var1, Word16 var2)
 static_vo Word32 L_shl (Word32 L_var1, Word16 var2)
 {
 	Word32 L_var_out = 0L;
+#ifdef __riscv_dsp
+	var2 = __RV_SCLIP32(var2, 5);
+	L_var_out = __RV_KSLRAW(L_var1, var2);
+#else
 	if (var2 <= 0)
 	{
 		if (var2 < -32)
@@ -764,13 +798,23 @@ static_vo Word32 L_shl (Word32 L_var1, Word16 var2)
 			L_var_out = L_var1;
 		}
 	}
+#endif
 	return (L_var_out);
 }
 
+/**
+ * @brief only shift left, and auto saturate the result
+ * 
+ * @param L_var1 [in] the input
+ * @param var2 [in] shift bits(>=0)
+ * @return Word32 result
+ */
 static_vo Word32 L_shl2(Word32 L_var1, Word16 var2)
 {
 	Word32 L_var_out = 0L;
-
+#ifdef __riscv_dsp
+	L_var_out = __RV_KSLLW(L_var1, var2);
+#else
 	for (; var2 > 0; var2--)
 	{
 		if (L_var1 > (Word32) 0X3fffffffL)
@@ -789,6 +833,7 @@ static_vo Word32 L_shl2(Word32 L_var1, Word16 var2)
 		L_var1 <<=1 ;
 		L_var_out = L_var1;
 	}
+#endif
 	return (L_var_out);
 }
 
@@ -829,6 +874,10 @@ static_vo Word32 L_shl2(Word32 L_var1, Word16 var2)
 static_vo Word32 L_shr (Word32 L_var1, Word16 var2)
 {
 	Word32 L_var_out;
+#ifdef __riscv_dsp
+	var2 = __RV_SCLIP32(-var2, 5);
+	L_var_out = __RV_KSLRAW(L_var1, var2);
+#else
 	if (var2 < 0)
 	{
 		if (var2 < -32)
@@ -853,6 +902,7 @@ static_vo Word32 L_shr (Word32 L_var1, Word16 var2)
 			}
 		}
 	}
+#endif
 	return (L_var_out);
 }
 
@@ -907,6 +957,9 @@ static_vo Word32 L_shr_r (Word32 L_var1, Word16 var2)
 	}
 	else
 	{
+#ifdef __riscv_dsp
+		L_var_out = __RV_KSLRAW_U(L_var1, -var2);
+#else
 		L_var_out = L_shr (L_var1, var2);
 		if (var2 > 0)
 		{
@@ -915,6 +968,7 @@ static_vo Word32 L_shr_r (Word32 L_var1, Word16 var2)
 				L_var_out++;
 			}
 		}
+#endif
 	}
 	return (L_var_out);
 }
@@ -955,12 +1009,11 @@ static_vo Word32 L_shr_r (Word32 L_var1, Word16 var2)
 static_vo Word16 norm_s (Word16 var1)
 {
 	Word16 var_out = 0;
-	if (var1 == 0)
+	if (var1 != 0)
 	{
-		var_out = 0;
-	}
-	else
-	{
+#ifdef __riscv_dsp
+		var_out = __RV_CLRS16(var1);
+#else
 		if (var1 == -1)
 		{
 			var_out = 15;
@@ -976,6 +1029,7 @@ static_vo Word16 norm_s (Word16 var1)
 				var1 <<= 1;
 			}
 		}
+#endif
 	}
 	return (var_out);
 }
@@ -1100,19 +1154,20 @@ static_vo Word16 norm_l (Word32 L_var1)
 	Word16 var_out = 0;
 	if (L_var1 != 0)
 	{
+#ifdef __riscv_dsp
+		var_out = __RV_CLRS32(L_var1);
+#else
 		var_out = 31;
 		if (L_var1 != (Word32) 0xffffffffL)
 		{
-#ifdef __riscv_dsp
-			var_out = __RV_CLRS32(L_var1) - 1;
-#else
+
 			L_var1 ^= (L_var1 >>31);
 			for (var_out = 0; L_var1 < (Word32) 0x40000000L; var_out++)
 			{
 				L_var1 <<= 1;
 			}
-#endif
 		}
+#endif
 	}
 	return (var_out);
 }
