@@ -106,7 +106,7 @@ int main(int argc, char *argv[]) {
 	inputBuf = (uint8_t*) malloc(inputSize);
 
 	amr = E_IF_init();
-	out = memfopen(output_array, OUTPUTDATA_SIZE);
+	out = memfopen(out, OUTPUTDATA_SIZE);
 	if (!out) {
 		return 1;
 	}
