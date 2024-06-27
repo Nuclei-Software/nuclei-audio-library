@@ -87,12 +87,6 @@ void Decim_12k8(
 	return;
 }
 
-static inline void mult2x(Word32 *sum, Word16 *p1, Word16 *p2) {
-	int a = __RV_PKBB16(*(p1+1), *p1);
-	int b = __RV_PKBB16(*(p2+1), *p2);
-	*sum = __RV_KMADA(*sum, a, b);
-}
-
 static void Down_samp(
 		Word16 * sig,                         /* input:  signal to downsampling  */
 		Word16 * sig_d,                       /* output: downsampled signal      */

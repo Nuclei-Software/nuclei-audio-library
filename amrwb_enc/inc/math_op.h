@@ -24,6 +24,8 @@
 #ifndef __MATH_OP_H__
 #define __MATH_OP_H__
 
+#include "typedefs.h"
+
 Word32 Isqrt(                              /* (o) Q31 : output value (range: 0<=val<1)         */
 		Word32 L_x                            /* (i) Q0  : input value  (range: 0<=val<=7fffffff) */
 	    );

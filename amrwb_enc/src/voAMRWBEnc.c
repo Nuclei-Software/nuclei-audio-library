@@ -181,18 +181,18 @@ void coder(
 	Word16 Aq[NB_SUBFR * (M + 1)];         /* A(z)   quantized for the 4 subframes */
 
 	/* Other vectors */
-	Word16 xn[L_SUBFR];                    /* Target vector for pitch search     */
+	Word16 __attribute__((aligned(8))) xn[L_SUBFR];                    /* Target vector for pitch search     */
 	Word16 xn2[L_SUBFR];                   /* Target vector for codebook search  */
-	Word16 dn[L_SUBFR];                    /* Correlation between xn2 and h1     */
-	Word16 cn[L_SUBFR];                    /* Target vector in residual domain   */
+	Word16 __attribute__((aligned(8))) dn[L_SUBFR];                    /* Correlation between xn2 and h1     */
+	Word16 __attribute__((aligned(8))) cn[L_SUBFR];                    /* Target vector in residual domain   */
 	Word16 h1[L_SUBFR];                    /* Impulse response vector            */
 	Word16 h2[L_SUBFR];                    /* Impulse response vector            */
-	Word16 code[L_SUBFR];                  /* Fixed codebook excitation          */
-	Word16 y1[L_SUBFR];                    /* Filtered adaptive excitation       */
-	Word16 y2[L_SUBFR];                    /* Filtered adaptive excitation       */
+	Word16 __attribute__((aligned(8))) code[L_SUBFR];                  /* Fixed codebook excitation          */
+	Word16 __attribute__((aligned(8))) y1[L_SUBFR];                    /* Filtered adaptive excitation       */
+	Word16 __attribute__((aligned(8))) y2[L_SUBFR];                    /* Filtered adaptive excitation       */
 	Word16 error[M + L_SUBFR];             /* error of quantization              */
 	Word16 synth[L_SUBFR];                 /* 12.8kHz synthesis vector           */
-	Word16 exc2[L_FRAME];                  /* excitation vector                  */
+	Word16 __attribute__((aligned(8))) exc2[L_FRAME];                  /* excitation vector                  */
 	Word16 buf[L_FRAME];                   /* VAD buffer                         */
 
 	/* Scalars */
@@ -1340,10 +1340,10 @@ static Word16 synthesis(
 
 	Word16 synth_hi[M + L_SUBFR], synth_lo[M + L_SUBFR];
 	Word16 synth[L_SUBFR];
-	Word16 HF[L_SUBFR16k];                 /* High Frequency vector      */
+	Word16 __attribute__((aligned(8))) HF[L_SUBFR16k];                 /* High Frequency vector      */
 	Word16 Ap[M + 1];
 
-	Word16 HF_SP[L_SUBFR16k];              /* High Frequency vector (from original signal) */
+	Word16 __attribute__((aligned(8))) HF_SP[L_SUBFR16k];              /* High Frequency vector (from original signal) */
 
 	Word16 HP_est_gain, HP_calc_gain, HP_corr_gain;
 	Word16 dist_min, dist;

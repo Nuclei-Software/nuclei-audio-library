@@ -25,6 +25,8 @@
 #ifndef __MAIN_H__
 #define __MAIN_H__
 
+#include "typedefs.h"
+
 void coder(
      Word16 * mode,                        /* input :  used mode                             */
      Word16 speech16k[],                   /* input :  320 new speech samples (at 16 kHz)    */

@@ -21,6 +21,8 @@
 #ifndef __OPER_32B_H__
 #define __OPER_32B_H__
 
+#include "typedefs.h"
+
 void VO_L_Extract (Word32 L_32, Word16 *hi, Word16 *lo);
 Word32 L_Comp (Word16 hi, Word16 lo);
 Word32 Mpy_32 (Word16 hi1, Word16 lo1, Word16 hi2, Word16 lo2);

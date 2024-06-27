@@ -34,7 +34,7 @@
 #define  static_vo  static __inline
 
 #ifdef __riscv_dsp
-#define saturate(L_var1) __RV_SCLIP32(L_var1, 16)
+#define saturate(L_var1) __RV_SCLIP32((L_var1), 16)
 #else
 #define saturate(L_var1) (((L_var1) > 0X00007fffL) ? (MAX_16): (((L_var1) < (Word32) 0xffff8000L) ? (MIN_16): ((L_var1) & 0xffff)))
 #endif

@@ -48,7 +48,7 @@ void Set_zero(
 *********************************************************************/
 
 void Copy(
-		Word16 x[],                           /* (i)   : input vector   */
+		const Word16 x[],                     /* (i)   : input vector   */
 		Word16 y[],                           /* (o)   : output vector  */
 		Word16 L                              /* (i)   : vector length  */
 	 )
@@ -69,6 +69,3 @@ void Copy(
 		temp2 = *x++;
 	}while(--num!=0);
 }
-
-
-

@@ -202,18 +202,37 @@ Word32 Dot_product12(                      /* (o) Q31: normalized result (1 < va
 {
 	Word16 sft;
 	Word32 i, L_sum;
+#ifdef __riscv_dsp
+	// NOTE: x and y should aligned on 8 bytes, lg should be multiple of 4
+	int64_t *p1, *p2, sum = 0;
+	Word32 loop_count = lg >> 2;
+	p1 = (int64_t *)x;
+	p2 = (int64_t *)y;
+
+	if(((long)p1 & 0x7) || ((long)p2 & 0x7)) {
+		printf("data is not aligned in: %s, line: %d\n", __FILE__, __LINE__);
+	}
+
+	if((lg & 0x3) != 0) {
+		printf("lg is not multiple of 4 in: %s, line: %d\n", __FILE__, __LINE__);
+	}
+
+	for (i = 0; i < loop_count; i++) {
+		// multiply and add with 4 parallel elements
+		sum = __RV_DSMALDA(sum, *p1++, *p2++);
+	}
+	L_sum = (Word32)sum;
+#else
 	L_sum = 0;
 	for (i = 0; i < lg; i++)
 	{
 		L_sum += x[i] * y[i];
 	}
+#endif
 	L_sum = (L_sum << 1) + 1;
 	/* Normalize acc in Q31 */
 	sft = norm_l(L_sum);
 	L_sum = L_sum << sft;
 	*exp = 30 - sft;            /* exponent = 0..30 */
 	return (L_sum);
-
 }
-
-

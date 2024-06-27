@@ -23,6 +23,8 @@
 #ifndef __P_MED_O_H__
 #define __P_MED_O_H__
 
+#include "typedefs.h"
+
 Word16 Pitch_med_ol(                       /* output: open loop pitch lag                        */
 		Word16 wsp[],                         /* input : signal used to compute the open loop pitch */
 		/* wsp[-pit_max] to wsp[-1] should be known   */

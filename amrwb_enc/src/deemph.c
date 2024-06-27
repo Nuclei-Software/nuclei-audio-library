@@ -69,8 +69,13 @@ void Deemph2(
 	for (i = 1; i < L; i++)
 	{
 		L_tmp = x[i] << 15;
+		// L_tmp = __RV_KDMABB(L_tmp, x[i - 1], mu);
 		L_tmp += (x[i - 1] * mu)<<1;
+#ifdef __riscv_dsp
+		x[i] = __RV_KSLRAW_U(L_tmp, -16);
+#else
 		x[i] = (L_tmp + 0x8000)>>16;
+#endif
 	}
 	*mem = x[L - 1];
 	return;
@@ -101,11 +106,16 @@ void Deemph_32(
 	for (i = 1; i < L; i++)
 	{
 		L_tmp = L_deposit_h(x_hi[i]);
-		L_tmp += (x_lo[i] * 8)<<1;
+		L_tmp += x_lo[i] << 4; // (x_lo[i] * 8)<<1
 		L_tmp = (L_tmp << 3);
+		// L_tmp = __RV_KDMABB(L_tmp, y[i - 1], fac);
 		L_tmp += (y[i - 1] * fac)<<1;
 		L_tmp = (L_tmp << 1);
+#ifdef __riscv_dsp
+		y[i] = __RV_KSLRAW_U(L_tmp, -16);
+#else
 		y[i] = (L_tmp + 0x8000)>>16;
+#endif
 	}
 
 	*mem = y[L - 1];

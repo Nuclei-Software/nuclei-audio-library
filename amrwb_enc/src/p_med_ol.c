@@ -27,6 +27,7 @@
 #include "oper_32b.h"
 #include "math_op.h"
 #include "p_med_ol.tab"
+#include <string.h>
 
 Word16 Pitch_med_ol(
 		   Word16      wsp[],        /*   i: signal used to compute the open loop pitch*/
@@ -147,11 +148,7 @@ Word16 Pitch_med_ol(
 	*gain = vo_round(L_shl(R0, exp_R0));
 
 	/* Shitf hp_wsp[] for next frame */
-
-	for (i = 0; i < L_max; i++)
-	{
-		old_hp_wsp[i] = old_hp_wsp[i + L_frame];
-	}
+	memcpy(old_hp_wsp, old_hp_wsp + L_frame, L_max << 1);
 
 	return (Tm);
 }
