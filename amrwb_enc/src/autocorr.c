@@ -36,9 +36,31 @@ void Autocorr(
 	     )
 {
 	Word32 i, norm, shift;
-	Word16 y[L_WINDOW];
+	Word16 __attribute__((aligned(8))) y[L_WINDOW];
 	Word32 L_sum, L_sum1, L_tmp, F_LEN;
 	Word16 *p1,*p2,*p3;
+#ifdef __riscv_dsp
+	Word32 *px;
+	const Word32 *pwind;
+	union data {
+		Word32 W[2];
+		int64_t DW;
+	} tmp;
+	
+	/* Windowing of signal */
+	px = (Word32 *)x;
+	pwind = (const Word32 *)vo_window;
+	p3 = y;
+	for (i = 0; i < L_WINDOW; i+=4)
+	{
+		tmp.DW = __RV_SMUL16(*px++, *pwind++);
+		*p3++ = __RV_KSLRAW_U(tmp.W[0], -15);
+		*p3++ = __RV_KSLRAW_U(tmp.W[1], -15);
+		tmp.DW = __RV_SMUL16(*px++, *pwind++);
+		*p3++ = __RV_KSLRAW_U(tmp.W[0], -15);
+		*p3++ = __RV_KSLRAW_U(tmp.W[1], -15);
+	}
+#else
 	const Word16 *p4;
 	/* Windowing of signal */
 	p1 = x;
@@ -52,7 +74,8 @@ void Autocorr(
 		*p3++ = vo_mult_r((*p1++), (*p4++));
 		*p3++ = vo_mult_r((*p1++), (*p4++));
 	}
-
+#endif
+	
 	/* calculate energy of signal */
 	L_sum = vo_L_deposit_h(16);               /* sqrt(256), avoid overflow after rounding */
 	for (i = 0; i < L_WINDOW; i++)

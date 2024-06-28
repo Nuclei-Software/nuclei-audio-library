@@ -158,7 +158,7 @@ void coder(
 	/* Coder states */
 	Coder_State *st;
 	/* Speech vector */
-	Word16 old_speech[L_TOTAL];
+	Word16 __attribute__((aligned(8))) old_speech[L_TOTAL];
 	Word16 *new_speech, *speech, *p_window;
 
 	/* Weighted speech vector */

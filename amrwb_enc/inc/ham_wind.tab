@@ -20,7 +20,7 @@
 
 #define L_WINDOW 384
 
-const Word16 vo_window[L_WINDOW] = {
+const Word16 __attribute__((aligned(8))) vo_window[L_WINDOW] = {
     2621,    2622,    2626,    2632,    2640,    2650,    2662,    2677,
     2694,    2714,    2735,    2759,    2785,    2814,    2844,    2877,
     2912,    2949,    2989,    3031,    3075,    3121,    3169,    3220,

@@ -24,6 +24,7 @@
 
 #include "typedef.h"
 #include "basic_op.h"
+#include <string.h>
 
 void Convolve (
 		Word16 x[],        /* (i)     : input vector                           */
@@ -35,8 +36,93 @@ void Convolve (
 	Word32  i, n;
 	Word16 *tmpH,*tmpX;
 	Word32 s;
+
+	// for aligned data load
+	Word16 __attribute__((aligned(8))) h_[68];
+	memcpy(h_+1, h, 128);
+
 	for (n = 0; n < 64;)
 	{
+#ifdef __riscv_dsp
+		tmpH = h_+n;
+		tmpX = x;
+		s = 0;
+		i = n;
+		while(i>0)
+		{
+			s = __RV_KMAXDA(s, *((Word32 *)tmpX), *((Word32 *)tmpH));
+			tmpX += 2;
+			tmpH -= 2;
+			s = __RV_KMAXDA(s, *((Word32 *)tmpX), *((Word32 *)tmpH));
+			tmpX += 2;
+			tmpH -= 2;
+			i -= 4;
+		}
+		tmpH++;
+		s += vo_mult32((*tmpX), (*tmpH));
+		y[n] = (s + 0x4000)>>15;
+		// y[n] = __RV_KSLRAW_U(s, -15);
+		n++;
+
+		tmpH = h+n-1;
+		tmpX = x;
+		s = 0;
+		i = n-1;
+		while(i>0)
+		{
+			s = __RV_KMAXDA(s, *((Word32 *)tmpX), *((Word32 *)tmpH));
+			tmpX += 2;
+			tmpH -= 2;
+			s = __RV_KMAXDA(s, *((Word32 *)tmpX), *((Word32 *)tmpH));
+			tmpX += 2;
+			tmpH -= 2;
+			i -= 4;
+		}
+		s = __RV_KMAXDA(s, *((Word32 *)tmpX), *((Word32 *)tmpH));
+		y[n] = (s + 0x4000)>>15;
+		// y[n] = __RV_KSLRAW_U(s, -15);
+		n++;
+
+		tmpH = h_+n;
+		tmpX = x;
+		s = 0;
+		i = n-2;
+		while(i>0)
+		{
+			s = __RV_KMAXDA(s, *((Word32 *)tmpX), *((Word32 *)tmpH));
+			tmpX += 2;
+			tmpH -= 2;
+			s = __RV_KMAXDA(s, *((Word32 *)tmpX), *((Word32 *)tmpH));
+			tmpX += 2;
+			tmpH -= 2;
+			i -= 4;
+		}
+		s = __RV_KMAXDA(s, *((Word32 *)tmpX), *((Word32 *)tmpH));
+		tmpX += 2;
+		tmpH--;
+		s += vo_mult32((*tmpX), (*tmpH));
+		// y[n] = (s + 0x4000)>>15;
+		y[n] = __RV_KSLRAW_U(s, -15);
+		n++;
+
+		tmpH = h+n-1;
+		tmpX = x;
+		s = 0;
+		i = n+1;
+		while(i>0)
+		{
+			s = __RV_KMAXDA(s, *((Word32 *)tmpX), *((Word32 *)tmpH));
+			tmpX += 2;
+			tmpH -= 2;
+			s = __RV_KMAXDA(s, *((Word32 *)tmpX), *((Word32 *)tmpH));
+			tmpX += 2;
+			tmpH -= 2;
+			i -= 4;
+		}
+		// y[n] = (s + 0x4000)>>15;
+		y[n] = __RV_KSLRAW_U(s, -15);
+		n++;
+#else
 		tmpH = h+n;
 		tmpX = x;
 		i=n+1;
@@ -101,6 +187,7 @@ void Convolve (
 		}
 		y[n] = ((s<<1) + 0x8000)>>16;
 		n++;
+#endif
 	}
 	return;
 }

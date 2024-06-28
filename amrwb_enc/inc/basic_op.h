@@ -35,8 +35,10 @@
 
 #ifdef __riscv_dsp
 #define saturate(L_var1) __RV_SCLIP32((L_var1), 16)
+#define vo_round(a) __RV_KSLRAW_U(a, -16)
 #else
 #define saturate(L_var1) (((L_var1) > 0X00007fffL) ? (MAX_16): (((L_var1) < (Word32) 0xffff8000L) ? (MIN_16): ((L_var1) & 0xffff)))
+#define vo_round(a) ((a + 0x00008000) >> 16)
 #endif
 
 #define abs_s(x)       ((Word16)(((x) != MIN_16) ? (((x) >= 0) ? (x) : (-(x))) : MAX_16))  /* Short abs,           1   */
@@ -57,7 +59,6 @@
 #define vo_shr_r(var1, var2)   		((var1+((Word16)(1L<<(var2-1))))>>var2)
 #define vo_sub(a,b)			(a - b)
 #define vo_L_deposit_h(a)		((Word32)((a) << 16))
-#define vo_round(a)			((a + 0x00008000) >> 16)
 #define vo_extract_l(a)			((Word16)(a))
 #define vo_L_add(a,b)			(a + b)
 #define vo_L_sub(a,b)			(a - b)
