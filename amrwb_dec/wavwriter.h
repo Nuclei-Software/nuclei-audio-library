@@ -23,9 +23,19 @@
 extern "C" {
 #endif
 
-void* wav_write_open(const char *filename, int sample_rate, int bits_per_sample, int channels);
-void wav_write_close(void* obj);
+#include "memfop.h"
 
+struct wav_writer {
+	MemoryFile *wav;
+	int data_length;
+
+	int sample_rate;
+	int bits_per_sample;
+	int channels;
+};
+
+struct wav_writer* wav_write_open(MemoryFile *memfile, int sample_rate, int bits_per_sample, int channels);
+void wav_write_close(void* obj);
 void wav_write_data(void* obj, const unsigned char* data, int length);
 
 #ifdef __cplusplus

@@ -527,12 +527,10 @@ extern "C"
         return L_mul;
     }
 
+#endif
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif
-
 #endif   /*  PVAMRWBDECODER_BASIC_OP_CEQUIVALENT_H  */
-

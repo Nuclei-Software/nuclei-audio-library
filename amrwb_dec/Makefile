@@ -1,4 +1,4 @@
-TARGET = amr_dec
+TARGET = amrwb_dec
 
 NUCLEI_SDK_ROOT = ../../../..
 
