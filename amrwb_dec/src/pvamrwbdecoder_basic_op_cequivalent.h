@@ -49,6 +49,9 @@ extern "C"
 
 #include "normalize_amr_wb.h"
 
+#include "evalsoc.h"
+#include "nmsis_core.h"
+
 #if defined(C_EQUIVALENT)
 
 
@@ -82,12 +85,15 @@ extern "C"
     static inline int16 add_int16(int16 var1, int16 var2)
     {
         int32 L_sum;
-
+#if (defined (__riscv_dsp))
+        L_sum = __RV_KADD16(var1, var2);
+#else
         L_sum = (int32) var1 + var2;
         if ((L_sum >> 15) != (L_sum >> 31))
         {
             L_sum = (L_sum >> 31) ^ MAX_16;
         }
+#endif
         return ((int16)(L_sum));
     }
 
@@ -122,11 +128,15 @@ extern "C"
     {
         int32 L_diff;
 
+#if (defined (__riscv_dsp))
+        L_diff = __RV_KSUB16(var1, var2);
+#else
         L_diff = (int32) var1 - var2;
         if ((L_diff >> 15) != (L_diff >> 31))
         {
             L_diff = (L_diff >> 31) ^ MAX_16;
         }
+#endif
         return ((int16)(L_diff));
     }
 
@@ -159,14 +169,16 @@ extern "C"
     static inline int16 mult_int16(int16 var1, int16 var2)
     {
         int32 L_product;
-
+#if (defined (__riscv_dsp))
+        L_product = __RV_KHM16(var1, var2);
+#else
         L_product = ((int32) var1 * (int32) var2) >> 15;
 
         if ((L_product >> 15) != (L_product >> 31))
         {
             L_product = (L_product >> 31) ^ MAX_16;
         }
-
+#endif
         return ((int16)L_product);
     }
 
@@ -198,8 +210,11 @@ extern "C"
 
     static inline int32 add_int32(int32 L_var1, int32 L_var2)
     {
+#if (defined (__riscv_dsp))
+        int32 L_var_out = __RV_KADDW(L_var1, L_var2);
+        return L_var_out;
+#else
         int32 L_var_out;
-
         L_var_out = L_var1 + L_var2;
 
         if (((L_var1 ^ L_var2) & MIN_32) == 0)  /* same sign ? */
@@ -210,6 +225,7 @@ extern "C"
             }
         }
         return (L_var_out);
+#endif
     }
 
 
@@ -242,6 +258,10 @@ extern "C"
 
     static inline int32 sub_int32(int32 L_var1, int32 L_var2)
     {
+#if 0
+        int32 L_var_out = __RV_KSUBW(L_var1, L_var2);
+        return L_var_out;
+#else
         int32 L_var_out;
 
         L_var_out = L_var1 - L_var2;
@@ -254,6 +274,7 @@ extern "C"
             }
         }
         return (L_var_out);
+#endif
     }
 
 
@@ -404,6 +425,9 @@ extern "C"
     static inline int32 mul_16by16_to_int32(int16 var1, int16 var2)
     {
         int32 L_mul;
+#if 0
+        L_mul = __RV_KDMBB(var1, var2);
+#else
 
         L_mul  = ((int32) var1 * (int32) var2);
 
@@ -415,7 +439,7 @@ extern "C"
         {
             L_mul = MAX_32;     /* saturation */
         }
-
+#endif
         return (L_mul);
 
     }
@@ -507,9 +531,11 @@ extern "C"
 
     static inline   int32 fxp_mac_16by16(int16 var1,  int16 var2, int32 L_add)
     {
-
+#if 0
+        L_add = __RV_KMABB(L_add, var1, var2);
+#else
         L_add += (int32)var1 * var2;
-
+#endif
         return L_add;
     }
 
