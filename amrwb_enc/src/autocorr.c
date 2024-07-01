@@ -90,9 +90,14 @@ void Autocorr(
 	shift = 4 - (norm >> 1);
 	if(shift > 0)
 	{
+		// px = (Word32 *)y;
 		p1 = y;
 		for (i = 0; i < L_WINDOW; i+=4)
 		{
+			// *px = __RV_SRA16_U(*px, shift);
+			// px++;
+			// *px = __RV_SRA16_U(*px, shift);
+			// px++;
 			*p1 = vo_shr_r(*p1, shift);
 			p1++;
 			*p1 = vo_shr_r(*p1, shift);
@@ -108,10 +113,17 @@ void Autocorr(
 	L_sum = 1;
 	for (i = 0; i < L_WINDOW; i+=4)
 	{
+#ifdef __riscv_dsp
+		L_sum = __RV_KDMABB(L_sum, y[i], y[i]);
+		L_sum = __RV_KDMABB(L_sum, y[i+1], y[i+1]);
+		L_sum = __RV_KDMABB(L_sum, y[i+2], y[i+2]);
+		L_sum = __RV_KDMABB(L_sum, y[i+3], y[i+3]);
+#else
 		L_sum += vo_L_mult(y[i], y[i]);
 		L_sum += vo_L_mult(y[i+1], y[i+1]);
 		L_sum += vo_L_mult(y[i+2], y[i+2]);
 		L_sum += vo_L_mult(y[i+3], y[i+3]);
+#endif
 	}
 
 	norm = norm_l(L_sum);

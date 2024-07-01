@@ -44,7 +44,7 @@
 #include "math_op.h"
 #include "acelp.h"
 #include "cnst.h"
-
+#include <string.h>
 #include "q_pulse.h"
 
 static Word16 tipos[36] = {
@@ -142,9 +142,12 @@ void ACELP_4t64_fx(
 	Word16 ind[NPMAXPT * NB_TRACK];
 	Word16 codvec[NB_PULSE_MAX], nbpos[10];
 	Word16 cor_x[NB_POS], cor_y[NB_POS], pos_max[NB_TRACK];
-	Word16 h_buf[4 * L_SUBFR];
+	Word16 __attribute__((aligned(8))) h_buf[4 * L_SUBFR];
 	Word16 rrixix[NB_TRACK][NB_POS], rrixiy[NB_TRACK][MSIZE];
 	Word16 ipos[NB_PULSE_MAX];
+	// uint64_t *pH, *ph, *ph_inv;
+	// uint64_t tmp;
+	// const uint64_t one16 = 0x0001000100010001u;
 
 	switch (nbbits)
 	{
@@ -355,9 +358,23 @@ void ACELP_4t64_fx(
 	p0 = H;
 	p1 = h;
 	p2 = h_inv;
+	// pH = (uint64_t *)H;
+	// ph = (uint64_t *)h;
+	// ph_inv = (uint64_t *)h_inv;
 
-	for (i = 0; i < L_SUBFR/4; i++)
+	for (i = 0; i < L_SUBFR; i+=4)
 	{
+		// tmp = __RV_DKSLRA16(*pH++, -h_shift);
+		// *ph++ = tmp;
+		// *ph_inv++ = __RV_DKADD16(~tmp, one16);
+
+		// tmp = __RV_SRA16(*pH++, h_shift);
+		// *ph++ = tmp;
+		// *ph_inv++ = __RV_ADD16(~tmp, one16);
+		// tmp = __RV_SRA16(*pH++, h_shift);
+		// *ph++ = tmp;
+		// *ph_inv++ = __RV_ADD16(~tmp, one16);
+
 		*p1 = *p0++ >> h_shift;
 		*p2++ = -(*p1++);
 		*p1 = *p0++ >> h_shift;
@@ -386,15 +403,22 @@ void ACELP_4t64_fx(
 	cor = 0x00008000L;                             /* for rounding */
 	for (i = 0; i < NB_POS; i++)
 	{
+		// cor = __RV_KDMABB(cor, *ptr_h1, *ptr_h1);
 		cor += vo_L_mult((*ptr_h1), (*ptr_h1));
 		ptr_h1++;
 		*p3-- = extract_h(cor);
+
+		// cor = __RV_KDMABB(cor, *ptr_h1, *ptr_h1);
 		cor += vo_L_mult((*ptr_h1), (*ptr_h1));
 		ptr_h1++;
 		*p2-- = extract_h(cor);
+
+		// cor = __RV_KDMABB(cor, *ptr_h1, *ptr_h1);
 		cor += vo_L_mult((*ptr_h1), (*ptr_h1));
 		ptr_h1++;
 		*p1-- = extract_h(cor);
+
+		// cor = __RV_KDMABB(cor, *ptr_h1, *ptr_h1);
 		cor += vo_L_mult((*ptr_h1), (*ptr_h1));
 		ptr_h1++;
 		*p0-- = extract_h(cor);
@@ -425,18 +449,22 @@ void ACELP_4t64_fx(
 
 		for (i = k + 1; i < NB_POS; i++)
 		{
+			// cor = __RV_KDMABB(cor, *ptr_h1, *ptr_h2);
 			cor += vo_L_mult((*ptr_h1), (*ptr_h2));
 			ptr_h1++;
 			ptr_h2++;
 			*p3 = extract_h(cor);
+			// cor = __RV_KDMABB(cor, *ptr_h1, *ptr_h2);
 			cor += vo_L_mult((*ptr_h1), (*ptr_h2));
 			ptr_h1++;
 			ptr_h2++;
 			*p2 = extract_h(cor);
+			// cor = __RV_KDMABB(cor, *ptr_h1, *ptr_h2);
 			cor += vo_L_mult((*ptr_h1), (*ptr_h2));
 			ptr_h1++;
 			ptr_h2++;
 			*p1 = extract_h(cor);
+			// cor = __RV_KDMABB(cor, *ptr_h1, *ptr_h2);
 			cor += vo_L_mult((*ptr_h1), (*ptr_h2));
 			ptr_h1++;
 			ptr_h2++;

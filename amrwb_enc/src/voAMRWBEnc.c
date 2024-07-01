@@ -182,18 +182,18 @@ void coder(
 
 	/* Other vectors */
 	Word16 __attribute__((aligned(8))) xn[L_SUBFR];                    /* Target vector for pitch search     */
-	Word16 xn2[L_SUBFR];                   /* Target vector for codebook search  */
+	Word16 __attribute__((aligned(8))) xn2[L_SUBFR];                   /* Target vector for codebook search  */
 	Word16 __attribute__((aligned(8))) dn[L_SUBFR];                    /* Correlation between xn2 and h1     */
 	Word16 __attribute__((aligned(8))) cn[L_SUBFR];                    /* Target vector in residual domain   */
-	Word16 h1[L_SUBFR];                    /* Impulse response vector            */
-	Word16 h2[L_SUBFR];                    /* Impulse response vector            */
+	Word16 __attribute__((aligned(8))) h1[L_SUBFR];                    /* Impulse response vector            */
+	Word16 __attribute__((aligned(8))) h2[L_SUBFR];                    /* Impulse response vector            */
 	Word16 __attribute__((aligned(8))) code[L_SUBFR];                  /* Fixed codebook excitation          */
 	Word16 __attribute__((aligned(8))) y1[L_SUBFR];                    /* Filtered adaptive excitation       */
 	Word16 __attribute__((aligned(8))) y2[L_SUBFR];                    /* Filtered adaptive excitation       */
-	Word16 error[M + L_SUBFR];             /* error of quantization              */
-	Word16 synth[L_SUBFR];                 /* 12.8kHz synthesis vector           */
+	Word16 __attribute__((aligned(8))) error[M + L_SUBFR];             /* error of quantization              */
+	Word16 __attribute__((aligned(8))) synth[L_SUBFR];                 /* 12.8kHz synthesis vector           */
 	Word16 __attribute__((aligned(8))) exc2[L_FRAME];                  /* excitation vector                  */
-	Word16 buf[L_FRAME];                   /* VAD buffer                         */
+	Word16 __attribute__((aligned(8))) buf[L_FRAME];                   /* VAD buffer                         */
 
 	/* Scalars */
 	Word32 i, j, i_subfr, select, pit_flag, clip_gain, vad_flag;
