@@ -29,10 +29,6 @@
 
 BENCH_DECLARE_VAR();
 
-void usage(const char* name) {
-	printf("%s [-r bitrate] [-d] in.wav out.amr\n", name);
-}
-
 int findMode(int rate) {
 	struct {
 		int mode;
@@ -106,7 +102,7 @@ int main(int argc, char *argv[]) {
 	inputBuf = (uint8_t*) malloc(inputSize);
 
 	amr = E_IF_init();
-	out = memfopen(out, OUTPUTDATA_SIZE);
+	out = memfopen(output, OUTPUTDATA_SIZE);
 	if (!out) {
 		return 1;
 	}
@@ -128,9 +124,9 @@ int main(int argc, char *argv[]) {
 			const uint8_t* in = &inputBuf[2*channels*i];
 			buf[i] = in[0] | (in[1] << 8);
 		}
-    BENCH_START(encode);
+    	BENCH_START(encode);
 		n = E_IF_encode(amr, mode, buf, outbuf, dtx);
-    BENCH_END(encode);
+    	BENCH_END(encode);
 		memfwrite(outbuf, 1, n, out);
 
 		// check result
