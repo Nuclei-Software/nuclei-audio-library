@@ -48,7 +48,7 @@ extern "C"
 
 
 #include "normalize_amr_wb.h"
-
+#include "pvamrwbdecoder_basic_op.h"
 #include "evalsoc.h"
 #include "nmsis_core.h"
 
@@ -311,8 +311,10 @@ extern "C"
     static inline   int32 mac_16by16_to_int32(int32 L_var3, int16 var1, int16 var2)
     {
         int32 L_var_out;
+#if (defined (__riscv_dsp))
+        L_var_out = __RV_KDMABB(L_var3, var1, var2);
+#else
         int32 L_mul;
-
         L_mul  = ((int32) var1 * (int32) var2);
 
         if (L_mul != 0x40000000)
@@ -333,7 +335,7 @@ extern "C"
                 L_var_out = (L_var3 >> 31) ^ MAX_32;
             }
         }
-
+#endif
         return (L_var_out);
     }
 
@@ -372,6 +374,10 @@ extern "C"
         int32 L_var_out;
         int32 L_mul;
 
+#if (defined (__riscv_dsp))
+        L_mul = __RV_KDMBB(var1, var2);
+        L_var_out = __RV_KSUBW(L_var3, L_mul);
+#else
         L_mul  = ((int32) var1 * (int32) var2);
 
         if (L_mul != 0x40000000)
@@ -392,7 +398,7 @@ extern "C"
                 L_var_out = (L_var3 >> 31) ^ MAX_32;
             }
         }
-
+#endif
         return (L_var_out);
     }
 
@@ -425,7 +431,7 @@ extern "C"
     static inline int32 mul_16by16_to_int32(int16 var1, int16 var2)
     {
         int32 L_mul;
-#if 0
+#if (defined (__riscv_dsp))
         L_mul = __RV_KDMBB(var1, var2);
 #else
 
@@ -465,11 +471,15 @@ extern "C"
      ----------------------------------------------------------------------------*/
     static inline int16 amr_wb_round(int32 L_var1)
     {
+#if 0
+        return __RV_KSLRAW_U(L_var1, -16);
+#else
         if (L_var1 != MAX_32)
         {
             L_var1 +=  0x00008000L;
         }
         return ((int16)(L_var1 >> 16));
+#endif
     }
 
 

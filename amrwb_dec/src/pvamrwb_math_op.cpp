@@ -90,7 +90,7 @@ terms listed above has been obtained from the copyright holder.
                16 bit short signed integer (int16) whose value falls in the
                range : 0xffff 8000 <= var_out <= 0x0000 7fff.
  ----------------------------------------------------------------------------*/
-
+#if !(defined (__riscv_dsp))
 int16 mult_int16_r(int16 var1, int16 var2)
 {
     int32 L_product_arr;
@@ -105,7 +105,7 @@ int16 mult_int16_r(int16 var1, int16 var2)
 
     return ((int16)L_product_arr);
 }
-
+#endif
 
 
 /*----------------------------------------------------------------------------
@@ -148,7 +148,7 @@ int16 mult_int16_r(int16 var1, int16 var2)
                16 bit short signed integer (int16) whose value falls in the
                range : 0xffff 8000 <= var_out <= 0x0000 7fff.
  ----------------------------------------------------------------------------*/
-
+#if !(defined (__riscv_dsp))
 int16 shr_rnd(int16 var1, int16 var2)
 {
     int16 var_out;
@@ -163,6 +163,7 @@ int16 shr_rnd(int16 var1, int16 var2)
     }
     return (var_out);
 }
+#endif
 
 
 /*----------------------------------------------------------------------------

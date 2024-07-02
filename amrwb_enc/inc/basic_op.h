@@ -469,7 +469,7 @@ static_vo Word16 voround (Word32 L_var1)
 {
 	Word16 var_out;
 #ifdef __riscv_dsp
-	var_out = __RV_KSLRAW(L_var1, -16);
+	var_out = __RV_KSLRAW_U(L_var1, -16);
 #else
 	Word32 L_rounded;
 	L_rounded = L_add (L_var1, (Word32) 0x00008000L);

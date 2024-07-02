@@ -45,6 +45,8 @@ terms listed above has been obtained from the copyright holder.
 
 
 #include "normalize_amr_wb.h"
+#include "evalsoc.h"
+#include "nmsis_core.h"
 
 
 #define MAX_32 (int32)0x7fffffffL
@@ -108,7 +110,9 @@ static inline  int16 negate_int16(int16 var1)
 static inline  int16 shl_int16(int16 var1, int16 var2)
 {
     int16 var_out;
-
+#if 0
+    var_out = __RV_KSLRA16(var1, var2);
+#else
     if (var2 < 0)
     {
         var2 = (-var2) & (0xf);
@@ -123,6 +127,7 @@ static inline  int16 shl_int16(int16 var1, int16 var2)
             var_out = (var1 >> 15) ^ MAX_16;
         }
     }
+#endif
     return (var_out);
 }
 
@@ -152,7 +157,9 @@ static inline  int16 shl_int16(int16 var1, int16 var2)
 static inline  int32 shl_int32(int32 L_var1, int16 var2)
 {
     int32 L_var_out;
-
+#if (defined (__riscv_dsp))
+    L_var_out = __RV_KSLRAW(L_var1, var2);
+#else
     if (var2 > 0)
     {
         L_var_out = L_var1 << var2;
@@ -166,7 +173,7 @@ static inline  int32 shl_int32(int32 L_var1, int16 var2)
         var2 = (-var2) & (0xf);
         L_var_out = L_var1 >> var2;
     }
-
+#endif
     return (L_var_out);
 }
 
@@ -196,6 +203,9 @@ static inline  int32 shl_int32(int32 L_var1, int16 var2)
 static inline  int32 shr_int32(int32 L_var1, int16 var2)
 {
     int32 L_var_out;
+#if (defined (__riscv_dsp))
+    L_var_out = __RV_KSLRAW(L_var1, -var2);
+#else
 
     if (var2 >= 0)
     {
@@ -212,6 +222,7 @@ static inline  int32 shr_int32(int32 L_var1, int16 var2)
         }
 
     }
+#endif
     return (L_var_out);
 }
 

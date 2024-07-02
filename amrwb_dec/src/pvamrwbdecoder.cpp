@@ -440,7 +440,11 @@ int32 pvDecoder_AmrWb(
             {
                 L_tmp = mul_16by16_to_int32(isf_tmp[i], sub_int16(32767, interpol_frac[j]));
                 L_tmp = mac_16by16_to_int32(L_tmp, isf[i], interpol_frac[j]);
+#if (defined (__riscv_dsp))
+                HfIsf[i] = __RV_KSLRAW_U(L_tmp, -16);
+#else
                 HfIsf[i] = amr_wb_round(L_tmp);
+#endif
             }
 
             synthesis_amr_wb(Aq,
@@ -694,8 +698,11 @@ int32 pvDecoder_AmrWb(
                 L_tmp  = ((int32) exc[i-1+i_subfr] + exc[i+1+i_subfr]);
                 L_tmp *= 5898;
                 L_tmp += ((int32) exc[i+i_subfr] * 20972);
-
+#if (defined (__riscv_dsp))
+                code[i] = __RV_KSLRAW_U(L_tmp, -15);
+#else
                 code[i] = amr_wb_round(L_tmp << 1);
+#endif
             }
             pv_memcpy((void *)&exc[i_subfr], (void *)code, L_SUBFR*sizeof(*code));
 

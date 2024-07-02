@@ -115,7 +115,11 @@ void preemph_amrwb_dec(
     for (i = lg - 1; i != 0; i--)
     {
         L_tmp = msu_16by16_from_int32((int32)x[i] << 16, x[i - 1], mu);
+#if (defined (__riscv_dsp))
+        x[i] = __RV_KSLRAW_U(L_tmp, -16);
+#else
         x[i] = amr_wb_round(L_tmp);
+#endif
     }
 
 }

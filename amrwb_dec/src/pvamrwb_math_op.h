@@ -48,6 +48,8 @@ terms listed above has been obtained from the copyright holder.
 ----------------------------------------------------------------------------*/
 
 #include "pv_amr_wb_type_defs.h"
+#include "evalsoc.h"
+#include "nmsis_core.h"
 
 /*----------------------------------------------------------------------------
 ; DEFINES
@@ -100,8 +102,18 @@ extern "C"
     );
 
 
+    
+#if (defined (__riscv_dsp))
+    static inline int16 mult_int16_r(int16 var1, int16 var2) {
+        return __RV_KHMBB(var1, var2);
+    }
+    static inline int16 shr_rnd(int16 var1, int16 var2) {
+        return __RV_KSLRA16_U(var1, -var2);
+    }
+#else
     int16 mult_int16_r(int16 var1, int16 var2);          /* Mult with round, 2 */
     int16 shr_rnd(int16 var1, int16 var2);         /* Shift right with round, 2  */
+#endif
 
     int16 div_16by16(int16 var1, int16 var2);       /* Short division,       18  */
 
