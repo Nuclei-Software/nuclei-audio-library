@@ -14,7 +14,7 @@ Here is the directory structure of this repository
 
 # Build
 
-Clone the repository into `$NUCLEI_SDK_ROOT/application/baremetal/`, checkout to `develop` branch, and then build with SDK.
+Clone the repository into `$NUCLEI_SDK_ROOT/application/baremetal/`, if you correctly defined environment variable: `$NUCLEI_SDK_ROOT`, then you can put the repository anywhere you like. Checkout to `develop` branch, and then build with SDK.
 
 Change to the directory where `Makefile` is located. Then:
 
