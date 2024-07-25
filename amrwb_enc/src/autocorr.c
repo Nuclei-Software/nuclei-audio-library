@@ -39,7 +39,7 @@ void Autocorr(
 	Word16 __attribute__((aligned(8))) y[L_WINDOW];
 	Word32 L_sum, L_sum1, L_tmp, F_LEN;
 	Word16 *p1,*p2,*p3;
-#ifdef __riscv_dsp
+#ifdef __riscv_xxldsp
 	Word32 *px;
 	const Word32 *pwind;
 	union data {
@@ -113,7 +113,7 @@ void Autocorr(
 	L_sum = 1;
 	for (i = 0; i < L_WINDOW; i+=4)
 	{
-#ifdef __riscv_dsp
+#ifdef __riscv_xxldsp
 		L_sum = __RV_KDMABB(L_sum, y[i], y[i]);
 		L_sum = __RV_KDMABB(L_sum, y[i+1], y[i+1]);
 		L_sum = __RV_KDMABB(L_sum, y[i+2], y[i+2]);

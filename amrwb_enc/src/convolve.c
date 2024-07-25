@@ -43,7 +43,7 @@ void Convolve (
 
 	for (n = 0; n < 64;)
 	{
-#ifdef __riscv_dsp
+#ifdef __riscv_xxldsp
 		tmpH = h_+n;
 		tmpX = x;
 		s = 0;

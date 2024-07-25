@@ -182,6 +182,27 @@ static void Norm_Corr(
 #endif
 
 	/* Compute rounded down 1/sqrt(energy of xn[]) */
+#if defined __riscv_xxldspn3x
+	int64_t sum64 = 0;
+	int64_t xn64;
+	Word16 *temp_xn = xn;
+	for (i = 0; i < 16; i++)
+	{
+		xn64 = *__SIMD64(temp_xn)++;
+		sum64 = __RV_DSMALDA(sum64, xn64, xn64);
+	}
+	L_tmp = (Word32)sum64;
+#elif defined __riscv_xxldsp
+	int64_t sum64 = 0;
+	Word32 xn32;
+	Word16 *temp_xn = xn;
+	for (i = 0; i < 32; i++)
+	{
+		xn32 = *__SIMD32(temp_xn)++;
+		sum64 = __RV_SMALDA(sum64, xn32, xn32);
+	}
+	L_tmp = (Word32)sum64;
+#else
 	L_tmp = 0;
 	for (i = 0; i < 64; i+=4)
 	{
@@ -190,7 +211,7 @@ static void Norm_Corr(
 		L_tmp += (xn[i+2] * xn[i+2]);
 		L_tmp += (xn[i+3] * xn[i+3]);
 	}
-
+#endif
 	L_tmp = (L_tmp << 1) + 1;
 	exp = norm_l(L_tmp);
 	exp = (32 - exp);
@@ -202,6 +223,37 @@ static void Norm_Corr(
 	for (t = t_min; t <= t_max; t++)
 	{
 		/* Compute correlation between xn[] and excf[] */
+#if defined __riscv_xxldspn3x
+		sum64 = 0;
+		int64_t sum64_1 = 0;
+		int64_t excf64;
+		temp_xn = xn;
+		Word16 *temp_excf = excf;
+		for (i = 0; i < 16; i++)
+		{
+			xn64 = *__SIMD64(temp_xn)++;
+			excf64 = *__SIMD64(temp_excf)++;
+			sum64 = __RV_DSMALDA(sum64, xn64, excf64);
+			sum64_1 = __RV_DSMALDA(sum64_1, excf64, excf64);
+		}
+		L_tmp = (Word32)sum64;
+		L_tmp1 = (Word32)sum64_1;
+#elif defined __riscv_xxldsp
+		sum64 = 0;
+		int64_t sum64_1 = 0;
+		Word32 excf32;
+		temp_xn = xn;
+		Word16 *temp_excf = excf;
+		for (i = 0; i < 32; i++)
+		{
+			xn32 = *__SIMD32(temp_xn)++;
+			excf32 = *__SIMD32(temp_excf)++;
+			sum64 = __RV_SMALDA(sum64, xn32, excf32);
+			sum64_1 = __RV_SMALDA(sum64_1, excf32, excf32);
+		}
+		L_tmp = (Word32)sum64;
+		L_tmp1 = (Word32)sum64_1;
+#else
 		L_tmp  = 0;
 		L_tmp1 = 0;
 		for (i = 0; i < 64; i+=4)
@@ -215,6 +267,7 @@ static void Norm_Corr(
 			L_tmp  += (xn[i+3] * excf[i+3]);
 			L_tmp1 += (excf[i+3] * excf[i+3]);
 		}
+#endif
 
 		L_tmp = (L_tmp << 1) + 1;
 		L_tmp1 = (L_tmp1 << 1) + 1;
@@ -306,6 +359,37 @@ static Word16 Interpol_4(                  /* (o)  : interpolated value  */
 	k = UP_SAMP - 1 - frac;
 	ptr = &(inter4_1[k][0]);
 
+#if defined __riscv_xxldspn3x
+	int64_t sum64 = 0;
+	int64_t x64, ptr64;
+	x64 = *__SIMD64(x)++;
+	ptr64 = *__SIMD64(ptr)++;
+	sum64 = __RV_DSMALDA(sum64, x64, ptr64);
+
+        x64 = *__SIMD64(x)++;
+        ptr64 = *__SIMD64(ptr)++;
+        sum64 = __RV_DSMALDA(sum64, x64, ptr64);
+	L_sum = (Word32)sum64;
+#elif defined __riscv_xxldsp
+        int64_t sum64 = 0;
+        Word32 x32, ptr32;
+        x32 = *__SIMD32(x)++;
+        ptr32 = *__SIMD32(ptr)++;
+        sum64 = __RV_SMALDA(sum64, x32, ptr32);
+
+        x32 = *__SIMD32(x)++;
+        ptr32 = *__SIMD32(ptr)++;
+        sum64 = __RV_SMALDA(sum64, x32, ptr32);
+
+        x32 = *__SIMD32(x)++;
+        ptr32 = *__SIMD32(ptr)++;
+        sum64 = __RV_SMALDA(sum64, x32, ptr32);
+
+        x32 = *__SIMD32(x)++;
+        ptr32 = *__SIMD32(ptr)++;
+        sum64 = __RV_SMALDA(sum64, x32, ptr32);
+	L_sum = (Word32)sum64;
+#else
 	L_sum  = vo_mult32(x[0], (*ptr++));
 	L_sum += vo_mult32(x[1], (*ptr++));
 	L_sum += vo_mult32(x[2], (*ptr++));
@@ -314,6 +398,7 @@ static Word16 Interpol_4(                  /* (o)  : interpolated value  */
 	L_sum += vo_mult32(x[5], (*ptr++));
 	L_sum += vo_mult32(x[6], (*ptr++));
 	L_sum += vo_mult32(x[7], (*ptr++));
+#endif
 
 	sum = extract_h(L_add(L_shl2(L_sum, 2), 0x8000));
 	return (sum);

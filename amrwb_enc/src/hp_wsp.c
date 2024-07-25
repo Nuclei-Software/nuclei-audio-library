@@ -108,6 +108,20 @@ void Hp_wsp(
 		/* + a[1]*y[i-1] + a[2] * y[i-2]  + a[3]*y[i-3]  */
 
 		L_tmp = 16384L;                    /* rounding to maximise precision */
+#if defined __riscv_xxldsp
+		// the result is a match only when there is no saturation overflow
+		L_tmp += __RV_KDMBB(y1_lo, a[1]);
+		L_tmp += __RV_KDMBB(y2_lo, a[2]);
+		L_tmp += __RV_KDMBB(y3_lo, a[3]);
+		L_tmp = L_tmp >> 15;
+		L_tmp += __RV_KDMBB(y1_hi, a[1]);
+		L_tmp += __RV_KDMBB(y2_hi, a[2]);
+		L_tmp += __RV_KDMBB(y3_hi, a[3]);
+		L_tmp += __RV_KDMBB(x0, b[0]);
+		L_tmp += __RV_KDMBB(x1, b[1]);
+		L_tmp += __RV_KDMBB(x2, b[2]);
+		L_tmp += __RV_KDMBB(x3, b[3]);
+#else
 		L_tmp += (y1_lo * a[1])<<1;
 		L_tmp += (y2_lo * a[2])<<1;
 		L_tmp += (y3_lo * a[3])<<1;
@@ -119,6 +133,7 @@ void Hp_wsp(
 		L_tmp += (x1 * b[1])<<1;
 		L_tmp += (x2 * b[2])<<1;
 		L_tmp += (x3 * b[3])<<1;
+#endif
 
 		L_tmp = L_tmp << 2;
 
