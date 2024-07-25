@@ -233,6 +233,11 @@ void wav_read_close(void* obj) {
 
 int wav_get_header(void* obj, int* format, int* channels, int* sample_rate, int* bits_per_sample, unsigned int* data_length) {
 	struct wav_reader* wr = (struct wav_reader*) obj;
+        wr->format = 1;
+        wr->bits_per_sample = 16;
+        wr->sample_rate = 16000;
+        wr->channels = 1;
+        wr->data_length = 191456;
 	if (format)
 		*format = wr->format;
 	if (channels)
