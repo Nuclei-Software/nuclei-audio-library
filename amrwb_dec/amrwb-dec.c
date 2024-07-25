@@ -62,7 +62,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	amr = D_IF_init();
-	pref = output_array + wav->wav->position;
+	pref = output_array;
 	while (1) {
 		uint8_t buffer[500], littleendian[640], *ptr, *p;
 		int size, i;
@@ -103,6 +103,7 @@ int main(int argc, char *argv[]) {
 	memfclose(in);
 	D_IF_exit(amr);
 	wav_write_close(wav);
+	printf("finish!\n");
 	return 0;
 }
 
