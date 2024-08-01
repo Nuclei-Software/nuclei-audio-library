@@ -32,7 +32,7 @@
 
 /* 1/4 resolution interpolation filter (-3 dB at 0.856*fs/2) in Q14 */
 
-Word16 inter4_2[4][32] =
+Word16 __attribute__((aligned(8))) inter4_2[4][32] =
 {
 	{0,-2,4,-2,-10,38,-88,165,-275,424,-619,871,-1207,1699,-2598,5531,14031,-2147,780,-249,
 	-16,153,-213,226,-209,175,-133,91,-55,28,-10,2},
@@ -71,6 +71,90 @@ void Pred_lt4(
 	k = 3 - frac;                                /* k = UP_SAMP - 1 - frac */
 
 	ptr2 = &(inter4_2[k][0]);
+#if defined __riscv_xxldspn3x
+		Word32 temp1, temp2;
+		int64_t p64, p64_1;
+		int64_t sum64;
+		for (j = 0; j < L_subfr; j++)
+		{
+			ptr = ptr2;
+			ptr1 = x;
+			// (32 / 4) = 8
+			sum64 = 0;
+			if (!((long)ptr1 & 0x3))
+			{
+				p64 = *__SIMD64(ptr)++;
+				p64_1 = *__SIMD64(ptr1)++;
+				sum64 = __RV_DSMALDA(sum64, p64, p64_1);
+
+				p64 = *__SIMD64(ptr)++;
+				p64_1 = *__SIMD64(ptr1)++;
+				sum64 = __RV_DSMALDA(sum64, p64, p64_1);
+
+				p64 = *__SIMD64(ptr)++;
+				p64_1 = *__SIMD64(ptr1)++;
+				sum64 = __RV_DSMALDA(sum64, p64, p64_1);
+
+				p64 = *__SIMD64(ptr)++;
+				p64_1 = *__SIMD64(ptr1)++;
+				sum64 = __RV_DSMALDA(sum64, p64, p64_1);
+
+				p64 = *__SIMD64(ptr)++;
+				p64_1 = *__SIMD64(ptr1)++;
+				sum64 = __RV_DSMALDA(sum64, p64, p64_1);
+
+				p64 = *__SIMD64(ptr)++;
+				p64_1 = *__SIMD64(ptr1)++;
+				sum64 = __RV_DSMALDA(sum64, p64, p64_1);
+
+				p64 = *__SIMD64(ptr)++;
+				p64_1 = *__SIMD64(ptr1)++;
+				sum64 = __RV_DSMALDA(sum64, p64, p64_1);
+
+				p64 = *__SIMD64(ptr)++;
+				p64_1 = *__SIMD64(ptr1)++;
+				sum64 = __RV_DSMALDA(sum64, p64, p64_1);
+				L_sum = (Word32)sum64;
+			} else {
+				L_sum  = vo_mult32((*ptr1++), (*ptr++));
+				L_sum += vo_mult32((*ptr1++), (*ptr++));
+				L_sum += vo_mult32((*ptr1++), (*ptr++));
+				L_sum += vo_mult32((*ptr1++), (*ptr++));
+				L_sum += vo_mult32((*ptr1++), (*ptr++));
+				L_sum += vo_mult32((*ptr1++), (*ptr++));
+				L_sum += vo_mult32((*ptr1++), (*ptr++));
+				L_sum += vo_mult32((*ptr1++), (*ptr++));
+				L_sum += vo_mult32((*ptr1++), (*ptr++));
+				L_sum += vo_mult32((*ptr1++), (*ptr++));
+				L_sum += vo_mult32((*ptr1++), (*ptr++));
+				L_sum += vo_mult32((*ptr1++), (*ptr++));
+				L_sum += vo_mult32((*ptr1++), (*ptr++));
+				L_sum += vo_mult32((*ptr1++), (*ptr++));
+				L_sum += vo_mult32((*ptr1++), (*ptr++));
+				L_sum += vo_mult32((*ptr1++), (*ptr++));
+				L_sum += vo_mult32((*ptr1++), (*ptr++));
+				L_sum += vo_mult32((*ptr1++), (*ptr++));
+				L_sum += vo_mult32((*ptr1++), (*ptr++));
+				L_sum += vo_mult32((*ptr1++), (*ptr++));
+				L_sum += vo_mult32((*ptr1++), (*ptr++));
+				L_sum += vo_mult32((*ptr1++), (*ptr++));
+				L_sum += vo_mult32((*ptr1++), (*ptr++));
+				L_sum += vo_mult32((*ptr1++), (*ptr++));
+				L_sum += vo_mult32((*ptr1++), (*ptr++));
+				L_sum += vo_mult32((*ptr1++), (*ptr++));
+				L_sum += vo_mult32((*ptr1++), (*ptr++));
+				L_sum += vo_mult32((*ptr1++), (*ptr++));
+				L_sum += vo_mult32((*ptr1++), (*ptr++));
+				L_sum += vo_mult32((*ptr1++), (*ptr++));
+				L_sum += vo_mult32((*ptr1++), (*ptr++));
+				L_sum += vo_mult32((*ptr1++), (*ptr++));
+			}
+
+			L_sum = L_shl2(L_sum, 2);
+			exc[j] = extract_h(L_add(L_sum, 0x8000));
+			x++;
+		}
+#else
 	for (j = 0; j < L_subfr; j++)
 	{
 		ptr = ptr2;
@@ -112,6 +196,7 @@ void Pred_lt4(
 		exc[j] = extract_h(L_add(L_sum, 0x8000));
 		x++;
 	}
+#endif
 
 	return;
 }

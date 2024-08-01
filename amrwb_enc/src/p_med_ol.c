@@ -100,6 +100,24 @@ Word16 Pitch_med_ol(
 	R2 = 0;
 	p1 = hp_wsp;
 	p2 = hp_wsp - Tm;
+#if defined __riscv_xxldspn3x
+	int64_t p64_1, p64_2;
+	int64_t sum64_0, sum64_1, sum64_2;
+	sum64_0 = 0;
+	sum64_1 = 0;
+	sum64_2 = 0;
+	for (j = 0; j < L_frame; j+=4)
+	{
+		p64_1 = *__SIMD64(p1)++;
+		p64_2 = *__SIMD64(p2)++;
+		sum64_0 = __RV_DSMALDA(sum64_0, p64_1, p64_2);
+		sum64_1 = __RV_DSMALDA(sum64_1, p64_2, p64_2);
+		sum64_2 = __RV_DSMALDA(sum64_2, p64_1, p64_1);
+	}
+	R0 = (Word32)sum64_0;
+	R1 = (Word32)sum64_1;
+	R2 = (Word32)sum64_2;
+#else
 	for (j = 0; j < L_frame; j+=4)
 	{
 		R2 += vo_mult32(*p1, *p1);
@@ -115,6 +133,7 @@ Word16 Pitch_med_ol(
 		R1 += vo_mult32(*p2, *p2);
 		R0 += vo_mult32(*p1++, *p2++);
 	}
+#endif
 	R0 = R0 <<1;
 	R1 = (R1 <<1) + 1L;
 	R2 = (R2 <<1) + 1L;

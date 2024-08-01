@@ -361,7 +361,6 @@ void ACELP_4t64_fx(
 	// pH = (uint64_t *)H;
 	// ph = (uint64_t *)h;
 	// ph_inv = (uint64_t *)h_inv;
-
 	for (i = 0; i < L_SUBFR; i+=4)
 	{
 		// tmp = __RV_DKSLRA16(*pH++, -h_shift);
@@ -944,14 +943,43 @@ void cor_h_vec_012(
 
 	for (i = 0; i < NB_POS; i+=2)
 	{
-		L_sum1 = L_sum2 = 0L;
 		p1 = h;
 		p2 = &vec[pos];
+#if defined __riscv_xxldspn3x
+		Word32 tmp1, tmp2;
+		int64_t sum64_1, sum64_2;
+		int64_t p64_1, p64_2;
+		sum64_1 = 0;
+		sum64_2 = 0;
+		for (j=62-pos ;(j - 4) >= 0; j -= 4)
+		{
+			p64_1 = *__SIMD64(p1)++;
+			tmp1 = __RV_PKBB16(*(p2 + 1), *p2);
+			tmp2 = __RV_PKBB16(*(p2 + 3), *(p2 + 2));
+			p64_2 = __RV_DPACK32(tmp2, tmp1);
+			sum64_1 = __RV_DSMALDA(sum64_1, p64_1, p64_2);
+
+			tmp1 = __RV_PKBB16(*(p2 + 2), *(p2 + 1));
+			tmp2 = __RV_PKBB16(*(p2 + 4), *(p2 + 3));
+			p64_2 = __RV_DPACK32(tmp2, tmp1);
+			sum64_2 = __RV_DSMALDA(sum64_2, p64_1, p64_2);
+			p2 += 4;
+		}
+		L_sum1 = (Word32)sum64_1;
+		L_sum2 = (Word32)sum64_2;
+		for ( ;j >= 0; j--)
+		{
+			L_sum1 += *p1 * *p2++;
+			L_sum2 += *p1++ * *p2;
+		}
+#else
+		L_sum1 = L_sum2 = 0L;
 		for (j=62-pos ;j >= 0; j--)
 		{
 			L_sum1 += *p1 * *p2++;
 			L_sum2 += *p1++ * *p2;
 		}
+#endif
 		L_sum1 += *p1 * *p2;
 		L_sum1 = (L_sum1 << 2);
 		L_sum2 = (L_sum2 << 2);
@@ -962,14 +990,40 @@ void cor_h_vec_012(
 		cor_y[i] = vo_mult(corr, sign[pos + 1]) + (*p3++);
 		pos += STEP;
 
-		L_sum1 = L_sum2 = 0L;
 		p1 = h;
 		p2 = &vec[pos];
+#if defined __riscv_xxldspn3x
+		sum64_1 = 0;
+		sum64_2 = 0;
+		for (j=62-pos ;(j - 4) >= 0; j -= 4)
+		{
+			p64_1 = *__SIMD64(p1)++;
+			tmp1 = __RV_PKBB16(*(p2 + 1), *p2);
+			tmp2 = __RV_PKBB16(*(p2 + 3), *(p2 + 2));
+			p64_2 = __RV_DPACK32(tmp2, tmp1);
+			sum64_1 = __RV_DSMALDA(sum64_1, p64_1, p64_2);
+
+			tmp1 = __RV_PKBB16(*(p2 + 2), *(p2 + 1));
+			tmp2 = __RV_PKBB16(*(p2 + 4), *(p2 + 3));
+			p64_2 = __RV_DPACK32(tmp2, tmp1);
+			sum64_2 = __RV_DSMALDA(sum64_2, p64_1, p64_2);
+			p2 += 4;
+		}
+		L_sum1 = (Word32)sum64_1;
+		L_sum2 = (Word32)sum64_2;
+		for ( ;j >= 0; j--)
+		{
+			L_sum1 += *p1 * *p2++;
+			L_sum2 += *p1++ * *p2;
+		}
+#else
+		L_sum1 = L_sum2 = 0L;
 		for (j= 62-pos;j >= 0; j--)
 		{
 			L_sum1 += *p1 * *p2++;
 			L_sum2 += *p1++ * *p2;
 		}
+#endif
 		L_sum1 += *p1 * *p2;
 		L_sum1 = (L_sum1 << 2);
 		L_sum2 = (L_sum2 << 2);

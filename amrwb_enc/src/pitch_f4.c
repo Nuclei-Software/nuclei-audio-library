@@ -362,13 +362,14 @@ static Word16 Interpol_4(                  /* (o)  : interpolated value  */
 #if defined __riscv_xxldspn3x
 	int64_t sum64 = 0;
 	int64_t x64, ptr64;
+	Word32 tmp1, tmp2;
 	x64 = *__SIMD64(x)++;
 	ptr64 = *__SIMD64(ptr)++;
 	sum64 = __RV_DSMALDA(sum64, x64, ptr64);
 
-        x64 = *__SIMD64(x)++;
-        ptr64 = *__SIMD64(ptr)++;
-        sum64 = __RV_DSMALDA(sum64, x64, ptr64);
+	x64 = *__SIMD64(x)++;
+	ptr64 = *__SIMD64(ptr)++;
+	sum64 = __RV_DSMALDA(sum64, x64, ptr64);
 	L_sum = (Word32)sum64;
 #elif defined __riscv_xxldsp
         int64_t sum64 = 0;

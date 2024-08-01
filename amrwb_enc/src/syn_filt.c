@@ -55,6 +55,31 @@ void Syn_filt(
 		L_tmp -= vo_mult32((*p1++), (*p2--));
 		L_tmp -= vo_mult32((*p1++), (*p2--));
 		L_tmp -= vo_mult32((*p1++), (*p2--));
+#if defined __riscv_xxldspn3x
+		int64_t sum64 = (int64_t)L_tmp;
+		int64_t p64_1, p64_2;
+		p64_1 = *__SIMD64(p1)++;
+		Word32 temp1 = __RV_PKBB16(*(p2 - 1), *p2);
+		Word32 temp2 = __RV_PKBB16(*(p2 - 3), *(p2 - 2));
+		p64_2 = __RV_DPACK32(temp2, temp1);
+		sum64 = __RV_DSMSLDA(sum64, p64_1, p64_2);
+		p2 -= 4;
+
+		p64_1 = *__SIMD64(p1)++;
+		temp1 = __RV_PKBB16(*(p2 - 1), *p2);
+		temp2 = __RV_PKBB16(*(p2 - 3), *(p2 - 2));
+		p64_2 = __RV_DPACK32(temp2, temp1);
+		sum64 = __RV_DSMSLDA(sum64, p64_1, p64_2);
+		p2 -= 4;
+
+		p64_1 = *__SIMD64(p1)++;
+		temp1 = __RV_PKBB16(*(p2 - 1), *p2);
+		temp2 = __RV_PKBB16(*(p2 - 3), *(p2 - 2));
+		p64_2 = __RV_DPACK32(temp2, temp1);
+		sum64 = __RV_DSMSLDA(sum64, p64_1, p64_2);
+		p2 -= 4;
+		L_tmp = (Word32)sum64;
+#else
 		L_tmp -= vo_mult32((*p1++), (*p2--));
 		L_tmp -= vo_mult32((*p1++), (*p2--));
 		L_tmp -= vo_mult32((*p1++), (*p2--));
@@ -67,6 +92,7 @@ void Syn_filt(
 		L_tmp -= vo_mult32((*p1++), (*p2--));
 		L_tmp -= vo_mult32((*p1++), (*p2--));
 		L_tmp -= vo_mult32((*p1++), (*p2--));
+#endif
 		L_tmp -= vo_mult32((*p1), (*p2));
 
 		L_tmp = L_shl2(L_tmp, 4);
@@ -104,6 +130,57 @@ void Syn_filt_32(
 		p1 = a;
 		p2 = &sig_lo[i - 1];
 		p3 = &sig_hi[i - 1];
+#if defined __riscv_xxldspn3x
+		int64_t sum64 = (int64_t)L_tmp;
+		int64_t sum64_1 = (int64_t)L_tmp1;
+		int64_t p64_1, p64_2, p64_3;
+		p64_1 = *__SIMD64(p1)++;
+		Word32 temp1 = __RV_PKBB16(*(p2 - 1), *p2);
+		Word32 temp2 = __RV_PKBB16(*(p2 - 3), *(p2 - 2));
+		p64_2 = __RV_DPACK32(temp2, temp1);
+		sum64 = __RV_DSMSLDA(sum64, p64_1, p64_2);
+		temp1 = __RV_PKBB16(*(p3 - 1), *p3);
+		temp2 = __RV_PKBB16(*(p3 - 3), *(p3 - 2));
+		p64_3 = __RV_DPACK32(temp2, temp1);
+		sum64_1 = __RV_DSMSLDA(sum64_1, p64_1, p64_3);
+		p2 -= 4;
+		p3 -= 4;
+
+		temp1 = __RV_PKBB16(*(p2 - 1), *p2);
+		temp2 = __RV_PKBB16(*(p2 - 3), *(p2 - 2));
+		p64_2 = __RV_DPACK32(temp2, temp1);
+		sum64 = __RV_DSMSLDA(sum64, p64_1, p64_2);
+		temp1 = __RV_PKBB16(*(p3 - 1), *p3);
+		temp2 = __RV_PKBB16(*(p3 - 3), *(p3 - 2));
+		p64_3 = __RV_DPACK32(temp2, temp1);
+		sum64_1 = __RV_DSMSLDA(sum64_1, p64_1, p64_3);
+		p2 -= 4;
+		p3 -= 4;
+
+		temp1 = __RV_PKBB16(*(p2 - 1), *p2);
+		temp2 = __RV_PKBB16(*(p2 - 3), *(p2 - 2));
+		p64_2 = __RV_DPACK32(temp2, temp1);
+		sum64 = __RV_DSMSLDA(sum64, p64_1, p64_2);
+		temp1 = __RV_PKBB16(*(p3 - 1), *p3);
+		temp2 = __RV_PKBB16(*(p3 - 3), *(p3 - 2));
+		p64_3 = __RV_DPACK32(temp2, temp1);
+		sum64_1 = __RV_DSMSLDA(sum64_1, p64_1, p64_3);
+		p2 -= 4;
+		p3 -= 4;
+
+		temp1 = __RV_PKBB16(*(p2 - 1), *p2);
+		temp2 = __RV_PKBB16(*(p2 - 3), *(p2 - 2));
+		p64_2 = __RV_DPACK32(temp2, temp1);
+		sum64 = __RV_DSMSLDA(sum64, p64_1, p64_2);
+		temp1 = __RV_PKBB16(*(p3 - 1), *p3);
+		temp2 = __RV_PKBB16(*(p3 - 3), *(p3 - 2));
+		p64_3 = __RV_DPACK32(temp2, temp1);
+		sum64_1 = __RV_DSMSLDA(sum64_1, p64_1, p64_3);
+		p2 -= 4;
+		p3 -= 4;
+
+		L_tmp = (Word32)sum64;
+#else
 
 		L_tmp  -= vo_mult32((*p2--), (*p1));
 		L_tmp1 -= vo_mult32((*p3--), (*p1++));
@@ -137,6 +214,7 @@ void Syn_filt_32(
 		L_tmp1 -= vo_mult32((*p3--), (*p1++));
 		L_tmp  -= vo_mult32((*p2--), (*p1));
 		L_tmp1 -= vo_mult32((*p3--), (*p1++));
+#endif
 
 		L_tmp = L_tmp >> 11;
 		L_tmp += vo_L_mult(exc[i], a0);

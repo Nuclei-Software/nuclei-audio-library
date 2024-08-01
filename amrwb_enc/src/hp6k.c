@@ -32,7 +32,7 @@
 
 /* filter coefficients (gain=4.0) */
 
-Word16 fir_6k_7k[L_FIR] =
+Word16 __attribute__((aligned(8))) fir_6k_7k[L_FIR] =
 {
 	-32, 47, 32, -27, -369,
 	1122, -1421, 0, 3798, -8880,
@@ -64,6 +64,72 @@ void Filt_6k_7k(
 	{
 		x[i + L_FIR - 1] = signal[i] >> 2;                         /* gain of filter = 4 */
 	}
+#if defined __riscv_xxldspn3x
+	int64_t x64, y64, tmp_add, sum64;
+	Word32 tmp1, tmp2;
+	Word16 *tmp_x1, *tmp_x2;
+	int64_t fir64_1 = *((int64_t *)&(fir_6k_7k[0]));
+	int64_t fir64_2 = *((int64_t *)&(fir_6k_7k[4]));
+	int64_t fir64_3 = *((int64_t *)&(fir_6k_7k[8]));
+	int64_t fir64_4 = *((int64_t *)&(fir_6k_7k[12]));
+	for (i = 0; i < lg; i++)
+	{
+		if ((i % 2) == 0)
+		{
+			sum64 = 0;
+			tmp_x1 = x + i;
+			tmp_x2 = x + i;
+			x64 = *__SIMD64(tmp_x1)++;
+			tmp1 = __RV_PKBB16(*(tmp_x2 + 29), *(tmp_x2 + 30));
+			tmp2 = __RV_PKBB16(*(tmp_x2 + 27), *(tmp_x2 + 28));
+			y64 = __RV_DPACK32(tmp2, tmp1);
+			tmp_add = __RV_DADD16(x64, y64);
+			sum64 = __RV_DSMALDA(sum64, tmp_add, fir64_1);
+
+			x64 = *__SIMD64(tmp_x1)++;
+			tmp1 = __RV_PKBB16(*(tmp_x2 + 25), *(tmp_x2 + 26));
+			tmp2 = __RV_PKBB16(*(tmp_x2 + 23), *(tmp_x2 + 24));
+			y64 = __RV_DPACK32(tmp2, tmp1);
+			tmp_add = __RV_DADD16(x64, y64);
+			sum64 = __RV_DSMALDA(sum64, tmp_add, fir64_2);
+
+			x64 = *__SIMD64(tmp_x1)++;
+			tmp1 = __RV_PKBB16(*(tmp_x2 + 21), *(tmp_x2 + 22));
+			tmp2 = __RV_PKBB16(*(tmp_x2 + 19), *(tmp_x2 + 20));
+			y64 = __RV_DPACK32(tmp2, tmp1);
+			tmp_add = __RV_DADD16(x64, y64);
+			sum64 = __RV_DSMALDA(sum64, tmp_add, fir64_3);
+
+			x64 = *__SIMD64(tmp_x1)++;
+			tmp1 = __RV_PKBB16(*(tmp_x2 + 17), *(tmp_x2 + 18));
+			tmp2 = __RV_PKBB16(0, *(tmp_x2 + 16));
+			y64 = __RV_DPACK32(tmp2, tmp1);
+			tmp_add = __RV_DADD16(x64, y64);
+			sum64 = __RV_DSMALDA(sum64, tmp_add, fir64_4);
+
+			L_tmp = (Word32)sum64;
+			signal[i] = (L_tmp + 0x4000) >> 15;
+		} else {
+			L_tmp =  (x[i] + x[i+ 30]) * fir_6k_7k[0];
+			L_tmp += (x[i+1] + x[i + 29]) * fir_6k_7k[1];
+			L_tmp += (x[i+2] + x[i + 28]) * fir_6k_7k[2];
+			L_tmp += (x[i+3] + x[i + 27]) * fir_6k_7k[3];
+			L_tmp += (x[i+4] + x[i + 26]) * fir_6k_7k[4];
+			L_tmp += (x[i+5] + x[i + 25]) * fir_6k_7k[5];
+			L_tmp += (x[i+6] + x[i + 24]) * fir_6k_7k[6];
+			L_tmp += (x[i+7] + x[i + 23]) * fir_6k_7k[7];
+			L_tmp += (x[i+8] + x[i + 22]) * fir_6k_7k[8];
+			L_tmp += (x[i+9] + x[i + 21]) * fir_6k_7k[9];
+			L_tmp += (x[i+10] + x[i + 20]) * fir_6k_7k[10];
+			L_tmp += (x[i+11] + x[i + 19]) * fir_6k_7k[11];
+			L_tmp += (x[i+12] + x[i + 18]) * fir_6k_7k[12];
+			L_tmp += (x[i+13] + x[i + 17]) * fir_6k_7k[13];
+			L_tmp += (x[i+14] + x[i + 16]) * fir_6k_7k[14];
+			L_tmp += (x[i+15]) * fir_6k_7k[15];
+			signal[i] = (L_tmp + 0x4000) >> 15;
+		}
+	}
+#else
 	for (i = 0; i < lg; i++)
 	{
 		L_tmp =  (x[i] + x[i+ 30]) * fir_6k_7k[0];
@@ -84,6 +150,7 @@ void Filt_6k_7k(
 		L_tmp += (x[i+15]) * fir_6k_7k[15];
 		signal[i] = (L_tmp + 0x4000) >> 15;
 	}
+#endif
 
 	Copy(x + lg, mem, L_FIR - 1);
 

@@ -24,13 +24,14 @@
 #include "typedef.h"
 #include "basic_op.h"
 #include "cnst.h"
+#include <string.h>
 
 #define L_FIR  5
 #define L_MEM  (L_FIR-2)
 
 /* static float h_fir[L_FIR] = {0.13, 0.23, 0.28, 0.23, 0.13}; */
 /* fixed-point: sum of coef = 32767 to avoid overflow on DC */
-static Word16 h_fir[L_FIR] = {4260, 7536, 9175, 7536, 4260};
+static Word16 __attribute__((aligned(8))) h_fir[L_FIR] = {4260, 7536, 9175, 7536, 4260};
 
 void LP_Decim2(
 		Word16 x[],                           /* in/out: signal to process         */
@@ -48,10 +49,11 @@ void LP_Decim2(
 		*p_x++ = mem[i];
 		mem[i] = x[l - L_MEM + i];
 	}
-	for (i = 0; i < l; i++)
+	/*for (i = 0; i < l; i++)
 	{
 		*p_x++ = x[i];
-	}
+	}*/
+	memcpy(p_x, x, 2 * l);
 	for (i = 0, j = 0; i < l; i += 2, j++)
 	{
 		p_x = &x_buf[i];
