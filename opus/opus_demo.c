@@ -9,6 +9,7 @@
 #include "in_1s.h"
 #include "memfop.h"
 #include "opus.h"
+#include "nmsis_bench.h"
 
 #define CHANNELS (1)
 #define SAMPLING_RATE (16000)
@@ -23,6 +24,8 @@ int16_t frame[FRAME_SIZE * CHANNELS] = {0}; // data is processed by frame
 uint8_t data[MAX_PACKET] = {0};             // temporary data for encoding output
 uint8_t enc_result[ENC_RESULT_BUFFER] = {0};
 uint8_t dec_result[DEC_RESULT_BUFFER] = {0};
+
+BENCH_DECLARE_VAR();
 
 static void int_to_char(opus_uint32 i, unsigned char ch[4])
 {
@@ -86,7 +89,9 @@ int encode(opus_int32 sampling_rate, int channels, int application)
         }
 
         // encode
+        BENCH_START(opus_encode)
         int len = opus_encode(enc, frame, FRAME_SIZE, data, MAX_PACKET);
+        BENCH_END(opus_encode)
         if (len < 0) {
             printf("Error encoding.\r\n");
             return -1;
@@ -174,7 +179,9 @@ int decode(opus_int32 sampling_rate, int channels, size_t encoded_length)
         }
 
         opus_int32 output_samples;
+        BENCH_START(opus_decode)
         output_samples = opus_decode(dec, data, len, frame, FRAME_SIZE, 0);
+        BENCH_END(opus_decode)
 
         if (output_samples > 0) {
             if (memfwrite(frame, sizeof(int16_t) * channels, output_samples, fdec) != output_samples) {
