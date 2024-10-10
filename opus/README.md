@@ -73,7 +73,7 @@ make CORE=n300 ARCH_EXT=_zba_zbb_zbc_zbs_xxldspn3x FIXED_POINT=0 all
 
 For more information about Nuclei CPU Architecture extension, please refer to [ARCH_EXT](https://doc.nucleisys.com/nuclei_sdk/develop/buildsystem.html#arch-ext) section in Nuclei SDK documentation.
 
-## Test
+## Functional Test
 
 We have two `opus_demo.c` files, one [opus_demo.c](./opus_demo.c) is for Nulcei CPU, and the other [reference/opus_demo.c](./reference/opus_demo.c) is for running on operating system with File I/O.
 
@@ -87,11 +87,13 @@ When run on Nuclei CPU, we print the processed audio data to log file [data/test
 
 Although these four audio are not exactly same, but they are very close to each other. And people can hardly tell the difference between them by ear.
 
-## Benchmark
+## Performance Test
 
-The encoder process 20 ms of audio data, so the 1s duration of audio data is divided into 50 frames. The decoder should follow inverse order, so the decoder should decode the frames for 50 times. We record the CPU cycles to process each frame, and caclulate the average cycles as shown in the following table.
+The encoder process 20 ms of audio data each time, so the 1s duration of audio data is divided into 50 frames. The decoder should follow inverse order, so the decoder should decode the frames for 50 times. We record the CPU cycles consumed to process each frame, and caclulate the average cycles as shown in the following table.
 
 For w/o extension, the build option is `ARCH_EXT=`, for w/ extension, the build option is `ARCH_EXT=_zba_zbb_zbc_zbs_xxldspn3x`.
+
+    Test bistream: n300_dual_best_config_ku060_16M_7cd945994_18d811786_202408191002.bit
 
 These results can be easily calculated by [data/bench/cmp.py](./data/bench/cmp.py).
 
