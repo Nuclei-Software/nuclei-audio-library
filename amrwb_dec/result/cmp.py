@@ -38,13 +38,9 @@ if __name__ == "__main__":
         print("Length mismatch: %d != %d" % (len(base_data), len(new_data)))
         sys.exit(1)
 
-    percent = np.zeros(len(base_data))
-    for i in range(0, len(base_data)):
-        if base_data[i] == 0:
-            percent[i] = 0
-        else:
-            percent[i] = 100 * (base_data[i] - new_data[i]) / base_data[i]
-        
-    # calculate averange percentage
-    ave = np.average(percent)
-    print("Average percentage: %.2f%%" % (ave))
+    base_avg = np.mean(base_data)
+    new_avg = np.mean(new_data)
+    print("base_avg = %.2f" % (base_avg))
+    print("new_avg = %.2f" % (new_avg))
+
+    print("speedup ratio = %.2f" % (base_avg / new_avg))
