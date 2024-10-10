@@ -2,7 +2,7 @@
 /* config.h.in.  Generated from configure.ac by autoheader.  */
 
 /* Get CPU Info by asm method */
-#define CPU_INFO_BY_ASM 1
+// #define CPU_INFO_BY_ASM 1
 
 /* Get CPU Info by c method */
 /* #undef CPU_INFO_BY_C */
@@ -47,7 +47,9 @@
 /* #undef FIXED_DEBUG */
 
 /* Compile as fixed-point (for machines without a fast enough FPU) */
+#ifdef USE_FIXED_POINT
 #define FIXED_POINT 1
+#endif
 
 /* Float approximations */
 #define FLOAT_APPROX 1
@@ -158,28 +160,28 @@
 /* #undef OPUS_CHECK_ASM */
 
 /* Use run-time CPU capabilities detection */
-#define OPUS_HAVE_RTCD 1
+// #define OPUS_HAVE_RTCD 1
 
 /* Compiler supports X86 AVX2 Intrinsics */
-#define OPUS_X86_MAY_HAVE_AVX2 1
+// #define OPUS_X86_MAY_HAVE_AVX2 1
 
 /* Compiler supports X86 SSE Intrinsics */
-#define OPUS_X86_MAY_HAVE_SSE 1
+// #define OPUS_X86_MAY_HAVE_SSE 1
 
 /* Compiler supports X86 SSE2 Intrinsics */
-#define OPUS_X86_MAY_HAVE_SSE2 1
+// #define OPUS_X86_MAY_HAVE_SSE2 1
 
 /* Compiler supports X86 SSE4.1 Intrinsics */
-#define OPUS_X86_MAY_HAVE_SSE4_1 1
+// #define OPUS_X86_MAY_HAVE_SSE4_1 1
 
 /* Define if binary requires AVX2 intrinsics support */
 /* #undef OPUS_X86_PRESUME_AVX2 */
 
 /* Define if binary requires SSE intrinsics support */
-#define OPUS_X86_PRESUME_SSE 1
+// #define OPUS_X86_PRESUME_SSE 1
 
 /* Define if binary requires SSE2 intrinsics support */
-#define OPUS_X86_PRESUME_SSE2 1
+// #define OPUS_X86_PRESUME_SSE2 1
 
 /* Define if binary requires SSE4.1 intrinsics support */
 /* #undef OPUS_X86_PRESUME_SSE4_1 */
