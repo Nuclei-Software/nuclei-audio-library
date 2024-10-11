@@ -439,7 +439,7 @@ LC3PLUS_Error lc3plus_free_decoder_structs(LC3PLUS_Dec* decoder);
  *  \param[in]  ep_enabled  1 (or any nonzero) for true, 0 for false.
  *  \return                 LC3PLUS_OK on success or appropriate error code.
  */
-LC3PLUS_Error lc3plus_dec_set_ep_enabled(LC3PLUS_Dec *decoder, int ep_enabled);
+LC3PLUS_Error lc3plus_dec_set_ep_enabled(LC3PLUS_Dec *decoder, int32_t ep_enabled);
 
 /*! Retrieves the error protection mode reqeust from channel decoder.
  *

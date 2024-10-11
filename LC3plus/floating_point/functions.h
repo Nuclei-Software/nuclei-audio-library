@@ -28,21 +28,21 @@ void real_fft_init(Fft* fft, LC3_INT32 length, HANDLE_IIS_FFT *handle);
 void real_ifft_init(Fft* fft, LC3_INT32 length, HANDLE_IIS_FFT *handle);
 void real_fft_apply(Fft* fft, const LC3_FLOAT* in,  LC3_FLOAT* out);
 
-void fft_init(Fft* fft, LC3_INT length);
+void fft_init(Fft* fft, int length);
 void fft_free(Fft* fft);
 void real_fft_free(Fft* fft);
 void fft_apply(Fft* fft, const Complex* input, Complex* output);
 
 /* dct.c */
-void dct2_init(Dct2* dct, LC3_INT length);
+void dct2_init(Dct2* dct, int length);
 void dct2_free(Dct2* dct);
 void dct2_apply(Dct2* dct, const LC3_FLOAT* input, LC3_FLOAT* output);
 
-void dct3_init(Dct3* dct, LC3_INT length);
+void dct3_init(Dct3* dct, int length);
 void dct3_free(Dct3* dct);
 void dct3_apply(Dct3* dct, const LC3_FLOAT* input, LC3_FLOAT* output);
 
-void dct4_init(Dct4* dct, LC3_INT length);
+void dct4_init(Dct4* dct, int length);
 void dct4_free(Dct4* dct);
 void dct4_apply(Dct4* dct, const LC3_FLOAT* input, LC3_FLOAT* output);
 
@@ -176,7 +176,7 @@ LC3PLUS_Error FillDecSetup(LC3PLUS_Dec* decoder, int samplerate, int channels, L
 int       Enc_LC3PLUS_fl(LC3PLUS_Enc* encoder, void** input, LC3_UINT8* output, int bps
 , LC3_INT32 bfi_ext
 );
-LC3PLUS_Error Dec_LC3PLUS_fl(LC3PLUS_Dec* decoder, LC3_UINT8* input, int input_bytes, void** output, int bps, int bfi_ext);
+LC3PLUS_Error Dec_LC3PLUS_fl(LC3PLUS_Dec* decoder, uint8_t* input, LC3_INT32 num_bytes, void** output, LC3_INT32 bps, LC3_INT32 bfi_ext);
 
 void* balloc(void* base, size_t* base_size, size_t size);
 
@@ -193,7 +193,7 @@ void processPlcUpdateSpec_fl(LC3_FLOAT *q_d_prev, LC3_FLOAT *q_d_fl_c, LC3_INT y
 void processNoiseSubstitution_fl(LC3_FLOAT* spec, LC3_FLOAT* spec_prev, LC3_INT32 yLen);
 
 void process_cutoff_bandwidth(LC3_FLOAT* d_fl, LC3_INT len, LC3_INT bw_bin);
-void update_enc_bandwidth(LC3PLUS_Enc* encoder, LC3_INT bandwidth);
+void update_enc_bandwidth(LC3PLUS_Enc* encoder, int bandwidth);
 
 /* al_fec.c */
 LC3_INT16 fec_get_n_pccw(LC3_INT16 slot_bytes, LC3_INT16 fec_mode, LC3_INT16 ccc_flag);

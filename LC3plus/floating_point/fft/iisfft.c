@@ -13,6 +13,7 @@
 #include <string.h> /* for mmove */
 #include <stdio.h>
 #include <stdlib.h>
+#include "defines.h"
 #include "iisfft.h"
 #include "cfft.h"
 
