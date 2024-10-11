@@ -11,6 +11,8 @@
 #include "enc.h"
 #include "input.h"
 
+#include "nmsis_bench.h"
+
 #define TARGET_BITRATE (20000)
 #define ARG_LFE (0)
 #define ARG_EPMODE (0)
@@ -27,6 +29,8 @@ int16_t *sample_buf_short = (int16_t *)(void *)sample_buf_int;
 
 uint8_t enc_result[ENC_BIN_LEN];
 uint8_t dec_result[DEC_WAV_LEN];
+
+BENCH_DECLARE_VAR();
 
 static MemoryFile *open_bitstream_writer(void *buffer, size_t data,
                                          uint32_t samplerate, int bitrate,
@@ -104,12 +108,14 @@ static int encode(WAVEFILEIN *fin, MemoryFile *fenc, uint32_t sampleRate,
         }
 
         int nBytes = 0;
+        BENCH_START(lc3plus_enc16);
         err = lc3plus_enc16(encoder, input16, bytes, &nBytes
 #ifdef FIXED_POINT
                             ,
                             scratch
 #endif
         );
+        BENCH_END(lc3plus_enc16);
         if (err != LC3PLUS_OK) {
             printf("Error encoding!\r\n");
             return EXIT_FAILURE;
@@ -184,6 +190,7 @@ static int decode(MemoryFile *fenc, WAVEFILEOUT *fdec, uint32_t sampleRate,
         }
 
         /* Run Decoder */
+        BENCH_START(lc3plus_dec16);
         err = lc3plus_dec16(decoder, bytes, nBytes, output16
 #ifdef FIXED_POINT
                             ,
@@ -191,6 +198,7 @@ static int decode(MemoryFile *fenc, WAVEFILEOUT *fdec, uint32_t sampleRate,
 #endif
                             ,
                             0);
+        BENCH_END(lc3plus_dec16);
         if (err != LC3PLUS_OK) {
             printf("Error decoding!\r\n");
             return EXIT_FAILURE;
