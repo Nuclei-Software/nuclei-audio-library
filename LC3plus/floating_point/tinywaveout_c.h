@@ -39,6 +39,7 @@
 #define __TINYWAVEOUT_C_H__
 
 #include <stdio.h>
+#include <stdlib.h>
 
 /*#define SUPPORT_BWF*/
 
@@ -46,8 +47,10 @@
 #include <string.h>
 #endif
 
+#include "memfop.h"
+
 #if defined(__i386__) || defined(_M_IX86) || defined(_M_X64) ||                \
-    defined(__x86_64__) || defined(__arm__) || defined(__aarch64__)
+    defined(__x86_64__) || defined(__arm__) || defined(__aarch64__) || defined (__riscv)
 #define __TWO_LE /* _T_iny _W_ave _O_ut _L_ittle _E_ndian */
 #endif
 
@@ -151,7 +154,7 @@ typedef struct __tinyWaveOutDataChunk {
 } __tinyWaveOutDataChunk;
 
 typedef struct __tinyWaveOutHandle {
-  FILE *theFile;
+  MemoryFile *theFile;
   unsigned int dataSize;
   TWO_INT64 dataSizeLimit;
   unsigned int fmtChunkOffset;
@@ -189,7 +192,8 @@ static void setDefaultLoudness(LOUDNESSINFO *x) {
 }
 #endif
 
-static WAVEFILEOUT *CreateBWF(const char *fileName,
+static WAVEFILEOUT *CreateBWF(void *buffer,
+                              size_t size,
                               const unsigned int sampleRate,
                               const unsigned int numChannels,
                               const unsigned int bps
@@ -207,13 +211,13 @@ static WAVEFILEOUT *CreateBWF(const char *fileName,
   __tinyWaveOutFmtChunk wfch;
   __tinyWaveOutDataChunk wdch;
   unsigned int blockAlignment = 0;
-  unsigned int ByteCnt = 0; /* Byte counter for fwrite */
+  unsigned int ByteCnt = 0; /* Byte counter for memfwrite */
 
   self = (WAVEFILEOUT *)calloc(1, sizeof(WAVEFILEOUT));
   if (!self)
     goto bail; /* return NULL; */
 
-  if (!fileName)
+  if (!buffer)
     goto bail;
   if (sampleRate == 0)
     goto bail;
@@ -226,7 +230,7 @@ static WAVEFILEOUT *CreateBWF(const char *fileName,
   if (bps != 16 && bps != 24 && bps != 32)
     goto bail;
 
-  self->theFile = fopen(fileName, "wb+");
+  self->theFile = memfopen(buffer, size);
   if (!self->theFile)
     goto bail;
 
@@ -237,7 +241,7 @@ static WAVEFILEOUT *CreateBWF(const char *fileName,
   whdr.waveType = BigEndian32('W', 'A', 'V', 'E');
   /* write to file */
   ByteCnt = 0;
-  ByteCnt += fwrite(&whdr, 1, sizeof(whdr), self->theFile);
+  ByteCnt += memfwrite(&whdr, 1, sizeof(whdr), self->theFile);
 
 #ifdef SUPPORT_BWF
   /* BEXT-Chunk */
@@ -256,7 +260,7 @@ static WAVEFILEOUT *CreateBWF(const char *fileName,
 
     /* write to file */
     self->bextChunkOffset = ByteCnt;
-    ByteCnt += fwrite(&wbextch, 1, sizeof(wbextch), self->theFile);
+    ByteCnt += memfwrite(&wbextch, 1, sizeof(wbextch), self->theFile);
   }
 #endif
 
@@ -285,7 +289,7 @@ static WAVEFILEOUT *CreateBWF(const char *fileName,
   /* tbd: wavfmt ext hdr here */
   /* write to file */
   self->fmtChunkOffset = ByteCnt;
-  ByteCnt += fwrite(&wfch, 1, sizeof(wfch), self->theFile);
+  ByteCnt += memfwrite(&wfch, 1, sizeof(wfch), self->theFile);
 
   /* DATA-Chunk */
   self->dataChunkOffset = ByteCnt;
@@ -293,7 +297,7 @@ static WAVEFILEOUT *CreateBWF(const char *fileName,
   wdch.dataSize =
       LittleEndian32(0xffffffff - ByteCnt); /* yet unknown. set to maximum */
   /* write to file */
-  ByteCnt += fwrite(&wdch, 1, sizeof(wdch), self->theFile);
+  ByteCnt += memfwrite(&wdch, 1, sizeof(wdch), self->theFile);
 
   self->dataSizeLimit = LittleEndian32(
       0xffffffff - ByteCnt); /* maximum size for data chunk for 4 GB files */
@@ -313,13 +317,14 @@ bail:
   return NULL;
 }
 
-static WAVEFILEOUT *CreateWav(const char *fileName,
+static WAVEFILEOUT *CreateWav(void *buffer,
+                              size_t size,
                               const unsigned int sampleRate,
                               const unsigned int numChannels,
                               const unsigned int bps
                               /* const unsigned int writeWaveExt */
 ) {
-  return CreateBWF(fileName, sampleRate, numChannels, bps);
+  return CreateBWF(buffer, size, sampleRate, numChannels, bps);
 }
 
 #define MAX_PCM16 (+32767)
@@ -390,7 +395,7 @@ static int __WriteSample16(WAVEFILEOUT *self, int sample, int scale) {
   v = LittleEndian16(v);
 #endif
 
-  cnt = fwrite(&v, sizeof(short), 1, self->theFile);
+  cnt = memfwrite(&v, sizeof(short), 1, self->theFile);
 
   if (cnt == 1) {
     self->dataSize += 2;
@@ -413,7 +418,7 @@ static int __WriteSample24(WAVEFILEOUT *self, int sample, int scale) {
 #ifdef __TWO_BE
   v = LittleEndian32s(v);
 #endif
-  cnt = fwrite(&v, 3, 1, self->theFile);
+  cnt = memfwrite(&v, 3, 1, self->theFile);
 
   if (cnt == 1) {
     self->dataSize += 3;
@@ -431,7 +436,7 @@ static int __WriteSample32(WAVEFILEOUT *self, int sample) {
 #ifdef __TWO_BE
   v = LittleEndian32s(v);
 #endif
-  cnt = fwrite(&v, 4, 1, self->theFile);
+  cnt = memfwrite(&v, 4, 1, self->theFile);
 
   if (cnt == 1) {
     self->dataSize += 4;
@@ -470,7 +475,7 @@ static int __WriteSampleInt(WAVEFILEOUT *self, int sample, int scale) {
 }
 
 /* this function expects values in the 16 bit range +-32767/8 */
-/* static int WriteWavShort(
+static int WriteWavShort(
                          WAVEFILEOUT* self,
                          short        sampleBuffer[],
                          unsigned int nSamples
@@ -497,7 +502,6 @@ static int __WriteSampleInt(WAVEFILEOUT *self, int sample, int scale) {
 
   return __TWO_SUCCESS;
 }
-*/
 
 /* this function expects values in the 24 bit range +-8388607/8 */
 static int WriteWavLong(WAVEFILEOUT *self, int sampleBuffer[],
@@ -576,11 +580,11 @@ static int CloseWav(WAVEFILEOUT *self) {
   /* fseek(self->theFile, 0, SEEK_SET);*/
 
   /* seek to riffsize */
-  fseek(self->theFile, 4, SEEK_SET);
-  fwrite(&riffSize_le, sizeof(riffSize_le), 1, self->theFile);
+  memfseek(self->theFile, 4, SEEK_SET);
+  memfwrite(&riffSize_le, sizeof(riffSize_le), 1, self->theFile);
   /* seek to datasize */
-  fseek(self->theFile, self->dataChunkOffset + 4, SEEK_SET);
-  fwrite(&dataSize_le, sizeof(dataSize_le), 1, self->theFile);
+  memfseek(self->theFile, self->dataChunkOffset + 4, SEEK_SET);
+  memfwrite(&dataSize_le, sizeof(dataSize_le), 1, self->theFile);
 
 #else
   fclose(self->theFile);
@@ -588,11 +592,11 @@ static int CloseWav(WAVEFILEOUT *self) {
   /* tbd ... */
 
   /* overwrite the first n bytes w/ wav hdr*/
-  fwrite(self->waveHeader, sizeof(__tinyWaveHeader), 1, self->theFile);
+  memfwrite(self->waveHeader, sizeof(__tinyWaveHeader), 1, self->theFile);
 
 #endif
 
-  fclose(self->theFile);
+  memfclose(&self->theFile);
   free(self);
 
   return __TWO_SUCCESS;
@@ -611,19 +615,19 @@ static int CloseBWF(WAVEFILEOUT *self, LOUDNESSINFO bextData) {
     fseek(self->theFile, self->bextChunkOffset + 8 + 412, SEEK_SET);
 
     wordData = LittleEndian32(EncodeLoudness(bextData.loudnessVal));
-    fwrite(&wordData, 2, 1, self->theFile);
+    memfwrite(&wordData, 2, 1, self->theFile);
 
     wordData = LittleEndian32(EncodeLoudness(bextData.loudnessRange));
-    fwrite(&wordData, 2, 1, self->theFile);
+    memfwrite(&wordData, 2, 1, self->theFile);
 
     wordData = LittleEndian32(EncodeLoudness(bextData.maxTruePeakLevel));
-    fwrite(&wordData, 2, 1, self->theFile);
+    memfwrite(&wordData, 2, 1, self->theFile);
 
     wordData = LittleEndian32(EncodeLoudness(bextData.maxMomentaryLoudnes));
-    fwrite(&wordData, 2, 1, self->theFile);
+    memfwrite(&wordData, 2, 1, self->theFile);
 
     wordData = LittleEndian32(EncodeLoudness(bextData.maxShortTermLoudness));
-    fwrite(&wordData, 2, 1, self->theFile);
+    memfwrite(&wordData, 2, 1, self->theFile);
   }
 
   return CloseWav(self);

@@ -17,8 +17,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "memfop.h"
+
 #if defined(__i386__) || defined(_M_IX86) || defined(__x86_64__) || defined(_M_X64) || defined(__arm__) ||             \
-    defined(__aarch64__)
+    defined(__aarch64__) || defined(__riscv)
 #define __TWI_LE /* _T_iny _W_ave _I_n _L_ittle _E_ndian */
 #endif
 
@@ -46,7 +48,7 @@ typedef struct
 
 typedef struct __tinyWaveInHandle
 {
-    FILE *       theFile;
+    MemoryFile *       theFile;
     fpos_t       dataChunkPos;
     unsigned int position;
     unsigned int length;
@@ -100,7 +102,7 @@ typedef struct
 } SChunk;
 
 /* local wrapper, always returns correct endian */
-static size_t fread_LE(void *ptr, size_t size, size_t nmemb, FILE *stream);
+static size_t fread_LE(void *ptr, size_t size, size_t nmemb, MemoryFile *stream);
 
 #ifdef __TWI_BE
 static short BigEndian16(short v);
@@ -114,7 +116,7 @@ static int   BigEndian32(int v);
  *  \return 0 on success and non-zero on failure.
  *
  */
-static WAVEFILEIN *OpenWav(const char *filename, unsigned int *samplerate, short *channels, unsigned int *samplesInFile,
+static WAVEFILEIN *OpenWav(const void *buffer, size_t size, unsigned int *samplerate, short *channels, unsigned int *samplesInFile,
                            short *bps)
 {
     WAVEFILEIN *self;
@@ -129,7 +131,7 @@ static WAVEFILEIN *OpenWav(const char *filename, unsigned int *samplerate, short
     if (!self)
         goto bail; /* return NULL; */
 
-    if (!filename)
+    if (!buffer)
         goto bail;
     if (!samplerate)
         goto bail;
@@ -140,12 +142,12 @@ static WAVEFILEIN *OpenWav(const char *filename, unsigned int *samplerate, short
     if (!bps)
         goto bail;
 
-    self->theFile = fopen(filename, "rb");
+    self->theFile = memfopen((void *)buffer, size);
     if (!self->theFile)
         goto bail;
 
     /* read RIFF-chunk */
-    if (fread(tmpFormat, 1, 4, self->theFile) != 4)
+    if (memfread(tmpFormat, 1, 4, self->theFile) != 4)
     {
         goto bail;
     }
@@ -159,7 +161,7 @@ static WAVEFILEIN *OpenWav(const char *filename, unsigned int *samplerate, short
     fread_LE(&tmpSize, 4, 1, self->theFile);
 
     /* read WAVE-chunk */
-    if (fread(tmpFormat, 1, 4, self->theFile) != 4)
+    if (memfread(tmpFormat, 1, 4, self->theFile) != 4)
     {
         goto bail;
     }
@@ -170,7 +172,7 @@ static WAVEFILEIN *OpenWav(const char *filename, unsigned int *samplerate, short
     }
 
     /* read format/bext-chunk */
-    if (fread(fmt_chunk.chunkID, 1, 4, self->theFile) != 4)
+    if (memfread(fmt_chunk.chunkID, 1, 4, self->theFile) != 4)
     {
         goto bail;
     }
@@ -248,7 +250,7 @@ static WAVEFILEIN *OpenWav(const char *filename, unsigned int *samplerate, short
         }
 
         /* read next chunk header */
-        if (fread(fmt_chunk.chunkID, 1, 4, self->theFile) != 4)
+        if (memfread(fmt_chunk.chunkID, 1, 4, self->theFile) != 4)
         {
             goto bail;
         }
@@ -278,7 +280,7 @@ static WAVEFILEIN *OpenWav(const char *filename, unsigned int *samplerate, short
         }
 
         /* read next chunk header */
-        if (fread(fmt_chunk.chunkID, 1, 4, self->theFile) != 4)
+        if (memfread(fmt_chunk.chunkID, 1, 4, self->theFile) != 4)
         {
             goto bail;
         }
@@ -306,9 +308,9 @@ static WAVEFILEIN *OpenWav(const char *filename, unsigned int *samplerate, short
 
     if (wavinfo.compressionCode == -2)
     {
-        fseek(self->theFile, 8, SEEK_CUR);                         // skip channel mask
+        memfseek(self->theFile, 8, SEEK_CUR);                         // skip channel mask
         fread_LE(&(wavinfo.compressionCode), 2, 1, self->theFile); // part of GUID
-        fseek(self->theFile, 14, SEEK_CUR);                        // skip rest of GUID
+        memfseek(self->theFile, 14, SEEK_CUR);                        // skip rest of GUID
         offset = fmt_chunk.chunkSize - 40;
     }
     else
@@ -332,14 +334,14 @@ static WAVEFILEIN *OpenWav(const char *filename, unsigned int *samplerate, short
     /* Skip rest of fmt header if any. */
     for (; offset > 0; offset--)
     {
-        fread(&tmpSize, 1, 1, self->theFile);
+        memfread(&tmpSize, 1, 1, self->theFile);
     }
 
     do
     {
 
         /* Read data chunk ID */
-        if (fread(data_chunk.chunkID, 1, 4, self->theFile) != 4)
+        if (memfread(data_chunk.chunkID, 1, 4, self->theFile) != 4)
         {
             goto bail;
         }
@@ -368,10 +370,10 @@ static WAVEFILEIN *OpenWav(const char *filename, unsigned int *samplerate, short
         /* Jump over non data chunk. */
         for (; offset > 0; offset--)
         {
-            fread(&tmpSize, 1, 1, self->theFile);
+            memfread(&tmpSize, 1, 1, self->theFile);
         }
 
-    } while (!feof(self->theFile));
+    } while (self->theFile->position < self->theFile->size);
 
     /* success so far */
     *samplerate    = wavinfo.sampleRate;
@@ -384,7 +386,7 @@ static WAVEFILEIN *OpenWav(const char *filename, unsigned int *samplerate, short
     self->bps      = wavinfo.bitsPerSample;
     self->length   = *samplesInFile * wavinfo.numberOfChannels;
 
-    fgetpos(self->theFile, &self->dataChunkPos);
+    self->dataChunkPos = self->theFile->position;
 
     return self;
 
@@ -405,7 +407,7 @@ static int __ReadSample16(WAVEFILEIN *self, int *sample)
     size_t cnt;
     short  v = 0;
 
-    cnt = fread(&v, 2, 1, self->theFile);
+    cnt = memfread(&v, 2, 1, self->theFile);
 
     if (cnt != 1)
     {
@@ -426,7 +428,7 @@ static int __ReadSample24(WAVEFILEIN *self, int *sample)
     size_t cnt;
     int    v = 0;
 
-    cnt = fread(&v, 3, 1, self->theFile);
+    cnt = memfread(&v, 3, 1, self->theFile);
 
     if (cnt != 1)
     {
@@ -454,7 +456,7 @@ static int __ReadSample32(WAVEFILEIN *self, int *sample)
     size_t cnt;
     int    v = 0;
 
-    cnt = fread(&v, 4, 1, self->theFile);
+    cnt = memfread(&v, 4, 1, self->theFile);
 
     if (cnt != 1)
     {
@@ -537,7 +539,7 @@ static int CloseWavIn(WAVEFILEIN *self)
     {
         if (self->theFile)
         {
-            fclose(self->theFile);
+            memfclose(&self->theFile);
         }
     }
     free(self);
@@ -558,10 +560,10 @@ static int ResetWavIn(WAVEFILEIN* self)
 */
 /*------------- local subs ----------------*/
 
-static size_t fread_LE(void *ptr, size_t size, size_t nmemb, FILE *stream)
+static size_t fread_LE(void *ptr, size_t size, size_t nmemb, MemoryFile *stream)
 {
 #ifdef __TWI_LE
-    return fread(ptr, size, nmemb, stream);
+    return memfread(ptr, size, nmemb, stream);
 #endif
 #ifdef __TWI_BE
 
@@ -570,7 +572,7 @@ static size_t fread_LE(void *ptr, size_t size, size_t nmemb, FILE *stream)
     int            i;
     int            len;
 
-    len = fread(x, size, nmemb, stream);
+    len = memfread(x, size, nmemb, stream);
 
     for (i = 0; i < size * nmemb; i++)
     {
