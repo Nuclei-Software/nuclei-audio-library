@@ -38,7 +38,7 @@ Otherwise, you should place this project in the directory of `$NUCLEI_SDK_ROOT/a
 
 - [x] AMR-WB: Adaptive Multi-Rate Wideband. [encoder](./amrwb_enc/) & [decoder](./amrwb_dec/)
 - [x] Opus: [Opus Interactive Audio Codec](./opus/)
-- [ ] LC3plus: TODO
+- [x] LC3plus: [Low Complexity Communication Codec](./LC3plus/)
 - [ ] SpeexDSP: TODO
 - [ ] Porcupine: TODO
 
