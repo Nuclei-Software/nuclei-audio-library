@@ -68,8 +68,8 @@ These results can be easily calculated by [data/bench/cmp.py](./data/bench/cmp.p
 
 | case | fixed-point w/o ext | fixed-point w/ ext | speedup ratio |
 | -- | -- | -- | -- |
-| encode (avg cycles) | 771938.96 | 738928.79 | 1.04 |
-| decode (avg cycles) | 307473.51 | 301408.32 | 1.02 |
+| encode (avg cycles) | 771938.96 | 577580.34 | 1.34 |
+| decode (avg cycles) | 307473.51 | 263427.15 | 1.17 |
 
 ### float-point
 
@@ -77,3 +77,24 @@ These results can be easily calculated by [data/bench/cmp.py](./data/bench/cmp.p
 | -- | -- | -- | -- |
 | encode (avg cycles) | 4864125.64 | 4004559.35 | 1.21 |
 | decode (avg cycles) | 1009454.70 | 833115.61 | 1.21 |
+
+## Changelog
+
+| operator/function | description | file |
+| -- | -- | -- |
+| saturate | using SCLIP32 to replace | [basicop32.c](./fixed_point/basic_op/basop32.c):262 |
+| add | using KADD16 to replace | [basicop32.c](./fixed_point/basic_op/basop32.c):330 |
+| sub | using KSUB16 to replace | [basicop32.c](./fixed_point/basic_op/basop32.c):382 |
+| abs_s | using KABS16 to replace | [basicop32.c](./fixed_point/basic_op/basop32.c):428 |
+| shl | using KSLRA16 to replace | [basicop32.c](./fixed_point/basic_op/basop32.c):504 |
+| shr | using KSLRA16 to replace | [basicop32.c](./fixed_point/basic_op/basop32.c):590 |
+| mult | using KHM16 to replace | [basicop32.c](./fixed_point/basic_op/basop32.c):679 |
+| L_mult | using KDMBB to replace | [basicop32.c](./fixed_point/basic_op/basop32.c):739 |
+| L_mac | using KDMABB to replace | [basicop32.c](./fixed_point/basic_op/basop32.c):995 |
+| L_msu | using KDMBB to replace | [basicop32.c](./fixed_point/basic_op/basop32.c):1055 |
+| L_add | using KADDW to replace | [basicop32.c](./fixed_point/basic_op/basop32.c):1108 |
+| L_sub | using KSUBW to replace | [basicop32.c](./fixed_point/basic_op/basop32.c):1171 |
+| L_shl | using KSLRAW to replace | [basicop32.c](./fixed_point/basic_op/basop32.c):1342 |
+| L_shr | using KSLRAW to replace | [basicop32.c](./fixed_point/basic_op/basop32.c):1427 |
+| L_mac0 | using KMABB to replace | [basicop32.c](./fixed_point/basic_op/basop32.c):2318 |
+| L_msu0 | using KMABB to replace | [basicop32.c](./fixed_point/basic_op/basop32.c):2377 |

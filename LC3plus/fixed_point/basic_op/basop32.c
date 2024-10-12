@@ -125,6 +125,9 @@ HISTORY:
 #include <stdlib.h>
 #include "stl.h"
 
+#include "evalsoc.h"
+#include "nmsis_core.h"
+
 #if (WMOPS)
 extern BASIC_OP multiCounter[MAXCOUNTERS];
 extern int currCounter;
@@ -255,6 +258,11 @@ static Word16 saturate (Word32 L_var1)
     Word16 var_out;
     int Overflow = 0;
 
+#ifdef __riscv_dsp
+    var_out = __RV_SCLIP32(L_var1, 16);
+    Overflow = __RV_RDOV();
+    __RV_CLROV();
+#else
     if (L_var1 > 0X00007fffL)
     {
         Overflow = 1;
@@ -272,6 +280,7 @@ static Word16 saturate (Word32 L_var1)
         multiCounter[currCounter].extract_l--;
 #endif
     }
+#endif
 
     BASOP_CHECK(Overflow, 0);
 
@@ -317,8 +326,12 @@ Word16 add (Word16 var1, Word16 var2)
     Word16 var_out;
     Word32 L_sum;
 
+#ifdef __riscv_dsp
+    var_out = __RV_KADD16(var1, var2);
+#else
     L_sum = (Word32) var1 + var2;
     var_out = saturate (L_sum);
+#endif
 
 #if (WMOPS)
     multiCounter[currCounter].add++;
@@ -365,8 +378,12 @@ Word16 sub (Word16 var1, Word16 var2)
     Word16 var_out;
     Word32 L_diff;
 
+#ifdef __riscv_dsp
+    var_out = __RV_KSUB16(var1, var2);
+#else
     L_diff = (Word32) var1 - var2;
     var_out = saturate (L_diff);
+#endif
 
 #if (WMOPS)
     multiCounter[currCounter].sub++;
@@ -407,6 +424,11 @@ Word16 abs_s (Word16 var1)
     Word16 var_out;
     int Overflow2 = 0;
 
+#ifdef __riscv_dsp
+    var_out = __RV_KABS16(var1);
+    Overflow2 = __RV_RDOV();
+    __RV_CLROV();
+#else
     if (var1 == (Word16) MIN_16)
     {
         var_out = MAX_16;
@@ -425,6 +447,7 @@ Word16 abs_s (Word16 var1)
             var_out = var1;
         }
     }
+#endif
 
 #if (WMOPS)
     multiCounter[currCounter].abs_s++;
@@ -476,6 +499,12 @@ Word16 shl (Word16 var1, Word16 var2)
     Word32 result;
     int Overflow = 0;
 
+#ifdef __riscv_dsp
+	var2 = __RV_SCLIP32(var2, 4); // var2 is in [-2^4, 2^4 - 1]
+	var_out = __RV_KSLRA16(var1, var2);
+    Overflow = __RV_RDOV();
+    __RV_CLROV();
+#else
     if (var2 < 0)
     {
         if (var2 < -16)
@@ -505,6 +534,7 @@ Word16 shl (Word16 var1, Word16 var2)
 #endif
         }
     }
+#endif
 
 #if (WMOPS)
     multiCounter[currCounter].shl++;
@@ -555,6 +585,12 @@ Word16 shr (Word16 var1, Word16 var2)
     Word16 var_out;
     int Overflow2 = 0;
 
+#ifdef __riscv_dsp
+	var2 = __RV_SCLIP32(-var2, 4);
+	var_out = __RV_KSLRA16(var1, var2);
+    Overflow2 = __RV_RDOV();
+    __RV_CLROV();
+#else
     if (var2 < 0)
     {
         if (var2 < -16)
@@ -589,6 +625,7 @@ Word16 shr (Word16 var1, Word16 var2)
             }
         }
     }
+#endif
 
 #if (WMOPS)
     multiCounter[currCounter].shr++;
@@ -637,6 +674,10 @@ Word16 shr (Word16 var1, Word16 var2)
 Word16 mult (Word16 var1, Word16 var2)
 {
     Word16 var_out;
+
+#ifdef __riscv_dsp
+	var_out = __RV_KHM16(var1, var2);
+#else
     Word32 L_product;
 
     L_product = (Word32) var1 *(Word32) var2;
@@ -647,6 +688,7 @@ Word16 mult (Word16 var1, Word16 var2)
         L_product = L_product | (Word32) 0xffff0000L;
 
     var_out = saturate (L_product);
+#endif
 
 #if (WMOPS)
     multiCounter[currCounter].mult++;
@@ -693,7 +735,11 @@ Word32 L_mult (Word16 var1, Word16 var2)
 {
     Word32 L_var_out;
     int Overflow = 0;
-
+#ifdef __riscv_dsp
+	L_var_out = __RV_KDMBB(var1, var2);
+    Overflow = __RV_RDOV();
+    __RV_CLROV();
+#else
     L_var_out = (Word32) var1 *(Word32) var2;
 
     if (L_var_out != (Word32) 0x40000000L)
@@ -705,6 +751,7 @@ Word32 L_mult (Word16 var1, Word16 var2)
         Overflow = 1;
         L_var_out = MAX_32;
     }
+#endif
 
 #if (WMOPS)
     multiCounter[currCounter].L_mult++;
@@ -944,8 +991,12 @@ Word32 L_mac (Word32 L_var3, Word16 var1, Word16 var2)
     Word32 L_var_out;
     Word32 L_product;
 
+#ifdef __riscv_dsp
+	L_var_out = __RV_KDMABB(L_var3, var1, var2);
+#else
     L_product = L_mult (var1, var2);
     L_var_out = L_add (L_var3, L_product);
+#endif
 
 #if (WMOPS)
     multiCounter[currCounter].L_mult--;
@@ -1000,7 +1051,11 @@ Word32 L_msu (Word32 L_var3, Word16 var1, Word16 var2)
     Word32 L_var_out;
     Word32 L_product;
 
+#ifdef __riscv_dsp
+	L_product = __RV_KDMBB(var1, var2);
+#else
     L_product = L_mult (var1, var2);
+#endif
     L_var_out = L_sub (L_var3, L_product);
 
 #if (WMOPS)
@@ -1049,7 +1104,11 @@ Word32 L_add (Word32 L_var1, Word32 L_var2)
 {
     Word32 L_var_out;
     int Overflow = 0;
-
+#ifdef __riscv_dsp
+	L_var_out = __RV_KADDW(L_var1, L_var2);
+    Overflow = __RV_RDOV();
+    __RV_CLROV();
+#else
     L_var_out = L_var1 + L_var2;
 
     if (((L_var1 ^ L_var2) & MIN_32) == 0)
@@ -1060,6 +1119,7 @@ Word32 L_add (Word32 L_var1, Word32 L_var2)
             Overflow = 1;
         }
     }
+#endif
 
 #if (WMOPS)
     multiCounter[currCounter].L_add++;
@@ -1107,6 +1167,11 @@ Word32 L_sub (Word32 L_var1, Word32 L_var2)
     Word32 L_var_out;
     int Overflow = 0;
 
+#ifdef __riscv_dsp
+	L_var_out = __RV_KSUBW(L_var1, L_var2);
+    Overflow = __RV_RDOV();
+    __RV_CLROV();
+#else
     L_var_out = L_var1 - L_var2;
 
     if (((L_var1 ^ L_var2) & MIN_32) != 0)
@@ -1117,6 +1182,7 @@ Word32 L_sub (Word32 L_var1, Word32 L_var2)
             Overflow = 1;
         }
     }
+#endif
 
 #if (WMOPS)
     multiCounter[currCounter].L_sub++;
@@ -1271,7 +1337,10 @@ Word32 L_shl (Word32 L_var1, Word16 var2)
 
     Word32 L_var_out = 0L;
     int Overflow = 0;
-
+#ifdef __riscv_dsp
+	var2 = __RV_SCLIP32(var2, 5);
+	L_var_out = __RV_KSLRAW(L_var1, var2);
+#else
     if (var2 <= 0)
     {
         if (var2 < -32)
@@ -1305,9 +1374,11 @@ Word32 L_shl (Word32 L_var1, Word16 var2)
             L_var_out = L_var1;
         }
     }
-    #if (WMOPS)
+#endif
+
+#if (WMOPS)
     multiCounter[currCounter].L_shl++;
-      #endif
+#endif
 
     BASOP_CHECK(Overflow, 0);
 
@@ -1352,7 +1423,12 @@ Word32 L_shr (Word32 L_var1, Word16 var2)
 {
     Word32 L_var_out;
     int Overflow2 = 0;
-
+#ifdef __riscv_dsp
+	var2 = __RV_SCLIP32(-var2, 5);
+	L_var_out = __RV_KSLRAW(L_var1, var2);
+    Overflow2 = __RV_RDOV();
+    __RV_CLROV();
+#else
     if (var2 < 0)
     {
         if (var2 < -32)
@@ -1386,9 +1462,11 @@ Word32 L_shr (Word32 L_var1, Word16 var2)
             }
         }
     }
-    #if (WMOPS)
+#endif
+
+#if (WMOPS)
     multiCounter[currCounter].L_shr++;
-      #endif
+#endif
 
     BASOP_CHECK(0, Overflow2);
 
@@ -2236,6 +2314,13 @@ Word32 L_mac0 (Word32 L_var3, Word16 var1, Word16 var2)
   Word32 L_var_out;
   Word32 L_product;
 
+#ifdef __riscv_dsp
+    L_var_out = __RV_KMABB(L_var3, var1, var2);
+
+#if (WMOPS)
+    multiCounter[currCounter].L_mac0++;
+#endif
+#else
   L_product = L_mult0(var1,var2);
   L_var_out = L_add(L_var3,L_product);
 
@@ -2243,6 +2328,8 @@ Word32 L_mac0 (Word32 L_var3, Word16 var1, Word16 var2)
     multiCounter[currCounter].L_mac0++;
     multiCounter[currCounter].L_mult0--;
     multiCounter[currCounter].L_add--;
+#endif
+
 #endif
 
   BASOP_CHECK(0, 0);
@@ -2286,6 +2373,13 @@ Word32 L_msu0 (Word32 L_var3, Word16 var1, Word16 var2)
   Word32 L_var_out;
   Word32 L_product;
 
+#ifdef __riscv_dsp
+    L_var_out = __RV_KMABB(L_var3, -var1, var2);
+
+#if (WMOPS)
+    multiCounter[currCounter].L_mac0++;
+#endif
+#else
   L_product = L_mult0(var1,var2);
   L_var_out = L_sub(L_var3,L_product);
 
@@ -2293,6 +2387,8 @@ Word32 L_msu0 (Word32 L_var3, Word16 var1, Word16 var2)
     multiCounter[currCounter].L_msu0++;
     multiCounter[currCounter].L_mult0--;
     multiCounter[currCounter].L_sub--;
+#endif
+
 #endif
 
   BASOP_CHECK(0, 0);
