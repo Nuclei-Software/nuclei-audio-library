@@ -36,10 +36,10 @@ Otherwise, you should place this project in the directory of `$NUCLEI_SDK_ROOT/a
 
 ## Supported Libraries
 
-- [x] AMR-WB: Adaptive Multi-Rate Wideband. [encoder](./amrwb_enc/) & [decoder](./amrwb_dec/)
+- [x] AMR-WB: Adaptive Multi-Rate Wideband. [Encoder](./amrwb_enc/) & [Decoder](./amrwb_dec/)
 - [x] Opus: [Opus Interactive Audio Codec](./opus/)
 - [x] LC3plus: [Low Complexity Communication Codec](./LC3plus/)
-- [ ] SpeexDSP: TODO
+- [x] [SpeexDSP](./SpeexDSP/): Noise Reduction, Acoustic Echo Cancellation, Automatic Gain Control ... 
 - [ ] Porcupine: TODO
 
 ## License

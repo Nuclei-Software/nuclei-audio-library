@@ -1,4 +1,4 @@
-# NOTE: make sure the path of opus.pc is in PKG_CONFIG_PATH
+# NOTE: make sure the path of speexdsp.pc is in PKG_CONFIG_PATH
 CFLAGS += $(shell pkg-config --cflags --static speexdsp)
 LDLIBS += $(shell pkg-config --libs --static speexdsp)
 
