@@ -80,9 +80,9 @@ The filtered result of `input` is shown as `fixed_out` and `float_out`, which co
 
 ## Performance Test
 
-We statistics the CPU cycles used when calling `speex_echo_cancellation` and `speex_preprocess_run`, and calculate the average CPU cycles. To show the performance of Nuclei CPU extensions, we compare the cpu cycles consumed when w/ and w/o extension.
+We statistics the CPU cycles used when calling `speex_echo_cancellation` and `speex_preprocess_run`, and calculate the average CPU cycles.
 
-For w/o extension, the build option is `ARCH_EXT=`, for w/ extension, the build option is `ARCH_EXT=_zba_zbb_zbc_zbs_xxldspn3x`.
+To show the performance of Nuclei CPU extensions, we compare the cpu cycles consumed between w/ and w/o extension. For w/o extension, the build option is `ARCH_EXT=`, for w/ extension, the build option is `ARCH_EXT=_zba_zbb_zbc_zbs_xxldspn3x`.
 
     Test bitstream: n300_dual_best_config_ku060_16M_7cd945994_18d811786_202408191002.bit
 

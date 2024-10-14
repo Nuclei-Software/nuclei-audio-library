@@ -58,25 +58,25 @@ The `enc.bin` and `dec.wav` in [data/fixed](./data/fixed/) and [data/float](./da
 
 The encoder process 10 ms of audio data each time, so the 1s duration of audio data should be processed at least 100 times. The decoder should follow inverse order, so the decoder should decode the frames for about 100 times(a little more than 100 times). We record the CPU cycles consumed to process each frame, and caclulate the average cycles as shown in the following table.
 
-For w/o extension, the build option is `ARCH_EXT=`, for w/ extension, the build option is `ARCH_EXT=_zba_zbb_zbc_zbs_xxldspn3x`.
+To show the performance of Nuclei CPU extensions, we compare the cpu cycles consumed between w/ and w/o extension. For w/o extension, the build option is `ARCH_EXT=`, for w/ extension, the build option is `ARCH_EXT=_zba_zbb_zbc_zbs_xxldspn3x`.
 
-    Test bistream: n300_dual_best_config_ku060_16M_7cd945994_18d811786_202408191002.bit
+    Test bitstream: n300_dual_best_config_ku060_16M_7cd945994_18d811786_202408191002.bit
 
 These results can be easily calculated by [data/bench/cmp.py](./data/bench/cmp.py).
 
 ### fixed-point
 
-| case | fixed-point w/o ext | fixed-point w/ ext | speedup ratio |
+| case | w/o ext (avg cycles) | w/ ext (avg cycles)| speedup ratio |
 | -- | -- | -- | -- |
-| encode (avg cycles) | 771938.96 | 577580.34 | 1.34 |
-| decode (avg cycles) | 307473.51 | 263427.15 | 1.17 |
+| encode | 771938.96 | 577580.34 | 1.34 |
+| decode | 307473.51 | 263427.15 | 1.17 |
 
 ### float-point
 
-| case | float-point w/o ext | float-point w/ ext | speedup ratio |
+| case | w/o ext (avg cycles) | w/ ext (avg cycles) | speedup ratio |
 | -- | -- | -- | -- |
-| encode (avg cycles) | 4864125.64 | 4004559.35 | 1.21 |
-| decode (avg cycles) | 1009454.70 | 833115.61 | 1.21 |
+| encode | 4864125.64 | 4004559.35 | 1.21 |
+| decode | 1009454.70 | 833115.61 | 1.21 |
 
 ## Changelog
 

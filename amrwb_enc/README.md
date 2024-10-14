@@ -42,19 +42,19 @@ For more information about Nuclei CPU Architecture extension, please refer to [A
 
 The data for test input is prepared in [input.h](./input.h). The encoder process 20 ms of audio data each time, the input audio data will split into several frames and the encoder encode each frame one by one. We record the CPU cycles consumed to process each frame, and caclulate the average cycles as shown in the following table.
 
-For w/o extension, the build option is `ARCH_EXT=`, for w/ extension, the build option is `ARCH_EXT=_zba_zbb_zbc_zbs_xxldspn3x`.
+To show the performance of Nuclei CPU extensions, we compare the cpu cycles consumed between w/ and w/o extension. For w/o extension, the build option is `ARCH_EXT=`, for w/ extension, the build option is `ARCH_EXT=_zba_zbb_zbc_zbs_xxldspn3x`.
 
-    Test bistream: n300_dual_best_config_ku060_16M_7cd945994_18d811786_202408191002.bit
+    Test bitstream: n300_dual_best_config_ku060_16M_7cd945994_18d811786_202408191002.bit
 
-| case | w/o ext | w/ ext | speedup ratio |
+| case | w/o ext (avg cycles) | w/ ext (avg cycles) | speedup ratio |
 | -- | -- | -- | -- |
-| amrwb-enc (avg cycles) | 1497434.15 | 1215188.38 | 1.23 |
+| amrwb-enc | 1497434.15 | 1215188.38 | 1.23 |
 
-    Test bistream: n300_best_config_ku060_16M_7cd945994_18d811786_202408191005.bit
+    Test bitstream: n300_best_config_ku060_16M_7cd945994_18d811786_202408191005.bit
 
-| case | w/o ext | w/ ext | speedup ratio |
+| case | w/o ext (avg cycles) | w/ ext (avg cycles) | speedup ratio |
 | -- | -- | -- | -- |
-| amrwb-enc (avg cycles) | 1817470.12 | 1362107.88 | 1.33 |
+| amrwb-enc | 1817470.12 | 1362107.88 | 1.33 |
 
 ## Changelog
 

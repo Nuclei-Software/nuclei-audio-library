@@ -24,22 +24,7 @@ In `opus_demo`, we prepare a piece of audio data and first encode it by calling 
 
 ## Prerequests
 
-We recommend utilizing the latest version of the Nuclei SDK and associated toolchain for optimal performance and compatibility. For this project we use the following versions:
-
-- [Nuclei SDK version 0.6.0](https://github.com/Nuclei-Software/nuclei-sdk/releases/tag/0.6.0)
-- [Nuclei Studio IDE for Linux version 2024.06](https://download.nucleisys.com/upload/files/nucleistudio/NucleiStudio_IDE_202406-lin64.tgz)
-
-Please adhere to the instructions outlined in the [Setup Tools and Environment](https://doc.nucleisys.com/nuclei_sdk/quickstart.html#get-and-setup-nuclei-sdk) section to properly prepare your Nuclei SDK and toolchain for use. Both Linux and Windows operating systems are supported, for the purpose of example, we will demonstrate the process using the Ubuntu 20.04 Linux operating system.
-
-It is recommended to setup `NUCLEI_SDK_ROOT` environment variable to point to `/path/to/nuclei-sdk`.
-
-```shell
-export NUCLEI_SDK_ROOT=/path/to/nuclei-sdk
-```
-
-After that, no matter where this project located in, you can run make to build and run the test program.
-
-Otherwise, you should place this project in the directory of `$NUCLEI_SDK_ROOT/application/baremetal`
+Please refer to the [Prerequests](../README.md#prerequests) section in the README.md of parent directory.
 
 ## Build
 
@@ -91,22 +76,22 @@ Although these four audio are not exactly same, but they are very close to each 
 
 The encoder process 20 ms of audio data each time, so the 1s duration of audio data is divided into 50 frames. The decoder should follow inverse order, so the decoder should decode the frames for 50 times. We record the CPU cycles consumed to process each frame, and caclulate the average cycles as shown in the following table.
 
-For w/o extension, the build option is `ARCH_EXT=`, for w/ extension, the build option is `ARCH_EXT=_zba_zbb_zbc_zbs_xxldspn3x`.
+To show the performance of Nuclei CPU extensions, we compare the cpu cycles consumed between w/ and w/o extension. For w/o extension, the build option is `ARCH_EXT=`, for w/ extension, the build option is `ARCH_EXT=_zba_zbb_zbc_zbs_xxldspn3x`.
 
-    Test bistream: n300_dual_best_config_ku060_16M_7cd945994_18d811786_202408191002.bit
+    Test bitstream: n300_dual_best_config_ku060_16M_7cd945994_18d811786_202408191002.bit
 
 These results can be easily calculated by [data/bench/cmp.py](./data/bench/cmp.py).
 
 ### fixed-point
 
-| case | fixed-point w/o ext | fixed-point w/ ext | speedup ratio |
+| case | w/o ext (avg cycles) | w/ ext (avg cycles) | speedup ratio |
 | -- | -- | -- | -- |
-| encode (avg cycles) | 6951502.84 | 5968187.26 | 1.16 |
-| decode (avg cycles) | 112640.22 | 110074.82 | 1.02 |
+| encode | 6951502.84 | 5968187.26 | 1.16 |
+| decode | 112640.22 | 110074.82 | 1.02 |
 
 ### float-point
 
-| case | float-point w/o ext | float-point w/ ext | speedup ratio |
+| case | w/o ext (avg cycles) | w/ ext (avg cycles) | speedup ratio |
 | -- | -- | -- | -- |
-| encode (avg cycles) | 44398970.58 | 38056908.84 | 1.17 |
-| decode (avg cycles) | 307887.96 | 266908.76 | 1.15 |
+| encode | 44398970.58 | 38056908.84 | 1.17 |
+| decode | 307887.96 | 266908.76 | 1.15 |
