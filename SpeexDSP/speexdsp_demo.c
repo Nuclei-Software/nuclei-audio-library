@@ -2,16 +2,17 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "speex/speex_echo.h"
-#include "speex/speex_preprocess.h"
-
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
 
+#include "speex/speex_echo.h"
+#include "speex/speex_preprocess.h"
+
 #include "input.h"
 #include "memfop.h"
 #include "output.h"
+#include "nmsis_bench.h"
 
 #define FRAME_SIZE (256)
 #define FILTER_LENGTH (256 * 20)
@@ -20,6 +21,8 @@
 int16_t frame_buffer[FRAME_SIZE * 2] = {0};
 int16_t input_frame[FRAME_SIZE] = {0};
 uint8_t output_result[OUT_RAW_LEN] = {0};
+
+BENCH_DECLARE_VAR();
 
 int verify_result(const uint8_t *ref, const uint8_t *res, int len,
                   int threshold)
@@ -94,10 +97,14 @@ int main(int argc, char *argv[])
         }
 
         // run echo cancellation
+        BENCH_START(speex_echo_cancellation)
         speex_echo_cancellation(echo_state, input_frame, last_frame,
                                 filtered_frame);
+        BENCH_END(speex_echo_cancellation)
         // run preprocessing
+        BENCH_START(speex_preprocess_run)
         speex_preprocess_run(preprocess_state, filtered_frame);
+        BENCH_END(speex_preprocess_run)
 
         // write output
         if (memfwrite(filtered_frame, sizeof(int16_t), num_read, fout) !=
