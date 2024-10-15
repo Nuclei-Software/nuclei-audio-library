@@ -953,9 +953,15 @@ EXPORT int speex_preprocess_run(SpeexPreprocessState *st, spx_int16_t *x)
 
    /* Inverse FFT with 1/N scaling */
    spx_ifft(st->fft_lookup, st->ft, st->frame);
+#if defined(FIXED_POINT) && defined(__riscv_xxldsp)
+   spx_word32_t *pd = (spx_word32_t *)st->frame;
+   for (i=0;i<N;i++)
+      pd[i] = __RV_SRA16_U(pd[i], st->frame_shift);
+#else
    /* Scale back to original (lower) amplitude */
    for (i=0;i<2*N;i++)
       st->frame[i] = PSHR16(st->frame[i], st->frame_shift);
+#endif
 
    /*FIXME: This *will* not work for fixed-point */
 #ifndef FIXED_POINT

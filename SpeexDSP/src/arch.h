@@ -121,6 +121,8 @@ typedef spx_word32_t spx_sig_t;
 #include "fixed_arm4.h"
 #elif defined(BFIN_ASM)
 #include "fixed_bfin.h"
+#elif defined(RISCV_ASM)
+#include "fixed_riscv.h"
 #endif
 
 #endif

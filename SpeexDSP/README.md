@@ -92,8 +92,8 @@ These results can be easily calculated by [data/bench/cmp.py](./data/bench/cmp.p
 
 | case | w/o ext (avg cycles) | w/ ext (avg cycles) | speedup ratio |
 | -- | -- | -- | -- |
-| Acuostic Echo Cancellation | 993463.38 | 917489.85 | 1.08 |
-| Preprocess | 346886.74 | 324023.81 | 1.07 |
+| Acuostic Echo Cancellation | 993463.38 | 883818.54 | 1.12 |
+| Preprocess | 346886.74 | 321919.46 | 1.08 |
 
 ### float-point
 
@@ -101,3 +101,15 @@ These results can be easily calculated by [data/bench/cmp.py](./data/bench/cmp.p
 | -- | -- | -- | -- |
 | Acuostic Echo Cancellation | 17768170.62 | 14405761.30 | 1.23 |
 | Preprocess | 5460720.98 | 4626516.92 | 1.18 |
+
+## Changelog
+
+| operator/function | description | file |
+| -- | -- | -- |
+| PSHR32 | using SRA_U to replace | [fixed_riscv.h](./src/fixed_riscv.h):13 |
+| VSHR32 | using KSLRAW to replace | [fixed_riscv.h](./src/fixed_riscv.h):21 |
+| MULT16_16_Q15 | using KHMBB to replace | [fixed_riscv.h](./src/fixed_riscv.h):28 |
+| renorm_range | using SRA16_U to shift two i16 together | [fftwrap.c](./src/fftwrap.c):72|
+| mdf_inner_prod | using KMDA to calculate `i16 x i16 + i16 x i16` | [mdf.c](./src/mdf.c):212 |
+| speex_preprocess_run | using SRA16_U to shift two i16 together | [preprocess.c](./src/preprocess.c):956 |
+| resampler_basic_direct_single | replace `SATURATE32PSHR` with SCLIP32 and SRA_U | [resample.c](./src/resample.c):367/482 |

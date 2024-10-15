@@ -363,7 +363,11 @@ static int resampler_basic_direct_single(SpeexResamplerState *st, spx_uint32_t c
       }
       sum = accum[0] + accum[1] + accum[2] + accum[3];
 */
+#if defined(FIXED_POINT) && defined(__riscv_xxldsp)
+      sum = __RV_SCLIP32(__RV_SRA_U(sum, 15), 15);
+#else
       sum = SATURATE32PSHR(sum, 15, 32767);
+#endif
 #else
       sum = inner_product_single(sinct, iptr, N);
 #endif
@@ -474,7 +478,11 @@ static int resampler_basic_interpolate_single(SpeexResamplerState *st, spx_uint3
 
       cubic_coef(frac, interp);
       sum = MULT16_32_Q15(interp[0],accum[0]) + MULT16_32_Q15(interp[1],accum[1]) + MULT16_32_Q15(interp[2],accum[2]) + MULT16_32_Q15(interp[3],accum[3]);
+#if defined(FIXED_POINT) && defined(__riscv_xxldsp)
+      sum = __RV_SCLIP32(__RV_SRA_U(sum, 15), 15);
+#else
       sum = SATURATE32PSHR(sum, 15, 32767);
+#endif
 #else
       cubic_coef(frac, interp);
       sum = interpolate_product_single(iptr, st->sinc_table + st->oversample + 4 - offset - 2, N, st->oversample, interp);

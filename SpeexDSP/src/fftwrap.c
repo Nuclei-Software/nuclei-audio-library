@@ -69,10 +69,22 @@ static int maximize_range(spx_word16_t *in, spx_word16_t *out, spx_word16_t boun
 static void renorm_range(spx_word16_t *in, spx_word16_t *out, int shift, int len)
 {
    int i;
+#if defined(FIXED_POINT) && defined(__riscv_xxldsp)
+   spx_word32_t *pout = (spx_word32_t *)out;
+   const spx_word32_t *pin = (const spx_word32_t *)in;
+   int n = len >> 1;
+   for(i = 0; i < n; i++) {
+      pout[i] = __RV_SRA16_U(pin[i], shift);
+   }
+   if(len & 1) {
+      out[len - 1] = PSHR16(in[len - 1], shift);
+   }
+#else
    for (i=0;i<len;i++)
    {
       out[i] = PSHR16(in[i], shift);
    }
+#endif
 }
 #endif
 

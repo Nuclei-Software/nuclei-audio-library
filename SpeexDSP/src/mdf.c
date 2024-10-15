@@ -212,12 +212,18 @@ static inline void filter_dc_notch16(const spx_int16_t *in, spx_word16_t radius,
 static inline spx_word32_t mdf_inner_prod(const spx_word16_t *x, const spx_word16_t *y, int len)
 {
    spx_word32_t sum=0;
+   const spx_word32_t *px = (const spx_word32_t *)x;
+   const spx_word32_t *py = (const spx_word32_t *)y;
    len >>= 1;
    while(len--)
    {
       spx_word32_t part=0;
+#if defined(FIXED_POINT) && defined(__riscv_xxldsp)
+      part = __RV_KMDA(*px++, *py++);
+#else
       part = MAC16_16(part,*x++,*y++);
       part = MAC16_16(part,*x++,*y++);
+#endif
       /* HINT: If you had a 40-bit accumulator, you could shift only at the end */
       sum = ADD32(sum,SHR32(part,6));
    }
