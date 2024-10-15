@@ -15,7 +15,7 @@ INCDIRS = . celt include silk src data
 COMMON_FLAGS := -O2 -DHAVE_CONFIG_H
 
 ifeq ($(FIXED_POINT), 1)
-COMMON_FLAGS += -DUSE_FIXED_POINT
+COMMON_FLAGS += -DUSE_FIXED_POINT -DRISCV_ASM
 SRCDIRS += silk/fixed
 INCDIRS += silk/fixed
 else

@@ -173,6 +173,8 @@ static OPUS_INLINE opus_int16 SAT16(opus_int32 x) {
 #include "fixed_c5x.h"
 #elif defined (TI_C6X_ASM)
 #include "fixed_c6x.h"
+#elif defined (RISCV_ASM)
+#include "fixed_riscv.h"
 #endif
 
 #endif

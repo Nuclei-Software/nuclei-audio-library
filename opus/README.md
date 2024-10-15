@@ -86,12 +86,23 @@ These results can be easily calculated by [data/bench/cmp.py](./data/bench/cmp.p
 
 | case | w/o ext (avg cycles) | w/ ext (avg cycles) | speedup ratio |
 | -- | -- | -- | -- |
-| encode | 6951502.84 | 5968187.26 | 1.16 |
-| decode | 112640.22 | 110074.82 | 1.02 |
+| encode | 6951502.84 | 5716036.98 | 1.22 |
+| decode | 112640.22 | 106151.44 | 1.06 |
 
 ### float-point
 
 | case | w/o ext (avg cycles) | w/ ext (avg cycles) | speedup ratio |
 | -- | -- | -- | -- |
-| encode | 44398970.58 | 38056908.84 | 1.17 |
-| decode | 307887.96 | 266908.76 | 1.15 |
+| encode | 44398970.62 | 38366905.80 | 1.16 |
+| decode | 307887.96 | 272321.30 | 1.13 |
+
+## Changelog
+
+| operator/function | description | file |
+| -- | -- | -- |
+| SATURATE16 | using SCLI32 to replace | [fixed_riscv.h](./celt/fixed_riscv.h):11 |
+| MAX32 | using MAXW to replace | [fixed_riscv.h](./celt/fixed_riscv.h):15 |
+| MIN32 | using MINW to replace | [fixed_riscv.h](./celt/fixed_riscv.h):18 |
+| VSHR32 | using KSLRAW to replace | [fixed_riscv.h](./celt/fixed_riscv.h):21 |
+| MULT16_16_Q15 | using KHMBB to replace | [fixed_riscv.h](./celt/fixed_riscv.h):24 |
+| PSHR32 | using SRA_U to replace | [fixed_riscv.h](./celt/fixed_riscv.h):27 |
