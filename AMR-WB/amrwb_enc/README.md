@@ -60,26 +60,26 @@ To show the performance of Nuclei CPU extensions, we compare the cpu cycles cons
 
 | operator/function | description | file |
 | -- | -- | -- |
-| saturate | using SCLIP16 to replace | [basic_op.h](./amrwb_enc/inc/basic_op.h):37 |
-| vo_round | using KSLRAW.u to replace | [basic_op.h](./amrwb_enc/inc/basic_op.h):38 |
-| shl | using KSLRA16 to replace | [basic_op.h](./amrwb_enc/inc/basic_op.h):237 |
-| shr | using KSLRA16 to replace | [basic_op.h](./amrwb_enc/inc/basic_op.h):302 |
-| mult | using KHM16 to replace | [basic_op.h](./amrwb_enc/inc/basic_op.h):371 |
-| L_mult | using KDMBB to replace | [basic_op.h](./amrwb_enc/inc/basic_op.h):422 |
-| voround | using KSLRAW to replace | [basic_op.h](./amrwb_enc/inc/basic_op.h):472 |
-| L_mac | using KDMABB to replace | [basic_op.h](./amrwb_enc/inc/basic_op.h):523 |
-| L_msu | using KDMBB to replace multiplication | [basic_op.h](./amrwb_enc/inc/basic_op.h):573 |
-| L_add | using KADDW to replace | [basic_op.h](./amrwb_enc/inc/basic_op.h):617 |
-| L_sub | using KSUBW to replace | [basic_op.h](./amrwb_enc/inc/basic_op.h):668 |
-| L_shl | using KSLRAW to replace | [basic_op.h](./amrwb_enc/inc/basic_op.h):772 |
-| L_shl2 | using KSLLW to replace | [basic_op.h](./amrwb_enc/inc/basic_op.h):817 |
-| L_shr | using KSLRAW to replace | [basic_op.h](./amrwb_enc/inc/basic_op.h):880 |
-| L_shr_r | using KSLRAW.u to replace | [basic_op.h](./amrwb_enc/inc/basic_op.h):962 |
-| norm_s | using CLRS16 to replace | [basic_op.h](./amrwb_enc/inc/basic_op.h):1016 |
-| norm_l | using CLRS32 to replace | [basic_op.h](./amrwb_enc/inc/basic_op.h):1159 |
-| Deemph2 | using KSLRAW.u to replace shift and round | [deemph.c](./amrwb_enc/src/deemph.c):75 |
-| Deemph_32 | using KSLRAW.u to replace shift and round | [deemph.c](./amrwb_enc/src/deemph.c):115 |
-| Dot_product12 | using DSMALDA to achieve 4x parallelism | [math_op.c](./amrwb_enc/src/math_op.c):222 |
-| Autocorr | using SMUL16 to double parallelism | [autocorr.c](./amrwb_enc/src/autocorr.c):56 |
-| Autocorr | using KDMABB to replace | [autocorr.c](./amrwb_enc/src/autocorr.c):117 |
-| Convolve | using KMAXDA to double parallelism | [convolve.c](./amrwb_enc/src/convolve.c):47-124 |
+| saturate | using SCLIP16 to replace | [basic_op.h](./inc/basic_op.h):37 |
+| vo_round | using KSLRAW.u to replace | [basic_op.h](./inc/basic_op.h):38 |
+| shl | using KSLRA16 to replace | [basic_op.h](./inc/basic_op.h):237 |
+| shr | using KSLRA16 to replace | [basic_op.h](./inc/basic_op.h):302 |
+| mult | using KHM16 to replace | [basic_op.h](./inc/basic_op.h):371 |
+| L_mult | using KDMBB to replace | [basic_op.h](./inc/basic_op.h):422 |
+| voround | using KSLRAW to replace | [basic_op.h](./inc/basic_op.h):472 |
+| L_mac | using KDMABB to replace | [basic_op.h](./inc/basic_op.h):523 |
+| L_msu | using KDMBB to replace multiplication | [basic_op.h](./inc/basic_op.h):573 |
+| L_add | using KADDW to replace | [basic_op.h](./inc/basic_op.h):617 |
+| L_sub | using KSUBW to replace | [basic_op.h](./inc/basic_op.h):668 |
+| L_shl | using KSLRAW to replace | [basic_op.h](./inc/basic_op.h):772 |
+| L_shl2 | using KSLLW to replace | [basic_op.h](./inc/basic_op.h):817 |
+| L_shr | using KSLRAW to replace | [basic_op.h](./inc/basic_op.h):880 |
+| L_shr_r | using KSLRAW.u to replace | [basic_op.h](./inc/basic_op.h):962 |
+| norm_s | using CLRS16 to replace | [basic_op.h](./inc/basic_op.h):1016 |
+| norm_l | using CLRS32 to replace | [basic_op.h](./inc/basic_op.h):1159 |
+| Deemph2 | using KSLRAW.u to replace shift and round | [deemph.c](./src/deemph.c):75 |
+| Deemph_32 | using KSLRAW.u to replace shift and round | [deemph.c](./src/deemph.c):115 |
+| Dot_product12 | using DSMALDA to achieve 4x parallelism | [math_op.c](./src/math_op.c):222 |
+| Autocorr | using SMUL16 to double parallelism | [autocorr.c](./src/autocorr.c):56 |
+| Autocorr | using KDMABB to replace | [autocorr.c](./src/autocorr.c):117 |
+| Convolve | using KMAXDA to double parallelism | [convolve.c](./src/convolve.c):47-124 |
