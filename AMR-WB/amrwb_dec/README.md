@@ -58,14 +58,14 @@ To show the performance of Nuclei CPU extensions, we compare the cpu cycles cons
 
 | operator/function | description | file |
 | -- | -- | -- |
-| add_int16 | using KADD16 to replace | [pvamrwbdecoder_basic_op_cequivalent.h](./amrwb_dec/src/pvamrwbdecoder_basic_op_cequivalent.h):89 |
-| sub_int16 | using KSUB16 to replace | [pvamrwbdecoder_basic_op_cequivalent.h](./amrwb_dec/src/pvamrwbdecoder_basic_op_cequivalent.h):132 |
-| mult_int16 | using KHM16 to replace | [pvamrwbdecoder_basic_op_cequivalent.h](./amrwb_dec/src/pvamrwbdecoder_basic_op_cequivalent.h):173 |
-| add_int32 | using KADDW to replace | [pvamrwbdecoder_basic_op_cequivalent.h](./amrwb_dec/src/pvamrwbdecoder_basic_op_cequivalent.h):214 |
-| mac_16by16_to_int32 | using KDMABB to replace | [pvamrwbdecoder_basic_op_cequivalent.h](./amrwb_dec/src/pvamrwbdecoder_basic_op_cequivalent.h):315 |
-| msu_16by16_from_int32 | using KDMBB and KSUBW to replace | [pvamrwbdecoder_basic_op_cequivalent.h](./amrwb_dec/src/pvamrwbdecoder_basic_op_cequivalent.h):378 |
-| mul_16by16_to_int32 | using KDMBB to replace | [pvamrwbdecoder_basic_op_cequivalent.h](./amrwb_dec/src/pvamrwbdecoder_basic_op_cequivalent.h):434 |
-| shl_int32 | using KSLRAW to replace | [pvamrwbdecoder_basic_op.h](./amrwb_dec/src/pvamrwbdecoder_basic_op.h):161 |
-| shr_int32 | using KSLRAW to replace | [pvamrwbdecoder_basic_op.h](./amrwb_dec/src/pvamrwbdecoder_basic_op.h):207 |
-| mult_int16_r | using KHMBB to replace | [pvamrwb_math_op.h](./amrwb_dec/src/pvamrwb_math_op.h):108 |
-| shr_rnd | using KSLRA16.u to replace | [pvamrwb_math_op.h](./amrwb_dec/src/pvamrwb_math_op.h):111 |
+| add_int16 | using KADD16 to replace | [pvamrwbdecoder_basic_op_cequivalent.h](./src/pvamrwbdecoder_basic_op_cequivalent.h):89 |
+| sub_int16 | using KSUB16 to replace | [pvamrwbdecoder_basic_op_cequivalent.h](./src/pvamrwbdecoder_basic_op_cequivalent.h):132 |
+| mult_int16 | using KHM16 to replace | [pvamrwbdecoder_basic_op_cequivalent.h](./src/pvamrwbdecoder_basic_op_cequivalent.h):173 |
+| add_int32 | using KADDW to replace | [pvamrwbdecoder_basic_op_cequivalent.h](./src/pvamrwbdecoder_basic_op_cequivalent.h):214 |
+| mac_16by16_to_int32 | using KDMABB to replace | [pvamrwbdecoder_basic_op_cequivalent.h](./src/pvamrwbdecoder_basic_op_cequivalent.h):315 |
+| msu_16by16_from_int32 | using KDMBB and KSUBW to replace | [pvamrwbdecoder_basic_op_cequivalent.h](./src/pvamrwbdecoder_basic_op_cequivalent.h):378 |
+| mul_16by16_to_int32 | using KDMBB to replace | [pvamrwbdecoder_basic_op_cequivalent.h](./src/pvamrwbdecoder_basic_op_cequivalent.h):434 |
+| shl_int32 | using KSLRAW to replace | [pvamrwbdecoder_basic_op.h](./src/pvamrwbdecoder_basic_op.h):161 |
+| shr_int32 | using KSLRAW to replace | [pvamrwbdecoder_basic_op.h](./src/pvamrwbdecoder_basic_op.h):207 |
+| mult_int16_r | using KHMBB to replace | [pvamrwb_math_op.h](./src/pvamrwb_math_op.h):108 |
+| shr_rnd | using KSLRA16.u to replace | [pvamrwb_math_op.h](./src/pvamrwb_math_op.h):111 |
