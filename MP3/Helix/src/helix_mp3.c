@@ -4,8 +4,13 @@
 #include <string.h>
 #include <stdio.h>
 
+#include "memfop.h"
+#include "nmsis_bench.h"
+
 #define HELIX_MP3_MIN(x, y) (((x) < (y)) ? (x) : (y))
 #define HELIX_MP3_SAMPLES_PER_FRAME 2
+
+BENCH_DECLARE_VAR();
 
 static int helix_mp3_skip_id3v2_tag(helix_mp3_t *mp3)
 {
@@ -89,7 +94,9 @@ static size_t helix_mp3_decode_next_frame(helix_mp3_t *mp3)
         mp3->mp3_read_ptr += offset;
         mp3->mp3_buffer_bytes_left -= offset;
 
+        BENCH_START(mp3_decode)
         const int err = MP3Decode(mp3->dec, &mp3->mp3_read_ptr, &mp3->mp3_buffer_bytes_left, mp3->pcm_buffer, 0);
+        BENCH_END(mp3_decode)
         if (err == ERR_MP3_NONE) {
             MP3FrameInfo frame_info;
             MP3GetLastFrameInfo(mp3->dec, &frame_info);
@@ -118,12 +125,12 @@ static size_t helix_mp3_decode_next_frame(helix_mp3_t *mp3)
 
 static int helix_mp3_seek(void *user_data, int offset)
 {
-    return fseek((FILE *)user_data, offset, SEEK_SET);
+    return memfseek((MemoryFile *)user_data, offset, SEEK_SET);
 }
 
 static size_t helix_mp3_read(void *user_data, void *buffer, size_t size)
 {
-    return fread(buffer, sizeof(uint8_t), size, (FILE *)user_data);
+    return memfread(buffer, sizeof(uint8_t), size, (MemoryFile *)user_data);
 }
 
 static helix_mp3_io_t default_io =
@@ -186,10 +193,10 @@ int helix_mp3_init(helix_mp3_t *mp3, const helix_mp3_io_t *io)
 }
 
 
-int helix_mp3_init_file(helix_mp3_t *mp3, const char *path)
+int helix_mp3_init_file(helix_mp3_t *mp3, const void *buffer, size_t size)
 {
     /* Open input file */
-    FILE *fd = fopen(path, "rb");
+    MemoryFile *fd = memfopen((void *)buffer, size);
     if (fd == NULL) {
        return -ENOENT;
     }
@@ -198,7 +205,7 @@ int helix_mp3_init_file(helix_mp3_t *mp3, const char *path)
     /* Initialize decoder */
     const int err = helix_mp3_init(mp3, &default_io);
     if (err) {
-        fclose(fd);
+        memfclose(&fd);
         return err;
     }
     return 0;
@@ -212,7 +219,7 @@ int helix_mp3_deinit(helix_mp3_t *mp3)
     }
 
     if (mp3->io->read == default_io.read) {
-        fclose((FILE *)mp3->io->user_data);
+        memfclose((MemoryFile **)&mp3->io->user_data);
     }
     free(mp3->pcm_buffer);
     free(mp3->mp3_buffer);

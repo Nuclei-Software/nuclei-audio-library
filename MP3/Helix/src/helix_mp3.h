@@ -74,10 +74,11 @@ int helix_mp3_init(helix_mp3_t *mp3, const helix_mp3_io_t *io);
  * @brief Initializes the decoder for a given file
  * 
  * @param mp3 pointer to decoder context
- * @param path path to MP3 file to decode
+ * @param buffer MP3 file translated to data array
+ * @param size number of bytes in buffer
  * @return int appropriate errno code on failure, zero on success
  */
-int helix_mp3_init_file(helix_mp3_t *mp3, const char *path);
+int helix_mp3_init_file(helix_mp3_t *mp3, const void *buffer, size_t size);
 
 /**
  * @brief Deinitializes the decoder, freeing all internal resources
