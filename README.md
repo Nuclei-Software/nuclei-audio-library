@@ -41,7 +41,7 @@ Otherwise, you should place this project in the directory of `$NUCLEI_SDK_ROOT/a
 - [x] LC3plus: [Low Complexity Communication Codec](./LC3plus/)
 - [x] [SpeexDSP](./SpeexDSP/): Noise Reduction, Acoustic Echo Cancellation, Automatic Gain Control ... 
 - [x] MP3: [Helix MP3 Decoder](./MP3/Helix/)
-- [ ] SBC: TODO
+- [x] SBC: [Sub-Band Codec](./SBC/)
 - [ ] ADPCM: TODO
 - [ ] AMR-NB: TODO
 - [ ] AAC: TODO
