@@ -40,7 +40,13 @@ Otherwise, you should place this project in the directory of `$NUCLEI_SDK_ROOT/a
 - [x] Opus: [Opus Interactive Audio Codec](./Opus/)
 - [x] LC3plus: [Low Complexity Communication Codec](./LC3plus/)
 - [x] [SpeexDSP](./SpeexDSP/): Noise Reduction, Acoustic Echo Cancellation, Automatic Gain Control ... 
-- [ ] Porcupine: TODO
+- [x] MP3: [Helix MP3 Decoder](./MP3/Helix/)
+- [ ] SBC: TODO
+- [ ] ADPCM: TODO
+- [ ] AMR-NB: TODO
+- [ ] AAC: TODO
+- [ ] G72x: TODO
+- [ ] EVS: TODO
 
 ## License
 
