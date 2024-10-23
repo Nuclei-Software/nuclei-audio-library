@@ -12,6 +12,8 @@
 
 #include "sbc.h"
 
+#include "nmsis_bench.h"
+
 struct parameters {
     const char *fname_in;
     const char *fname_out;
@@ -20,6 +22,8 @@ struct parameters {
 
 uint8_t enc_result[ENC_SBC_LEN] = {0};
 uint8_t dec_result[DEC_WAV_LEN] = {0};
+
+BENCH_DECLARE_VAR();
 
 int verify_result(const uint8_t *ref, const uint8_t *res, int len,
                   int threshold) {
@@ -109,7 +113,9 @@ int encode() {
     for (int i = 0; wave_read_pcm(fp_in, pcm_sbytes, nch, npcm, pcm) >= npcm;
          i++) {
 
+        BENCH_START(sbc_encode);
         sbc_encode(&sbc, pcm + 0, nch, pcm + 1, 2, frame, data, sizeof(data));
+        BENCH_END(sbc_encode);
 
         memfwrite(data, sbc_get_frame_size(frame), 1, fp_out);
     }
@@ -185,7 +191,9 @@ int decode() {
                      sbc_get_frame_size(&frame) - SBC_PROBE_SIZE, 1, fp_in) < 1)
             break;
 
+        BENCH_START(sbc_decode);
         sbc_decode(&sbc, data, sizeof(data), &frame, pcm + 0, nch, pcm + 1, 2);
+        BENCH_END(sbc_decode);
 
         int npcm = frame.nblocks * frame.nsubbands;
         wave_write_pcm(fp_out, sizeof(*pcm), pcm, nch, 0, npcm);
