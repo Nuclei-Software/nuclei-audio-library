@@ -1,0 +1,38 @@
+Nuclei SDK Build Time: Oct 23 2024, 10:21:25
+Download Mode: ILM
+CPU Frequency 24996413 Hz
+CPU HartID: 0
+CSV, mp3_decode, 334251
+Start Decoding...
+CSV, mp3_decode, 408251
+CSV, mp3_decode, 417391
+CSV, mp3_decode, 407700
+CSV, mp3_decode, 410032
+CSV, mp3_decode, 409158
+CSV, mp3_decode, 408523
+CSV, mp3_decode, 405923
+CSV, mp3_decode, 407740
+CSV, mp3_decode, 408160
+CSV, mp3_decode, 409721
+CSV, mp3_decode, 407193
+CSV, mp3_decode, 407743
+CSV, mp3_decode, 409995
+CSV, mp3_decode, 406938
+CSV, mp3_decode, 408205
+CSV, mp3_decode, 407631
+CSV, mp3_decode, 409421
+CSV, mp3_decode, 408371
+CSV, mp3_decode, 409640
+CSV, mp3_decode, 409438
+CSV, mp3_decode, 409617
+CSV, mp3_decode, 408817
+CSV, mp3_decode, 410128
+CSV, mp3_decode, 407208
+CSV, mp3_decode, 410337
+CSV, mp3_decode, 409133
+CSV, mp3_decode, 409691
+CSV, mp3_decode, 413158
+CSV, mp3_decode, 382085
+Reached EOF!
+Done! Decoded 34560 frames, last frame sample rate: 32000 Hz, bitrate: 32 kbps
+Result matches!

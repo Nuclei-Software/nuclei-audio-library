@@ -51,6 +51,8 @@
 #ifndef _ASSEMBLY_H
 #define _ASSEMBLY_H
 
+#include "evalsoc.h"
+
 #define ALWAYS_INLINE inline __attribute__((always_inline))
 
 #if defined(__GNUC__) && defined(__arm__) && (__ARM_ARCH >= 7)
@@ -130,7 +132,42 @@ static ALWAYS_INLINE Word64 SAR64(Word64 x, int n)
 	return x >> n;
 }
 
-#elif defined(__riscv)
+#elif defined(__riscv_dsp)
+
+typedef long long Word64;
+
+static ALWAYS_INLINE int MULSHIFT32(int x, int y)
+{
+	return __RV_SMMUL(x, y);
+}
+
+static ALWAYS_INLINE int FASTABS(int x)
+{
+	return __RV_KABSW(x);
+}
+
+static ALWAYS_INLINE int CLZ(int x)
+{
+	return __RV_CLZ32(x);
+}
+
+static ALWAYS_INLINE Word64 MADD64(Word64 sum, int a, int b)
+{
+	return __RV_SMAR64(sum, a, b);
+}
+
+static ALWAYS_INLINE Word64 SHL64(Word64 x, int n)
+{
+	return x << n;
+}
+
+static ALWAYS_INLINE Word64 SAR64(Word64 x, int n)
+{
+	return x >> n;
+}
+
+// these optimization are not better than the generic ones
+#elif 0
 
 #pragma message("Using optimizations for RISC-V")
 
