@@ -95,7 +95,11 @@ int encode() {
             const uint8_t *in = &inputBuf[2 * channels * i];
             buf[i] = in[0] | (in[1] << 8);
         }
+
+        BENCH_START(amrnb_encode);
         n = Encoder_Interface_Encode(amr, mode, buf, outbuf, 0);
+        BENCH_END(amrnb_encode);
+
         memfwrite(outbuf, 1, n, out);
     }
     free(inputBuf);
@@ -144,7 +148,9 @@ int decode() {
             break;
 
         /* Decode the packet */
+        BENCH_START(amrnb_decode);
         Decoder_Interface_Decode(amr, buffer, outbuffer, 0);
+        BENCH_END(amrnb_decode);
 
         /* Convert to little endian and write to wav */
         ptr = littleendian;
