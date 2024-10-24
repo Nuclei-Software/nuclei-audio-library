@@ -20,8 +20,7 @@
 #include <sp_dec.h>
 #include <amrdecode.h>
 #include <amrencode.h>
-#include "interf_dec.h"
-#include "interf_enc.h"
+#include "wrapper.h"
 #include <stdlib.h>
 
 #ifndef DISABLE_AMRNB_DECODER

@@ -19,11 +19,13 @@
 #ifndef WAVREADER_H
 #define WAVREADER_H
 
+#include <stddef.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-void* wav_read_open(const char *filename);
+void* wav_read_open(const void *buffer, size_t size);
 void wav_read_close(void* obj);
 
 int wav_get_header(void* obj, int* format, int* channels, int* sample_rate, int* bits_per_sample, unsigned int* data_length);
