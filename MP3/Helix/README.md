@@ -4,6 +4,11 @@ Helix MP3 Decoder is a high-performance MP3 decoding library designed to provide
 
 We designed a `helix_demo` to demonstrate how to use the Helix MP3 Decoder and run on Nuclei CPU.
 
+Note: 
+
+1. Helix MP3 Decoder only support MPEG-1 version. So the sample rate of MP3 file only support 32k, 44.1k and 48k.
+2. The decoder output is always 2 channel no matter the MP3 file has 1 or 2 channels.
+
 ## File Structure
 
 | Directory | Description |
