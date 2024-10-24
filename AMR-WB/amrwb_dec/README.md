@@ -14,7 +14,7 @@ The origin source code is available [here](https://sourceforge.net/projects/open
 
 ## Prerequests
 
-Please refer to the [Prerequests](../README.md#prerequests) section in the README.md of parent directory.
+Please refer to the [Prerequests](../../README.md#prerequests) section in the README.md of parent directory.
 
 ## Build
 

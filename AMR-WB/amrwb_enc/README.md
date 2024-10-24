@@ -18,7 +18,7 @@ The AMR-WB encoder is an implementation of the Adaptive Multi-Rate Wideband spee
 
 ## Prerequests
 
-Please refer to the [Prerequests](../README.md#prerequests) section in the README.md of parent directory.
+Please refer to the [Prerequests](../../README.md#prerequests) section in the README.md of parent directory.
 
 ## Build
 

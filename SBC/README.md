@@ -1,6 +1,6 @@
 # Sub-band Codec
 
-This is the [SBC](https://www.iis.fraunhofer.de/en/ff/amm/communication/lc3.html) encoder/decoder adapted for the Nuclei CPU.
+This is the SBC encoder/decoder adapted for the Nuclei CPU.
 
 The origin source code is available [here](https://github.com/google/libsbc), current version is based on the commit [6e50565](https://github.com/google/libsbc/commit/6e505650145c9973d08a0bdd5e5f5e1914305e40).
 
