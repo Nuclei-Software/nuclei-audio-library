@@ -43,7 +43,7 @@ Otherwise, you should place this project in the directory of `$NUCLEI_SDK_ROOT/a
 - [x] MP3: [Helix MP3 Decoder](./MP3/Helix/)
 - [x] SBC: [Sub-Band Codec](./SBC/)
 - [x] ADPCM: Adaptive Differential Pulse-Code Modulation. [IMA-ADPCM codec](./ADPCM/IMA/)
-- [ ] AMR-NB: TODO
+- [x] AMR-NB: [Adaptive Multi-Rate Narrowband Codec](./AMR-NB/).
 - [ ] AAC: TODO
 - [ ] G72x: TODO
 - [ ] EVS: TODO
