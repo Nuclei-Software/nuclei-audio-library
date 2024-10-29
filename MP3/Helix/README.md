@@ -27,13 +27,13 @@ First, change to the directory where `Makefile` is located. We take Nuclei N300 
 To build without extension:
 
 ```shell
-make CORE=n300fd ARCH_EXT= all
+make CORE=n300 ARCH_EXT= all
 ```
 
 To build with B and P extension:
 
 ```shell
-make CORE=n300fd ARCH_EXT=_zba_zbb_zbc_zbs_xxldspn3x all
+make CORE=n300 ARCH_EXT=_zba_zbb_zbc_zbs_xxldspn3x all
 ```
 
 For more information about Nuclei CPU Architecture extension, please refer to [ARCH_EXT](https://doc.nucleisys.com/nuclei_sdk/develop/buildsystem.html#arch-ext) section in Nuclei SDK documentation.
@@ -48,4 +48,4 @@ We record the CPU cycles consumed to decode MP3 data, and caclulate the average 
 
 | case | w/o ext (avg cycles) | w/ ext (avg cycles) | speedup ratio |
 | -- | -- | -- | -- |
-| mp3 decode | 405719.97 | 246706.90 | 1.64 |
+| mp3 decode | 384124.40 | 245075.77 | 1.57 |

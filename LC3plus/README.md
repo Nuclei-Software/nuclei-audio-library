@@ -33,7 +33,7 @@ make CORE=n300 ARCH_EXT= FIXED_POINT=1 all
 To build **floating-point** version without extension:
 
 ```shell
-make CORE=n300 ARCH_EXT= FIXED_POINT=0 all
+make CORE=n300fd ARCH_EXT= FIXED_POINT=0 all
 ```
 
 To build **fixed-point** version with B and P extension:
@@ -45,7 +45,7 @@ make CORE=n300 ARCH_EXT=_zba_zbb_zbc_zbs_xxldspn3x FIXED_POINT=1 all
 To build **floating-point** version with B and P extension:
 
 ```shell
-make CORE=n300 ARCH_EXT=_zba_zbb_zbc_zbs_xxldspn3x FIXED_POINT=0 all
+make CORE=n300fd ARCH_EXT=_zba_zbb_zbc_zbs_xxldspn3x FIXED_POINT=0 all
 ```
 
 For more information about Nuclei CPU Architecture extension, please refer to [ARCH_EXT](https://doc.nucleisys.com/nuclei_sdk/develop/buildsystem.html#arch-ext) section in Nuclei SDK documentation.
@@ -75,8 +75,8 @@ These results can be easily calculated by [data/bench/cmp.py](./data/bench/cmp.p
 
 | case | w/o ext (avg cycles) | w/ ext (avg cycles) | speedup ratio |
 | -- | -- | -- | -- |
-| encode | 4864125.64 | 4004559.35 | 1.21 |
-| decode | 1009454.70 | 833115.61 | 1.21 |
+| encode | 307168.67 | 308246.03 | 1.00 |
+| decode | 149180.92 | 148982.08 | 1.00 |
 
 ## Changelog
 

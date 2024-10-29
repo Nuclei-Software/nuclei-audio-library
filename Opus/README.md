@@ -41,7 +41,7 @@ make CORE=n300 ARCH_EXT= FIXED_POINT=1 all
 To build **floating-point** version without extension:
 
 ```shell
-make CORE=n300 ARCH_EXT= FIXED_POINT=0 all
+make CORE=n300fd ARCH_EXT= FIXED_POINT=0 all
 ```
 
 To build **fixed-point** version with B and P extension:
@@ -53,7 +53,7 @@ make CORE=n300 ARCH_EXT=_zba_zbb_zbc_zbs_xxldspn3x FIXED_POINT=1 all
 To build **floating-point** version with B and P extension:
 
 ```shell
-make CORE=n300 ARCH_EXT=_zba_zbb_zbc_zbs_xxldspn3x FIXED_POINT=0 all
+make CORE=n300fd ARCH_EXT=_zba_zbb_zbc_zbs_xxldspn3x FIXED_POINT=0 all
 ```
 
 For more information about Nuclei CPU Architecture extension, please refer to [ARCH_EXT](https://doc.nucleisys.com/nuclei_sdk/develop/buildsystem.html#arch-ext) section in Nuclei SDK documentation.
@@ -66,7 +66,7 @@ The test audio is [in_1s.wav](./reference/in_1s.wav), which is a 1-second durati
 
 For Nuclei CPU baremetal environment, we use `xxd` tool to convert the raw format file [in_1s.raw](./reference/in_1s.raw) into data stored in [data/in_1s.h](./data/in_1s.h).
 
-When run on Nuclei CPU, we print the processed audio data to log file [data/test/n300_fixed.txt](./data/test/n300_fixed.txt) and [data/test/n300_float.txt](./data/test/n300_float.txt). And you can convert the data to raw format file by [to_raw.py](./data/test/to_raw.py).
+When run on Nuclei CPU, we print the decode output data to console when uncomment the `DUMP_DEC_RESULT` macro in [opus_demo.c](./opus_demo.c). Then we save these data into a log file [data/test/n300_fixed.txt](./data/test/n300_fixed.txt) and [data/test/n300_float.txt](./data/test/n300_float.txt) manually. And you can convert the data to raw format file by [to_raw.py](./data/test/to_raw.py). The raw files can be easily loaded by Audacity to show waveforms as below:
 
 ![test.png](./data/test/test.png)
 
@@ -93,8 +93,8 @@ These results can be easily calculated by [data/bench/cmp.py](./data/bench/cmp.p
 
 | case | w/o ext (avg cycles) | w/ ext (avg cycles) | speedup ratio |
 | -- | -- | -- | -- |
-| encode | 44398970.62 | 38366905.80 | 1.16 |
-| decode | 307887.96 | 272321.30 | 1.13 |
+| encode | 2889317.46 | 2861932.38 | 1.01 |
+| decode | 133390.06 | 126119.08 | 1.06 |
 
 ## Changelog
 

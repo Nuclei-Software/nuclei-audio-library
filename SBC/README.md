@@ -11,7 +11,7 @@ We designed a `sbc_demo` to show how to use the SBC codec by encoding/decoding l
 | Directory | Description |
 | -- | -- |
 | src | libsbc source files |
-| include | libsrc public header files |
+| include | libsbc public header files |
 | data | data manipulation source files and some test results |
 
 ## Prerequests
@@ -25,13 +25,13 @@ First, change to the directory where `Makefile` is located. We take Nuclei N300 
 To build without extension:
 
 ```shell
-make CORE=n300fd ARCH_EXT= all
+make CORE=n300 ARCH_EXT= all
 ```
 
 To build with B and P extension:
 
 ```shell
-make CORE=n300fd ARCH_EXT=_zba_zbb_zbc_zbs_xxldspn3x all
+make CORE=n300 ARCH_EXT=_zba_zbb_zbc_zbs_xxldspn3x all
 ```
 
 For more information about Nuclei CPU Architecture extension, please refer to [ARCH_EXT](https://doc.nucleisys.com/nuclei_sdk/develop/buildsystem.html#arch-ext) section in Nuclei SDK documentation.
@@ -46,5 +46,5 @@ We record the CPU cycles consumed to encode/decode, and caclulate the average cy
 
 | case | w/o ext (avg cycles) | w/ ext (avg cycles) | speedup ratio |
 | -- | -- | -- | -- |
-| encode | 18954.86 | 17458.26 | 1.09 |
-| decode | 17485.30 | 16241.40 | 1.08 |
+| encode | 17806.76 | 16355.42 | 1.09 |
+| decode | 17422.02 | 16360.46 | 1.06 |
