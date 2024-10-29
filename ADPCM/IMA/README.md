@@ -1,0 +1,52 @@
+# IMA-ADPCM Codec
+
+> The Interactive Multimedia Association (IMA) developed an ADPCM algorithm designed to be used in entertainment multimedia applications. It is particularly fast to encode and decode and does not strictly require any multiplications or floating point operations.
+
+This is the IMA-ADPCM encoder/decoder adapted for the Nuclei CPU.
+
+The origin source code is available [here](https://github.com/aikiriao/IMA-ADPCM), current version is based on the commit [0e66b54](https://github.com/aikiriao/IMA-ADPCM/commit/0e66b54d906e89ca006927041e2ea32d24edabce).
+
+We designed a `ima_adpcm_demo` based on the original `main.c` to show how to use the IMA-ADPCM codec by encoding/decoding loop. We also encode and decode the same audio data on x86 platform, and compare the results run on Nuclei CPU to ensure the correctness.
+
+## File Structure
+
+| Directory | Description |
+| -- | -- |
+| src | IMA-ADPCM source files |
+| inc | IMA-ADPCM public header files |
+| data | data manipulation source files and some test results |
+
+## Prerequests
+
+Please refer to the [Prerequests](../README.md#prerequests) section in the README.md of parent directory.
+
+## Build
+
+First, change to the directory where `Makefile` is located. We take Nuclei N300 CPU as an example.
+
+To build without extension:
+
+```shell
+make CORE=n300 ARCH_EXT= all
+```
+
+To build with B and P extension:
+
+```shell
+make CORE=n300 ARCH_EXT=_zba_zbb_zbc_zbs_xxldspn3x all
+```
+
+For more information about Nuclei CPU Architecture extension, please refer to [ARCH_EXT](https://doc.nucleisys.com/nuclei_sdk/develop/buildsystem.html#arch-ext) section in Nuclei SDK documentation.
+
+## Performance Test
+
+The data for test input is prepared in [input.h](./data/input.h). The input data is generated from [in_1s.wav](./data/in_1s.wav) by `xxd` tool. The [enc.adp](./data/enc.adp) is the encoded output run on x86 platform, and the [dec.wav](./data/dec.wav) is the decoded output run on x86 platform. We also transfer these two files to [enc_adp.h](./data/enc_adp.h) and [dec_wav.h](./data/dec_wav.h) for reference. We compare the results run on Nuclei CPU with the reference output to ensure the correctness. 
+
+We record the CPU cycles consumed to encode/decode, and caclulate the average cycles as shown in the following table. To show the performance of Nuclei CPU extensions, we compare the cpu cycles consumed between w/ and w/o extension. For w/o extension, the build option is `ARCH_EXT=`, for w/ extension, the build option is `ARCH_EXT=_zba_zbb_zbc_zbs_xxldspn3x`.
+
+    Test bitstream: n300_dual_best_config_ku060_16M_7cd945994_18d811786_202408191002.bit
+
+| case | w/o ext (avg cycles) | w/ ext (avg cycles) | speedup ratio |
+| -- | -- | -- | -- |
+| encode | 129114.71 | 81597.14 | 1.07 |
+| decode | 120818.71 | 78395.14 | 1.04 |

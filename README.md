@@ -42,7 +42,7 @@ Otherwise, you should place this project in the directory of `$NUCLEI_SDK_ROOT/a
 - [x] [SpeexDSP](./SpeexDSP/): Noise Reduction, Acoustic Echo Cancellation, Automatic Gain Control ... 
 - [x] MP3: [Helix MP3 Decoder](./MP3/Helix/)
 - [x] SBC: [Sub-Band Codec](./SBC/)
-- [ ] ADPCM: TODO
+- [x] ADPCM: Adaptive Differential Pulse-Code Modulation. [IMA-ADPCM codec](./ADPCM/IMA/)
 - [ ] AMR-NB: TODO
 - [ ] AAC: TODO
 - [ ] G72x: TODO
