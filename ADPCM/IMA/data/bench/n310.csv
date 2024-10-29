@@ -1,0 +1,24 @@
+Nuclei SDK Build Time: Oct 28 2024, 19:06:23
+Download Mode: ILM
+CPU Frequency 25003622 Hz
+CPU HartID: 0
+Start Encoding...
+CSV, ima_adpcm_encode, 129173
+CSV, ima_adpcm_encode, 129014
+CSV, ima_adpcm_encode, 128806
+CSV, ima_adpcm_encode, 129206
+CSV, ima_adpcm_encode, 129390
+CSV, ima_adpcm_encode, 129146
+CSV, ima_adpcm_encode, 129068
+CSV, ima_adpcm_encode, 108158
+Result matches!
+Start Decoding...
+CSV, ima_adpcm_decode, 81633
+CSV, ima_adpcm_decode, 81534
+CSV, ima_adpcm_decode, 81674
+CSV, ima_adpcm_decode, 81702
+CSV, ima_adpcm_decode, 81582
+CSV, ima_adpcm_decode, 81601
+CSV, ima_adpcm_decode, 81454
+CSV, ima_adpcm_decode, 68339
+Result matches!

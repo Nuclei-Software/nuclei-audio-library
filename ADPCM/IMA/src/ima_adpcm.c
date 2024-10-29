@@ -6,6 +6,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "nmsis_bench.h"
+
 /* アラインメント */
 #define IMAADPCM_ALIGNMENT              16
 
@@ -128,6 +130,8 @@ static const uint16_t IMAADPCM_stepsize_table[89] = {
   15289, 16818, 18500, 20350, 22385, 24623, 27086, 29794,
   32767
 };
+
+BENCH_DECLARE_VAR();
 
 /* ワークサイズ計算 */
 int32_t IMAADPCMWAVDecoder_CalculateWorkSize(void)
@@ -589,10 +593,13 @@ IMAADPCMApiResult IMAADPCMWAVDecoder_DecodeWhole(
     }
 
     /* ブロックデコード */
-    if ((ret = IMAADPCMWAVDecoder_DecodeBlock(decoder,
-          read_pos, read_block_size,
-          buffer_ptr, buffer_num_channels, buffer_num_samples - progress, 
-          &num_decode_samples)) != IMAADPCM_APIRESULT_OK) {
+    BENCH_START(ima_adpcm_decode);
+    ret = IMAADPCMWAVDecoder_DecodeBlock(decoder,
+      read_pos, read_block_size,
+      buffer_ptr, buffer_num_channels, buffer_num_samples - progress, 
+      &num_decode_samples);
+    BENCH_END(ima_adpcm_decode);
+    if (ret != IMAADPCM_APIRESULT_OK) {
       return ret;
     }
 
@@ -1100,9 +1107,12 @@ IMAADPCMApiResult IMAADPCMWAVEncoder_EncodeWhole(
     }
 
     /* ブロックエンコード */
-    if ((ret = IMAADPCMWAVEncoder_EncodeBlock(encoder,
-            input_ptr, num_encode_samples,
-            data_pos, data_size - write_offset, &write_size)) != IMAADPCM_APIRESULT_OK) {
+    BENCH_START(ima_adpcm_encode);
+    ret = IMAADPCMWAVEncoder_EncodeBlock(encoder,
+      input_ptr, num_encode_samples,
+      data_pos, data_size - write_offset, &write_size);
+    BENCH_END(ima_adpcm_encode);
+    if (ret != IMAADPCM_APIRESULT_OK) {
       return ret;
     }
 
