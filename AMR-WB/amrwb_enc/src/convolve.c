@@ -31,7 +31,7 @@ void Convolve (
 		Word16 h[],        /* (i)     : impulse response                       */
 		Word16 y[],        /* (o)     : output vector                          */
 		Word16 L           /* (i)     : vector size                            */
-	      )
+)
 {
 	Word32  i, n;
 	Word16 *tmpH,*tmpX;
@@ -40,154 +40,178 @@ void Convolve (
 	// for aligned data load
 	Word16 __attribute__((aligned(8))) h_[68];
 	memcpy(h_+1, h, 128);
-
-	for (n = 0; n < 64;)
-	{
-#if defined(SUPPORT_DSP_STD)
-		tmpH = h_+n;
-		tmpX = x;
-		s = 0;
-		i = n;
-		while(i>0)
-		{
-			s = __RV_KMAXDA(s, *((Word32 *)tmpX), *((Word32 *)tmpH));
-			tmpX += 2;
-			tmpH -= 2;
-			s = __RV_KMAXDA(s, *((Word32 *)tmpX), *((Word32 *)tmpH));
-			tmpX += 2;
-			tmpH -= 2;
-			i -= 4;
+	
+#if defined(SUPPORT_VEC_32X)
+	vint16m4_t vh = __riscv_vle16_v_i16m4(h, 64);
+	vint32m8_t vy = __riscv_vmv_v_x_i32m8(0, 64);
+	
+	if (__riscv_vlenb() >= 32) {
+		// vlen >= 256
+		for(n = 0; n < 64;) {
+			vy = __riscv_vwmacc_vx_i32m8(vy, x[n++], vh, 64);
+			vh = __riscv_vslide1up_vx_i16m4(vh, 0, 64);
+			vy = __riscv_vwmacc_vx_i32m8(vy, x[n++], vh, 64);
+			vh = __riscv_vslide1up_vx_i16m4(vh, 0, 64);
+			vy = __riscv_vwmacc_vx_i32m8(vy, x[n++], vh, 64);
+			vh = __riscv_vslide1up_vx_i16m4(vh, 0, 64);
+			vy = __riscv_vwmacc_vx_i32m8(vy, x[n++], vh, 64);
+			vh = __riscv_vslide1up_vx_i16m4(vh, 0, 64);
 		}
-		tmpH++;
-		s += vo_mult32((*tmpX), (*tmpH));
-		y[n] = (s + 0x4000)>>15;
-		// y[n] = __RV_KSLRAW_U(s, -15);
-		n++;
-
-		tmpH = h+n-1;
-		tmpX = x;
-		s = 0;
-		i = n-1;
-		while(i>0)
-		{
-			s = __RV_KMAXDA(s, *((Word32 *)tmpX), *((Word32 *)tmpH));
-			tmpX += 2;
-			tmpH -= 2;
-			s = __RV_KMAXDA(s, *((Word32 *)tmpX), *((Word32 *)tmpH));
-			tmpX += 2;
-			tmpH -= 2;
-			i -= 4;
-		}
-		s = __RV_KMAXDA(s, *((Word32 *)tmpX), *((Word32 *)tmpH));
-		y[n] = (s + 0x4000)>>15;
-		// y[n] = __RV_KSLRAW_U(s, -15);
-		n++;
-
-		tmpH = h_+n;
-		tmpX = x;
-		s = 0;
-		i = n-2;
-		while(i>0)
-		{
-			s = __RV_KMAXDA(s, *((Word32 *)tmpX), *((Word32 *)tmpH));
-			tmpX += 2;
-			tmpH -= 2;
-			s = __RV_KMAXDA(s, *((Word32 *)tmpX), *((Word32 *)tmpH));
-			tmpX += 2;
-			tmpH -= 2;
-			i -= 4;
-		}
-		s = __RV_KMAXDA(s, *((Word32 *)tmpX), *((Word32 *)tmpH));
-		tmpX += 2;
-		tmpH--;
-		s += vo_mult32((*tmpX), (*tmpH));
-		// y[n] = (s + 0x4000)>>15;
-		y[n] = __RV_KSLRAW_U(s, -15);
-		n++;
-
-		tmpH = h+n-1;
-		tmpX = x;
-		s = 0;
-		i = n+1;
-		while(i>0)
-		{
-			s = __RV_KMAXDA(s, *((Word32 *)tmpX), *((Word32 *)tmpH));
-			tmpX += 2;
-			tmpH -= 2;
-			s = __RV_KMAXDA(s, *((Word32 *)tmpX), *((Word32 *)tmpH));
-			tmpX += 2;
-			tmpH -= 2;
-			i -= 4;
-		}
-		// y[n] = (s + 0x4000)>>15;
-		y[n] = __RV_KSLRAW_U(s, -15);
-		n++;
-#else
-		tmpH = h+n;
-		tmpX = x;
-		i=n+1;
-		s = vo_mult32((*tmpX++), (*tmpH--));i--;
-		while(i>0)
-		{
-			s += vo_mult32((*tmpX++), (*tmpH--));
-			s += vo_mult32((*tmpX++), (*tmpH--));
-			s += vo_mult32((*tmpX++), (*tmpH--));
-			s += vo_mult32((*tmpX++), (*tmpH--));
-			i -= 4;
-		}
-		y[n] = ((s<<1) + 0x8000)>>16;
-		n++;
-
-		tmpH = h+n;
-		tmpX = x;
-		i=n+1;
-		s =  vo_mult32((*tmpX++), (*tmpH--));i--;
-		s += vo_mult32((*tmpX++), (*tmpH--));i--;
-
-		while(i>0)
-		{
-			s += vo_mult32((*tmpX++), (*tmpH--));
-			s += vo_mult32((*tmpX++), (*tmpH--));
-			s += vo_mult32((*tmpX++), (*tmpH--));
-			s += vo_mult32((*tmpX++), (*tmpH--));
-			i -= 4;
-		}
-		y[n] = ((s<<1) + 0x8000)>>16;
-		n++;
-
-		tmpH = h+n;
-		tmpX = x;
-		i=n+1;
-		s =  vo_mult32((*tmpX++), (*tmpH--));i--;
-		s += vo_mult32((*tmpX++), (*tmpH--));i--;
-		s += vo_mult32((*tmpX++), (*tmpH--));i--;
-
-		while(i>0)
-		{
-			s += vo_mult32((*tmpX++), (*tmpH--));
-			s += vo_mult32((*tmpX++), (*tmpH--));
-			s += vo_mult32((*tmpX++), (*tmpH--));
-			s += vo_mult32((*tmpX++), (*tmpH--));
-			i -= 4;
-		}
-		y[n] = ((s<<1) + 0x8000)>>16;
-		n++;
-
-		s = 0;
-		tmpH = h+n;
-		tmpX = x;
-		i=n+1;
-		while(i>0)
-		{
-			s += vo_mult32((*tmpX++), (*tmpH--));
-			s += vo_mult32((*tmpX++), (*tmpH--));
-			s += vo_mult32((*tmpX++), (*tmpH--));
-			s += vo_mult32((*tmpX++), (*tmpH--));
-			i -= 4;
-		}
-		y[n] = ((s<<1) + 0x8000)>>16;
-		n++;
+		vy = __riscv_vssra_vx_i32m8(vy, 15,  __RISCV_VXRM_RNU, 64);
+		__riscv_vse16_v_i16m4(y, __riscv_vncvt_x_x_w_i16m4(vy, 64), 64);
+	} else {
 #endif
+		// dsp or scalar implement
+		for (n = 0; n < 64;) {
+#if defined(SUPPORT_DSP_STD)
+			tmpH = h_+n;
+			tmpX = x;
+			s = 0;
+			i = n;
+			while(i>0)
+			{
+				s = __RV_KMAXDA(s, *((Word32 *)tmpX), *((Word32 *)tmpH));
+				tmpX += 2;
+				tmpH -= 2;
+				s = __RV_KMAXDA(s, *((Word32 *)tmpX), *((Word32 *)tmpH));
+				tmpX += 2;
+				tmpH -= 2;
+				i -= 4;
+			}
+			tmpH++;
+			s += vo_mult32((*tmpX), (*tmpH));
+			y[n] = (s + 0x4000)>>15;
+			// y[n] = __RV_KSLRAW_U(s, -15);
+			n++;
+
+			tmpH = h+n-1;
+			tmpX = x;
+			s = 0;
+			i = n-1;
+			while(i>0)
+			{
+				s = __RV_KMAXDA(s, *((Word32 *)tmpX), *((Word32 *)tmpH));
+				tmpX += 2;
+				tmpH -= 2;
+				s = __RV_KMAXDA(s, *((Word32 *)tmpX), *((Word32 *)tmpH));
+				tmpX += 2;
+				tmpH -= 2;
+				i -= 4;
+			}
+			s = __RV_KMAXDA(s, *((Word32 *)tmpX), *((Word32 *)tmpH));
+			y[n] = (s + 0x4000)>>15;
+			// y[n] = __RV_KSLRAW_U(s, -15);
+			n++;
+
+			tmpH = h_+n;
+			tmpX = x;
+			s = 0;
+			i = n-2;
+			while(i>0)
+			{
+				s = __RV_KMAXDA(s, *((Word32 *)tmpX), *((Word32 *)tmpH));
+				tmpX += 2;
+				tmpH -= 2;
+				s = __RV_KMAXDA(s, *((Word32 *)tmpX), *((Word32 *)tmpH));
+				tmpX += 2;
+				tmpH -= 2;
+				i -= 4;
+			}
+			s = __RV_KMAXDA(s, *((Word32 *)tmpX), *((Word32 *)tmpH));
+			tmpX += 2;
+			tmpH--;
+			s += vo_mult32((*tmpX), (*tmpH));
+			// y[n] = (s + 0x4000)>>15;
+			y[n] = __RV_KSLRAW_U(s, -15);
+			n++;
+
+			tmpH = h+n-1;
+			tmpX = x;
+			s = 0;
+			i = n+1;
+			while(i>0)
+			{
+				s = __RV_KMAXDA(s, *((Word32 *)tmpX), *((Word32 *)tmpH));
+				tmpX += 2;
+				tmpH -= 2;
+				s = __RV_KMAXDA(s, *((Word32 *)tmpX), *((Word32 *)tmpH));
+				tmpX += 2;
+				tmpH -= 2;
+				i -= 4;
+			}
+			// y[n] = (s + 0x4000)>>15;
+			y[n] = __RV_KSLRAW_U(s, -15);
+			n++;
+#else
+			tmpH = h+n;
+			tmpX = x;
+			i=n+1;
+			s = vo_mult32((*tmpX++), (*tmpH--));i--;
+			while(i>0)
+			{
+				s += vo_mult32((*tmpX++), (*tmpH--));
+				s += vo_mult32((*tmpX++), (*tmpH--));
+				s += vo_mult32((*tmpX++), (*tmpH--));
+				s += vo_mult32((*tmpX++), (*tmpH--));
+				i -= 4;
+			}
+			y[n] = ((s<<1) + 0x8000)>>16;
+			n++;
+
+			tmpH = h+n;
+			tmpX = x;
+			i=n+1;
+			s =  vo_mult32((*tmpX++), (*tmpH--));i--;
+			s += vo_mult32((*tmpX++), (*tmpH--));i--;
+
+			while(i>0)
+			{
+				s += vo_mult32((*tmpX++), (*tmpH--));
+				s += vo_mult32((*tmpX++), (*tmpH--));
+				s += vo_mult32((*tmpX++), (*tmpH--));
+				s += vo_mult32((*tmpX++), (*tmpH--));
+				i -= 4;
+			}
+			y[n] = ((s<<1) + 0x8000)>>16;
+			n++;
+
+			tmpH = h+n;
+			tmpX = x;
+			i=n+1;
+			s =  vo_mult32((*tmpX++), (*tmpH--));i--;
+			s += vo_mult32((*tmpX++), (*tmpH--));i--;
+			s += vo_mult32((*tmpX++), (*tmpH--));i--;
+
+			while(i>0)
+			{
+				s += vo_mult32((*tmpX++), (*tmpH--));
+				s += vo_mult32((*tmpX++), (*tmpH--));
+				s += vo_mult32((*tmpX++), (*tmpH--));
+				s += vo_mult32((*tmpX++), (*tmpH--));
+				i -= 4;
+			}
+			y[n] = ((s<<1) + 0x8000)>>16;
+			n++;
+
+			s = 0;
+			tmpH = h+n;
+			tmpX = x;
+			i=n+1;
+			while(i>0)
+			{
+				s += vo_mult32((*tmpX++), (*tmpH--));
+				s += vo_mult32((*tmpX++), (*tmpH--));
+				s += vo_mult32((*tmpX++), (*tmpH--));
+				s += vo_mult32((*tmpX++), (*tmpH--));
+				i -= 4;
+			}
+			y[n] = ((s<<1) + 0x8000)>>16;
+			n++;
+#endif // defined(SUPPORT_DSP_STD)
+
+#if defined(SUPPORT_VEC_32X)
+		}
+#endif // defined(SUPPORT_VEC_32X)
 	}
 	return;
 }
