@@ -945,7 +945,30 @@ void cor_h_vec_012(
 	{
 		p1 = h;
 		p2 = &vec[pos];
-#if defined __riscv_xxldspn3x
+#if defined(SUPPORT_VEC_32X)
+		size_t avl, vl;
+		vint32m1_t vsum1, vsum2;
+		vint32m8_t vmul1, vmul2;
+		vint16m4_t vec1, vec2, vec3;
+		Word16 *p2_ = p2 + 1;
+		avl = 62 - pos + 1;
+		vsum1 = __riscv_vmv_s_x_i32m1(0, 1);
+		vsum2 = __riscv_vmv_s_x_i32m1(0, 1);
+		for(; (vl = __riscv_vsetvl_e16m4(avl)) > 0; avl -= vl) {
+			vec1 = __riscv_vle16_v_i16m4(p1, vl);
+			p1 += vl;
+			vec2 = __riscv_vle16_v_i16m4(p2, vl);
+			p2 += vl;
+			vmul1 = __riscv_vwmul_vv_i32m8(vec1, vec2, vl);
+			vec3 = __riscv_vle16_v_i16m4(p2_, vl);
+			p2_ += vl;
+			vmul2 = __riscv_vwmul_vv_i32m8(vec1, vec3, vl);
+			vsum1 = __riscv_vredsum_vs_i32m8_i32m1(vmul1, vsum1, vl);
+			vsum2 = __riscv_vredsum_vs_i32m8_i32m1(vmul2, vsum2, vl);
+		}
+		L_sum1 = __riscv_vmv_x_s_i32m1_i32(vsum1);
+		L_sum2 = __riscv_vmv_x_s_i32m1_i32(vsum2);
+#elif defined(SUPPORT_DSP_N3X)
 		Word32 tmp1, tmp2;
 		int64_t sum64_1, sum64_2;
 		int64_t p64_1, p64_2;
@@ -992,7 +1015,26 @@ void cor_h_vec_012(
 
 		p1 = h;
 		p2 = &vec[pos];
-#if defined __riscv_xxldspn3x
+#if defined(SUPPORT_VEC_32X)
+		p2_ = p2 + 1;
+		avl = 62 - pos + 1;
+		vsum1 = __riscv_vmv_s_x_i32m1(0, 1);
+		vsum2 = __riscv_vmv_s_x_i32m1(0, 1);
+		for(; (vl = __riscv_vsetvl_e16m4(avl)) > 0; avl -= vl) {
+			vec1 = __riscv_vle16_v_i16m4(p1, vl);
+			p1 += vl;
+			vec2 = __riscv_vle16_v_i16m4(p2, vl);
+			p2 += vl;
+			vmul1 = __riscv_vwmul_vv_i32m8(vec1, vec2, vl);
+			vec3 = __riscv_vle16_v_i16m4(p2_, vl);
+			p2_ += vl;
+			vmul2 = __riscv_vwmul_vv_i32m8(vec1, vec3, vl);
+			vsum1 = __riscv_vredsum_vs_i32m8_i32m1(vmul1, vsum1, vl);
+			vsum2 = __riscv_vredsum_vs_i32m8_i32m1(vmul2, vsum2, vl);
+		}
+		L_sum1 = __riscv_vmv_x_s_i32m1_i32(vsum1);
+		L_sum2 = __riscv_vmv_x_s_i32m1_i32(vsum2);
+#elif defined(SUPPORT_DSP_N3X)
 		sum64_1 = 0;
 		sum64_2 = 0;
 		for (j=62-pos ;(j - 4) >= 0; j -= 4)
