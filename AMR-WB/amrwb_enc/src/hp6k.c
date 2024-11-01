@@ -64,7 +64,7 @@ void Filt_6k_7k(
 	{
 		x[i + L_FIR - 1] = signal[i] >> 2;                         /* gain of filter = 4 */
 	}
-#if defined __riscv_xxldspn3x
+#if defined(SUPPORT_DSP_N3X)
 	int64_t x64, y64, tmp_add, sum64;
 	Word32 tmp1, tmp2;
 	Word16 *tmp_x1, *tmp_x2;

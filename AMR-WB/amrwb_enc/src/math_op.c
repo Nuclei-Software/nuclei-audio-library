@@ -202,7 +202,7 @@ Word32 Dot_product12(                      /* (o) Q31: normalized result (1 < va
 {
 	Word16 sft;
 	Word32 i, L_sum;
-#ifdef __riscv_xxldspn3x
+#if defined(SUPPORT_DSP_N3X)
 	// NOTE: x and y should aligned on 8 bytes, lg should be multiple of 4
 	int64_t *p1, *p2, sum = 0;
 	Word32 loop_count = lg >> 2;

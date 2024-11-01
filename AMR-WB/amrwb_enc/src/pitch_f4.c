@@ -182,7 +182,7 @@ static void Norm_Corr(
 #endif
 
 	/* Compute rounded down 1/sqrt(energy of xn[]) */
-#if defined __riscv_xxldspn3x
+#if defined(SUPPORT_DSP_N3X)
 	int64_t sum64 = 0;
 	int64_t xn64;
 	Word16 *temp_xn = xn;
@@ -192,7 +192,7 @@ static void Norm_Corr(
 		sum64 = __RV_DSMALDA(sum64, xn64, xn64);
 	}
 	L_tmp = (Word32)sum64;
-#elif defined __riscv_xxldsp
+#elif defined(SUPPORT_DSP_STD)
 	int64_t sum64 = 0;
 	Word32 xn32;
 	Word16 *temp_xn = xn;
@@ -223,7 +223,7 @@ static void Norm_Corr(
 	for (t = t_min; t <= t_max; t++)
 	{
 		/* Compute correlation between xn[] and excf[] */
-#if defined __riscv_xxldspn3x
+#if defined(SUPPORT_DSP_N3X)
 		sum64 = 0;
 		int64_t sum64_1 = 0;
 		int64_t excf64;
@@ -238,7 +238,7 @@ static void Norm_Corr(
 		}
 		L_tmp = (Word32)sum64;
 		L_tmp1 = (Word32)sum64_1;
-#elif defined __riscv_xxldsp
+#elif defined(SUPPORT_DSP_STD)
 		sum64 = 0;
 		int64_t sum64_1 = 0;
 		Word32 excf32;
@@ -359,7 +359,7 @@ static Word16 Interpol_4(                  /* (o)  : interpolated value  */
 	k = UP_SAMP - 1 - frac;
 	ptr = &(inter4_1[k][0]);
 
-#if defined __riscv_xxldspn3x
+#if defined(SUPPORT_DSP_N3X)
 	int64_t sum64 = 0;
 	int64_t x64, ptr64;
 	Word32 tmp1, tmp2;
@@ -371,7 +371,7 @@ static Word16 Interpol_4(                  /* (o)  : interpolated value  */
 	ptr64 = *__SIMD64(ptr)++;
 	sum64 = __RV_DSMALDA(sum64, x64, ptr64);
 	L_sum = (Word32)sum64;
-#elif defined __riscv_xxldsp
+#elif defined(SUPPORT_DSP_STD)
         int64_t sum64 = 0;
         Word32 x32, ptr32;
         x32 = *__SIMD32(x)++;

@@ -21,9 +21,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "typedef.h"
-#include "evalsoc.h"
-#include "nmsis_core.h"
-#include "core_feature_dsp.h"
+#include "macro.h"
 
 #define MAX_32 (Word32)0x7fffffffL
 #define MIN_32 (Word32)0x80000000L
@@ -36,7 +34,7 @@
 
 #define  static_vo  static __inline
 
-#ifdef __riscv_xxldsp
+#if defined(SUPPORT_DSP_STD)
 #define saturate(L_var1) __RV_SCLIP32((L_var1), 16)
 #define vo_round(a) __RV_KSLRAW_U(a, -16)
 #else
@@ -44,7 +42,7 @@
 #define vo_round(a) ((a + 0x00008000) >> 16)
 #endif
 
-#if defined __riscv_xxldsp
+#if defined(SUPPORT_DSP_STD)
 #define abs_s(x)       __RV_KABS16((unsigned long)x & 0xffff)
 #else
 #define abs_s(x)       ((Word16)(((x) != MIN_16) ? (((x) >= 0) ? (x) : (-(x))) : MAX_16))  /* Short abs,           1   */
@@ -53,7 +51,7 @@
 #define L_deposit_h(x) (((Word32)(x)) << 16)                                               /* 16 bit var1 -> MSB,     2 */
 #define L_deposit_l(x) ((Word32)(x))                                                       /* 16 bit var1 -> LSB,     2 */
 
-#if defined __riscv_xxldspn3x
+#if defined(SUPPORT_DSP_N3X)
 #define L_abs(x)       __RV_DKABS32((unsigned long long)x & 0xffffffff)
 #else
 #define L_abs(x) (((x) != MIN_32) ? (((x) >= 0) ? (x) : (-(x))) : MAX_32)                  /* Long abs,              3*/
@@ -69,7 +67,7 @@
 #define vo_L_msu(a,b,c)			( a - (( b * c ) << 1) )
 #define vo_mult32(a, b)         ((a) * (b))
 
-#if defined __riscv_xxldsp
+#if defined(SUPPORT_DSP_STD)
 #define vo_mult(a,b)			__RV_KHMBB((unsigned int)a, (unsigned int)b)
 #else
 #define vo_mult(a,b)			(( a * b ) >> 15 )
@@ -154,7 +152,7 @@ static_vo Word16 add (Word16 var1, Word16 var2)
 {
 	Word16 var_out;
 	Word32 L_sum;
-#if defined xxldsp
+#if defined(SUPPORT_DSP_STD)
 	var_out = __RV_KADD16((unsigned long)var1, (unsigned long)var2);
 #else
 	L_sum = (Word32) var1 + var2;
@@ -250,7 +248,7 @@ static_vo Word16 sub (Word16 var1, Word16 var2)
 static_vo Word16 shl (Word16 var1, Word16 var2)
 {
 	Word16 var_out;
-#ifdef __riscv_xxldsp
+#if defined(SUPPORT_DSP_STD)
 	var2 = __RV_SCLIP32(var2, 4);
 	var_out = __RV_KSLRA16(var1, var2);
 #else
@@ -315,7 +313,7 @@ static_vo Word16 shl (Word16 var1, Word16 var2)
 static_vo Word16 shr (Word16 var1, Word16 var2)
 {
 	Word16 var_out;
-#ifdef __riscv_xxldsp
+#if defined(SUPPORT_DSP_STD)
 	var2 = __RV_SCLIP32(-var2, 4);
 	var_out = __RV_KSLRA16(var1, var2);
 #else
@@ -385,7 +383,7 @@ static_vo Word16 shr (Word16 var1, Word16 var2)
 static_vo Word16 mult (Word16 var1, Word16 var2)
 {
 	Word16 var_out;
-#ifdef __riscv_xxldsp
+#if defined(SUPPORT_DSP_STD)
 	var_out = __RV_KHM16(var1, var2);
 #else
 	Word32 L_product;
@@ -436,7 +434,7 @@ static_vo Word16 mult (Word16 var1, Word16 var2)
 static_vo Word32 L_mult (Word16 var1, Word16 var2)
 {
 	Word32 L_var_out;
-#ifdef __riscv_xxldsp
+#if defined(SUPPORT_DSP_STD)
 	L_var_out = __RV_KDMBB(var1, var2);
 #else
 	L_var_out = (Word32) var1 *(Word32) var2;
@@ -486,7 +484,7 @@ static_vo Word32 L_mult (Word16 var1, Word16 var2)
 static_vo Word16 voround (Word32 L_var1)
 {
 	Word16 var_out;
-#ifdef __riscv_xxldsp
+#if defined(SUPPORT_DSP_STD)
 	var_out = __RV_KSLRAW_U(L_var1, -16);
 #else
 	Word32 L_rounded;
@@ -537,7 +535,7 @@ static_vo Word32 L_mac (Word32 L_var3, Word16 var1, Word16 var2)
 {
 	Word32 L_var_out;
 	Word32 L_product;
-#ifdef __riscv_xxldsp
+#if defined(SUPPORT_DSP_STD)
 	L_var_out = __RV_KDMABB(L_var3, var1, var2);
 #else
 	L_product = ((var1 * var2) << 1);
@@ -587,7 +585,7 @@ static_vo Word32 L_msu (Word32 L_var3, Word16 var1, Word16 var2)
 {
 	Word32 L_var_out;
 	Word32 L_product;
-#ifdef __riscv_xxldsp
+#if defined(SUPPORT_DSP_STD)
 	L_product = __RV_KDMBB(var1, var2);
 #else
 	L_product = (var1 * var2)<<1;
@@ -631,7 +629,7 @@ static_vo Word32 L_msu (Word32 L_var3, Word16 var1, Word16 var2)
 static_vo Word32 L_add (Word32 L_var1, Word32 L_var2)
 {
 	Word32 L_var_out;
-#ifdef __riscv_xxldsp
+#if defined(SUPPORT_DSP_STD)
 	L_var_out = __RV_KADDW(L_var1, L_var2);
 #else
 	
@@ -682,7 +680,7 @@ static_vo Word32 L_add (Word32 L_var1, Word32 L_var2)
 static_vo Word32 L_sub (Word32 L_var1, Word32 L_var2)
 {
 	Word32 L_var_out;
-#ifdef __riscv_xxldsp
+#if defined(SUPPORT_DSP_STD)
 	L_var_out = __RV_KSUBW(L_var1, L_var2);
 #else
 	L_var_out = L_var1 - L_var2;
@@ -785,7 +783,7 @@ static_vo Word16 mult_r (Word16 var1, Word16 var2)
 static_vo Word32 L_shl (Word32 L_var1, Word16 var2)
 {
 	Word32 L_var_out = 0L;
-#ifdef __riscv_xxldsp
+#if defined(SUPPORT_DSP_STD)
 	var2 = __RV_SCLIP32(var2, 5);
 	L_var_out = __RV_KSLRAW(L_var1, var2);
 #else
@@ -831,7 +829,7 @@ static_vo Word32 L_shl (Word32 L_var1, Word16 var2)
 static_vo Word32 L_shl2(Word32 L_var1, Word16 var2)
 {
 	Word32 L_var_out = 0L;
-#ifdef __riscv_xxldsp
+#if defined(SUPPORT_DSP_STD)
 	L_var_out = __RV_KSLLW(L_var1, var2);
 #else
 	for (; var2 > 0; var2--)
@@ -893,7 +891,7 @@ static_vo Word32 L_shl2(Word32 L_var1, Word16 var2)
 static_vo Word32 L_shr (Word32 L_var1, Word16 var2)
 {
 	Word32 L_var_out;
-#ifdef __riscv_xxldsp
+#if defined(SUPPORT_DSP_STD)
 	var2 = __RV_SCLIP32(-var2, 5);
 	L_var_out = __RV_KSLRAW(L_var1, var2);
 #else
@@ -976,7 +974,7 @@ static_vo Word32 L_shr_r (Word32 L_var1, Word16 var2)
 	}
 	else
 	{
-#ifdef __riscv_xxldsp
+#if defined(SUPPORT_DSP_STD)
 		L_var_out = __RV_KSLRAW_U(L_var1, -var2);
 #else
 		L_var_out = L_shr (L_var1, var2);
@@ -1030,7 +1028,7 @@ static_vo Word16 norm_s (Word16 var1)
 	Word16 var_out = 0;
 	if (var1 != 0)
 	{
-#ifdef __riscv_xxldsp
+#if defined(SUPPORT_DSP_STD)
 		var_out = __RV_CLRS16(var1);
 #else
 		if (var1 == -1)
@@ -1173,7 +1171,7 @@ static_vo Word16 norm_l (Word32 L_var1)
 	Word16 var_out = 0;
 	if (L_var1 != 0)
 	{
-#ifdef __riscv_xxldsp
+#if defined(SUPPORT_DSP_STD)
 		var_out = __RV_CLRS32(L_var1);
 #else
 		var_out = 31;

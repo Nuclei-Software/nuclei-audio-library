@@ -55,7 +55,7 @@ void Syn_filt(
 		L_tmp -= vo_mult32((*p1++), (*p2--));
 		L_tmp -= vo_mult32((*p1++), (*p2--));
 		L_tmp -= vo_mult32((*p1++), (*p2--));
-#if defined __riscv_xxldspn3x
+#if defined(SUPPORT_DSP_N3X)
 		int64_t sum64 = (int64_t)L_tmp;
 		int64_t p64_1, p64_2;
 		p64_1 = *__SIMD64(p1)++;
@@ -130,7 +130,7 @@ void Syn_filt_32(
 		p1 = a;
 		p2 = &sig_lo[i - 1];
 		p3 = &sig_hi[i - 1];
-#if defined __riscv_xxldspn3x
+#if defined(SUPPORT_DSP_N3X)
 		int64_t sum64 = (int64_t)L_tmp;
 		int64_t sum64_1 = (int64_t)L_tmp1;
 		int64_t p64_1, p64_2, p64_3;

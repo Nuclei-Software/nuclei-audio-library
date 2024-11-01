@@ -71,7 +71,7 @@ void Pred_lt4(
 	k = 3 - frac;                                /* k = UP_SAMP - 1 - frac */
 
 	ptr2 = &(inter4_2[k][0]);
-#if defined __riscv_xxldspn3x
+#if defined(SUPPORT_DSP_N3X)
 		Word32 temp1, temp2;
 		int64_t p64, p64_1;
 		int64_t sum64;

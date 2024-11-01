@@ -108,7 +108,7 @@ void Hp_wsp(
 		/* + a[1]*y[i-1] + a[2] * y[i-2]  + a[3]*y[i-3]  */
 
 		L_tmp = 16384L;                    /* rounding to maximise precision */
-#if defined __riscv_xxldsp
+#if defined(SUPPORT_DSP_STD)
 		// the result is a match only when there is no saturation overflow
 		L_tmp += __RV_KDMBB(y1_lo, a[1]);
 		L_tmp += __RV_KDMBB(y2_lo, a[2]);

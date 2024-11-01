@@ -100,7 +100,7 @@ Word16 Pitch_med_ol(
 	R2 = 0;
 	p1 = hp_wsp;
 	p2 = hp_wsp - Tm;
-#if defined __riscv_xxldspn3x
+#if defined(SUPPORT_DSP_N3X)
 	int64_t p64_1, p64_2;
 	int64_t sum64_0, sum64_1, sum64_2;
 	sum64_0 = 0;
