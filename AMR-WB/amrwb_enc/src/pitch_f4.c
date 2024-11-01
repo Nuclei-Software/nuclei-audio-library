@@ -182,7 +182,22 @@ static void Norm_Corr(
 #endif
 
 	/* Compute rounded down 1/sqrt(energy of xn[]) */
-#if defined(SUPPORT_DSP_N3X)
+#if defined(SUPPORT_VEC_32X)
+	size_t avl, vl;
+	vint32m1_t vsum;
+	vint16m4_t vec;
+	vint32m8_t vmul;
+	Word16 *p = xn;
+	avl = 64;
+	vsum = __riscv_vmv_s_x_i32m1(0, 1);
+	for (; (vl = __riscv_vsetvl_e16m2(avl)) > 0; avl -= vl) {
+		vec = __riscv_vle16_v_i16m4(p, vl);
+		p += vl;
+		vmul = __riscv_vwmul_vv_i32m8(vec, vec, vl);
+		vsum = __riscv_vredsum_vs_i32m8_i32m1(vmul, vsum, vl);
+	}
+	L_tmp = __riscv_vmv_x_s_i32m1_i32(vsum);
+#elif defined(SUPPORT_DSP_N3X)
 	int64_t sum64 = 0;
 	int64_t xn64;
 	Word16 *temp_xn = xn;
@@ -223,7 +238,30 @@ static void Norm_Corr(
 	for (t = t_min; t <= t_max; t++)
 	{
 		/* Compute correlation between xn[] and excf[] */
-#if defined(SUPPORT_DSP_N3X)
+#if defined(SUPPORT_VEC_32X)
+		Word16 *p_excf = excf;
+		vint32m1_t vsum_excf;
+		vint16m4_t vec_excf;
+		vint32m8_t vmul_excf;
+		p = xn;
+		avl = 64;
+		vsum = __riscv_vmv_s_x_i32m1(0, 1);
+		vsum_excf = __riscv_vmv_s_x_i32m1(0, 1);
+		for (; (vl = __riscv_vsetvl_e16m2(avl)) > 0; avl -= vl) {
+			vec = __riscv_vle16_v_i16m4(p, vl);
+			p += vl;
+			vec_excf = __riscv_vle16_v_i16m4(p_excf, vl);
+			p_excf += vl;
+
+			vmul = __riscv_vwmul_vv_i32m8(vec, vec_excf, vl);
+			vmul_excf = __riscv_vwmul_vv_i32m8(vec_excf, vec_excf, vl);
+
+			vsum = __riscv_vredsum_vs_i32m8_i32m1(vmul, vsum, vl);
+			vsum_excf = __riscv_vredsum_vs_i32m8_i32m1(vmul_excf, vsum_excf, vl);
+		}
+		L_tmp = __riscv_vmv_x_s_i32m1_i32(vsum);
+		L_tmp1 = __riscv_vmv_x_s_i32m1_i32(vsum_excf);
+#elif defined(SUPPORT_DSP_N3X)
 		sum64 = 0;
 		int64_t sum64_1 = 0;
 		int64_t excf64;

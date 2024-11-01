@@ -202,20 +202,39 @@ Word32 Dot_product12(                      /* (o) Q31: normalized result (1 < va
 {
 	Word16 sft;
 	Word32 i, L_sum;
-#if defined(SUPPORT_DSP_N3X)
+
+#if defined(SUPPORT_VEC_32X)
+	size_t avl, vl;
+	vint32m1_t vsum;
+	vint32m8_t vmul;
+	vint16m4_t vec1, vec2, vec3;
+	avl = lg;
+	Word16 *p1 = x;
+	Word16 *p2 = y;
+	vsum = __riscv_vmv_s_x_i32m1(0, 1);
+	for(; (vl = __riscv_vsetvl_e16m4(avl)) > 0; avl -= vl) {
+		vec1 = __riscv_vle16_v_i16m4(p1, vl);
+		p1 += vl;
+		vec2 = __riscv_vle16_v_i16m4(p2, vl);
+		p2 += vl;
+		vmul = __riscv_vwmul_vv_i32m8(vec1, vec2, vl);
+		vsum = __riscv_vredsum_vs_i32m8_i32m1(vmul, vsum, vl);
+	}
+	L_sum = __riscv_vmv_x_s_i32m1_i32(vsum);
+#elif defined(SUPPORT_DSP_N3X)
 	// NOTE: x and y should aligned on 8 bytes, lg should be multiple of 4
 	int64_t *p1, *p2, sum = 0;
 	Word32 loop_count = lg >> 2;
 	p1 = (int64_t *)x;
 	p2 = (int64_t *)y;
 
-	if(((long)p1 & 0x7) || ((long)p2 & 0x7)) {
-		printf("data is not aligned in: %s, line: %d\n", __FILE__, __LINE__);
-	}
+	// if(((long)p1 & 0x7) || ((long)p2 & 0x7)) {
+	// 	printf("data is not aligned in: %s, line: %d\n", __FILE__, __LINE__);
+	// }
 
-	if((lg & 0x3) != 0) {
-		printf("lg is not multiple of 4 in: %s, line: %d\n", __FILE__, __LINE__);
-	}
+	// if((lg & 0x3) != 0) {
+	// 	printf("lg is not multiple of 4 in: %s, line: %d\n", __FILE__, __LINE__);
+	// }
 
 	for (i = 0; i < loop_count; i++) {
 		// multiply and add with 4 parallel elements

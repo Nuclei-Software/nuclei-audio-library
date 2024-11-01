@@ -100,7 +100,34 @@ Word16 Pitch_med_ol(
 	R2 = 0;
 	p1 = hp_wsp;
 	p2 = hp_wsp - Tm;
-#if defined(SUPPORT_DSP_N3X)
+// #if defined(SUPPORT_VEC_32X)
+#if 0
+	size_t avl, vl;
+	vint32m1_t vsum1, vsum2, vsum_cross;
+	vint16m2_t vec1, vec2;
+	vint32m4_t vmul1, vmul2, vmul_cross;
+	avl = L_frame;
+	vsum1 = __riscv_vmv_s_x_i32m1(0, 1);
+	vsum2 = __riscv_vmv_s_x_i32m1(0, 1);
+	vsum_cross = __riscv_vmv_s_x_i32m1(0, 1);
+	for(; (vl = __riscv_vsetvl_e16m2(avl)) > 0; avl -= vl) {
+		vec1 = __riscv_vle16_v_i16m2(p1, vl);
+		p1 += vl;
+		vec2 = __riscv_vle16_v_i16m2(p2, vl);
+		p2 += vl;
+
+		vmul1 = __riscv_vwmul_vv_i32m4(vec1, vec1, vl);
+		vmul2 = __riscv_vwmul_vv_i32m4(vec2, vec2, vl);
+		vmul_cross = __riscv_vwmul_vv_i32m4(vec1, vec2, vl);
+
+		vsum1 = __riscv_vredsum_vs_i32m4_i32m1(vmul1, vsum1, vl);
+		vsum2 = __riscv_vredsum_vs_i32m4_i32m1(vmul2, vsum2, vl);
+		vsum_cross = __riscv_vredsum_vs_i32m4_i32m1(vmul_cross, vsum_cross, vl);
+	}
+	R2 = __riscv_vmv_x_s_i32m1_i32(vsum1);
+	R1 = __riscv_vmv_x_s_i32m1_i32(vsum2);
+	R0 = __riscv_vmv_x_s_i32m1_i32(vsum_cross);
+#elif defined(SUPPORT_DSP_N3X)
 	int64_t p64_1, p64_2;
 	int64_t sum64_0, sum64_1, sum64_2;
 	sum64_0 = 0;

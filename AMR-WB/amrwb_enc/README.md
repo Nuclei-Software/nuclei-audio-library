@@ -83,3 +83,7 @@ To show the performance of Nuclei CPU extensions, we compare the cpu cycles cons
 | Autocorr | using SMUL16 to double parallelism | [autocorr.c](./src/autocorr.c):56 |
 | Autocorr | using KDMABB to replace | [autocorr.c](./src/autocorr.c):117 |
 | Convolve | using KMAXDA to double parallelism | [convolve.c](./src/convolve.c):47-124 |
+| cor_h_vec_012 | rvv optimization | [c4t64fx.c](./src/c4t64fx.c):948 |
+| Convolve | rvv optimization | [convolve.c](./src/convolve.c):44 |
+| Dot_product12 | rvv optimization | [math_op.c](./src/math_op.c):206 |
+| Norm_Corr | rvv optimization | [pitch_f4.c](./src/pitch_f4.c):185 |
