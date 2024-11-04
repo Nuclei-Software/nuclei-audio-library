@@ -10,7 +10,7 @@ SRCDIRS = . src data
 
 INCDIRS = . src inc data
 
-COMMON_FLAGS := -O2
+COMMON_FLAGS := -O3
 
 LDLIBS = -lm
 

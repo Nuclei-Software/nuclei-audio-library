@@ -12,7 +12,7 @@ SRCDIRS = . src data
 
 INCDIRS = . inc data
 
-COMMON_FLAGS := -O2 -DHAVE_CONFIG_H
+COMMON_FLAGS := -O3 -DHAVE_CONFIG_H
 
 ifeq ($(FIXED_POINT), 1)
 INCDIRS += data/fixed

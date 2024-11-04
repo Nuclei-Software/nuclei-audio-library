@@ -12,7 +12,7 @@ SRCDIRS = . data
 
 INCDIRS = . data
 
-COMMON_FLAGS := -O2
+COMMON_FLAGS := -O3
 
 ifeq ($(FIXED_POINT), 1)
 SRCDIRS += fixed_point fixed_point/basic_op

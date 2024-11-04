@@ -8,6 +8,6 @@ INCDIRS = . inc src data src/libhelix/real src/libhelix/pub
 
 STDCLIB ?= newlib_small
 
-COMMON_FLAGS := -O2
+COMMON_FLAGS := -O3
 
 include $(NUCLEI_SDK_ROOT)/Build/Makefile.base

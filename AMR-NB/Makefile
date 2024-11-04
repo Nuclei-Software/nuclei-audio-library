@@ -8,7 +8,7 @@ INCDIRS = . enc/src dec/src enc/include dec/include data common/include oscl
 
 STDCLIB ?= newlib_small
 
-COMMON_FLAGS := -O2
+COMMON_FLAGS := -O3
 
 CXXFLAGS += -std=c++11
 
