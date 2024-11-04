@@ -6,8 +6,6 @@ SRCDIRS = . src
 
 INCDIRS = . inc src
 
-NMSIS_LIB := nmsis_dsp
-
 STDCLIB ?= newlib_full
 
 COMMON_FLAGS := -O3
