@@ -40,7 +40,9 @@ For more information about Nuclei CPU Architecture extension, please refer to [A
 
 ## Performance Test
 
-The data for test input is prepared in [in_1s_8k.h](./data/in_1s_8k.h). The input data is generated from [in_1s_8k.wav](./data/in_1s_8k.wav) by `xxd` tool. The [enc.amr](./data/enc.amr) is the encoded output run on x86 platform, and the [dec.wav](./data/dec.wav) is the decoded output run on x86 platform. We also transfer these two files to [enc_amr.h](./data/enc_amr.h) and [dec_wav.h](./data/dec_wav.h) for reference. We compare the results run on Nuclei CPU with the reference output to ensure the correctness. 
+The data for test input is prepared in [in_1s_8k.h](./data/in_1s_8k.h). The input data is generated from [in_1s_8k.wav](./data/in_1s_8k.wav) by `xxd` tool. The input audio is a single channel, 8k sample rate, PCM_S16LE format audio file.
+
+We set encode bitrate to 12.2kbps, the [enc.amr](./data/enc.amr) is the encoded output run on x86 platform, and the [dec.wav](./data/dec.wav) is the decoded output run on x86 platform. We also transfer these two files to [enc_amr.h](./data/enc_amr.h) and [dec_wav.h](./data/dec_wav.h) for reference. We compare the results run on Nuclei CPU with the reference output to ensure the correctness. 
 
 We record the CPU cycles consumed to encode/decode, and caclulate the average cycles as shown in the following table. To show the performance of Nuclei CPU extensions, we compare the cpu cycles consumed between w/ and w/o extension. For w/o extension, the build option is `ARCH_EXT=`, for w/ extension, the build option is `ARCH_EXT=_zba_zbb_zbc_zbs_xxldspn3x`.
 

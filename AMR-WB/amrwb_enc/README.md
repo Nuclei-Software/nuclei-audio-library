@@ -40,7 +40,7 @@ For more information about Nuclei CPU Architecture extension, please refer to [A
 
 ## Performance Test
 
-The data for test input is prepared in [input.h](./input.h). The encoder process 20 ms of audio data each time, the input audio data will split into several frames and the encoder encode each frame one by one. We record the CPU cycles consumed to process each frame, and caclulate the average cycles as shown in the following table.
+The data for test input is prepared in [input.h](./input.h). The input data is a single channel, 16k sample rate, PCM_S16LE format audio file. We set output bitrate as 23850bps, the encoder process 20 ms of audio data each time, the input audio data will split into several frames and the encoder encode each frame one by one. We record the CPU cycles consumed to process each frame, and caclulate the average cycles as shown in the following table.
 
 To show the performance of Nuclei CPU extensions, we compare the cpu cycles consumed between w/ and w/o extension. For w/o extension, the build option is `ARCH_EXT=`, for w/ extension, the build option is `ARCH_EXT=_zba_zbb_zbc_zbs_xxldspn3x`.
 
