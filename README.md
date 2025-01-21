@@ -19,7 +19,7 @@ To develop on Nuclei CPU with baremetal environment, we need to install Nuclei S
 
 We recommend utilizing the latest version of the Nuclei SDK and associated toolchain for optimal performance and compatibility. For this project we use the following versions:
 
-- [Nuclei SDK version 0.6.0](https://github.com/Nuclei-Software/nuclei-sdk/releases/tag/0.6.0)
+- [Nuclei SDK version 0.7.1](https://github.com/Nuclei-Software/nuclei-sdk/releases/tag/0.7.1)
 - [Nuclei Studio IDE for Linux version 2024.06](https://download.nucleisys.com/upload/files/nucleistudio/NucleiStudio_IDE_202406-lin64.tgz)
 
 Please adhere to the instructions outlined in the [Setup Tools and Environment](https://doc.nucleisys.com/nuclei_sdk/quickstart.html#get-and-setup-nuclei-sdk) section to properly prepare your Nuclei SDK and toolchain for use. Both Linux and Windows operating systems are supported, for the purpose of example, we will demonstrate the process using the Ubuntu 20.04 Linux operating system.
@@ -30,7 +30,7 @@ It is recommended to setup `NUCLEI_SDK_ROOT` environment variable to point to `/
 export NUCLEI_SDK_ROOT=/path/to/nuclei-sdk
 ```
 
-After that, no matter where this project located in, you can run make to build and run the programs in this repository.
+After that, no matter where this project located in, you can run `make` command to build and run the programs in this repository.
 
 Otherwise, you should place this project in the directory of `$NUCLEI_SDK_ROOT/application/baremetal`
 
@@ -44,9 +44,7 @@ Otherwise, you should place this project in the directory of `$NUCLEI_SDK_ROOT/a
 - [x] SBC: [Sub-Band Codec](./SBC/)
 - [x] ADPCM: Adaptive Differential Pulse-Code Modulation. [IMA-ADPCM codec](./ADPCM/IMA/)
 - [x] AMR-NB: [Adaptive Multi-Rate Narrowband Codec](./AMR-NB/).
-- [ ] AAC: TODO
-- [ ] G72x: TODO
-- [ ] EVS: TODO
+- [x] EVS: [Enhanced Voice Services Codec](./EVS/)
 
 ## License
 
