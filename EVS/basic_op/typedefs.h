@@ -71,6 +71,7 @@
  *****************************************************************************/
 #include <float.h>
 #include <limits.h>
+#include <stdint.h>
 
 
 
@@ -112,10 +113,10 @@ typedef unsigned int UWord16;
 #define minUWord16    0
 #define maxUWord16    UINT_MAX
 #elif SHRT_MAX == 32767
-typedef short Word16;
+typedef int16_t Word16;
 #define minWord16     SHRT_MIN
 #define maxWord16     SHRT_MAX
-typedef unsigned short UWord16;
+typedef uint16_t UWord16;
 #define minUWord16    0
 #define maxUWord16    USHRT_MAX
 #else
@@ -129,10 +130,10 @@ typedef unsigned short UWord16;
  ********* define 32 bit signed/unsigned types & constants
  */
 #if INT_MAX == 2147483647
-typedef int Word32;
+typedef int32_t Word32;
 #define minWord32     INT_MIN
 #define maxWord32     INT_MAX
-typedef unsigned int UWord32;
+typedef uint32_t UWord32;
 #define minUWord32    0
 #define maxUWord32    UINT_MAX
 #elif LONG_MAX == 2147483647
