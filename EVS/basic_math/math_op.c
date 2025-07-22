@@ -176,11 +176,30 @@ Word32 Dot_product12(                      /* (o) Q31: normalized result (1 < va
 )
 {
     Word16 i, sft;
-    Word32 L_sum;
+    Word32 L_sum = 0;
 
+#if defined(SUPPORT_VEC_32X)
+    vint16m4_t vx, vy;
+    vint32m8_t vmul;
+    vint32m1_t vsum;
+    size_t vl, avl;
+    avl = lg;
+    vsum = __riscv_vmv_s_x_i32m1(0, 1);
+    for (; (vl = __riscv_vsetvl_e16m4(avl)) > 0; avl -= vl) {
+        vx = __riscv_vle16_v_i16m4(x, vl);
+        x += vl;
+        vy = __riscv_vle16_v_i16m4(y, vl);
+        y += vl;
+        vmul = __riscv_vwmul_vv_i32m8(vx, vy, vl);
+        vsum = __riscv_vredsum_vs_i32m8_i32m1(vmul, vsum, vl);
+    }
+    L_sum = __riscv_vmv_x_s_i32m1_i32(vsum);
+    L_sum = (L_sum << 1) + 1;
+#else
     L_sum = L_mac(1, x[0], y[0]);
     FOR (i = 1; i < lg; i++)
         L_sum = L_mac(L_sum, x[i], y[i]);
+#endif
 
     /* Normalize acc in Q31 */
 
