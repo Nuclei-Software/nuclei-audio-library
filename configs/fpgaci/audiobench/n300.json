@@ -1,0 +1,18 @@
+{
+    "matrix": {
+    },
+    "expected": {
+        "EVS": {"build": false, "run": false }
+    },
+    "expecteds": {
+        "Opus": {
+            "rv32imac": {"build": false, "run": false },
+            "rv32imacb": {"build": true, "run": true },
+            "rv32imacb_zicond": {"build": true, "run": true },
+            "rv32imacbp": {"build": true, "run": true },
+            "rv32imacbp_zicond": {"build": true, "run": true },
+            "rv32imafdc": {"build": true, "run": true },
+            "rv32imafdcb": {"build": true, "run": true }
+        }
+    }
+}

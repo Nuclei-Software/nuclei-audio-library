@@ -1,0 +1,44 @@
+{
+    "run_config": {
+        "target" : "hardware",
+        "hardware" : {
+            "baudrate": 115200,
+            "timeout": 60
+        },
+        "qemu": {
+            "qemu32": "qemu-system-riscv32",
+            "qemu64": "qemu-system-riscv64",
+            "timeout": 60
+        },
+        "ncycm": {
+            "timeout": 1200
+        }
+    },
+    "copy_objects": true,
+    "build_target": "clean all",
+    "build_config": {
+    },
+    "parallel" : "-j",
+    "checks": {
+        "PASS": ["PASS"],
+        "FAIL": ["MEPC", "FAIL"]
+    },
+    "appdirs": [
+        "ADPCM/IMA",
+        "AMR-NB",
+        "AMR-WB/amrwb_dec",
+        "AMR-WB/amrwb_enc",
+        "EVS",
+        "LC3plus",
+        "MP3/Helix",
+        "Opus",
+        "SBC",
+        "SpeexDSP"
+    ],
+    "appdirs_ignore": [
+        "Opus/reference",
+        "SpeexDSP/reference"
+    ],
+    "appconfig": {
+    }
+}
