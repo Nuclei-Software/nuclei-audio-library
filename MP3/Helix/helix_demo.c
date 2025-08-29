@@ -37,6 +37,7 @@ int main(int argc, char *argv[]) {
     err = helix_mp3_init_file(&mp3, in_1s_32k_mp3, in_1s_32k_mp3_len);
     if (err) {
         printf("Failed to init decoder, error: %d\r\n", err);
+        printf("FAIL\r\n");
         return err;
     }
 
@@ -45,8 +46,9 @@ int main(int argc, char *argv[]) {
         out_fd = memfopen(output_result, OUT_RAW_LEN);
         if (out_fd == NULL) {
             printf("Failed to open output file\r\n");
+            printf("FAIL\r\n");
             err = -EIO;
-            break;
+            return err;
         }
 
         printf("Start Decoding...\r\n");
@@ -66,8 +68,9 @@ int main(int argc, char *argv[]) {
                 printf("Failed to write decoded frames, expected %u frames, "
                        "written %u frames!\r\n",
                        frames_read, frames_written);
+                printf("FAIL\r\n");
                 err = -EIO;
-                break;
+                return err;
             }
         }
 
@@ -80,7 +83,10 @@ int main(int argc, char *argv[]) {
 
     } while (0);
 
-    verify_result(out_32k_raw, output_result, 0, 0);
+    if (verify_result(out_32k_raw, output_result, 0, 0) != EXIT_SUCCESS) {
+        printf("FAIL\r\n");
+        return EXIT_FAILURE;
+    }
 
     /* Cleanup */
     if (out_fd != NULL) {
@@ -88,5 +94,6 @@ int main(int argc, char *argv[]) {
     }
     helix_mp3_deinit(&mp3);
 
-    return err;
+    printf("PASS\r\n");
+    return EXIT_SUCCESS;
 }
