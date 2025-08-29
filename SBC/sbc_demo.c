@@ -210,17 +210,23 @@ int decode() {
 int main(int argc, char *argv[]) {
     printf("Start Encoding...\r\n");
     if (encode() != EXIT_SUCCESS) {
+        printf("FAIL\r\n");
         return EXIT_FAILURE;
     }
     if (verify_result(enc_sbc, enc_result, ENC_SBC_LEN, 0) != EXIT_SUCCESS) {
+        printf("FAIL\r\n");
         return EXIT_FAILURE;
     }
 
     printf("Start Decoding...\r\n");
     if (decode() != EXIT_SUCCESS) {
+        printf("FAIL\r\n");
         return EXIT_FAILURE;
     }
     if (verify_result(dec_wav, dec_result, DEC_WAV_LEN, 0) != EXIT_SUCCESS) {
+        printf("FAIL\r\n");
         return EXIT_FAILURE;
     }
+    printf("PASS\r\n");
+    return EXIT_SUCCESS;
 }
