@@ -47,11 +47,13 @@ int main(int argc, char *argv[])
     fin = memfopen((void *)in_raw, in_raw_len);
     if (fin == NULL) {
         printf("Error opening input file.\r\n");
+        printf("FAIL\r\n");
         return EXIT_FAILURE;
     }
     fout = memfopen(output_result, OUT_RAW_LEN);
     if (fout == NULL) {
         printf("Error opening output file.\r\n");
+        printf("FAIL\r\n");
         return EXIT_FAILURE;
     }
 
@@ -110,6 +112,7 @@ int main(int argc, char *argv[])
         if (memfwrite(filtered_frame, sizeof(int16_t), num_read, fout) !=
             num_read) {
             printf("Error writing output file.\r\n");
+            printf("FAIL\r\n");
             return EXIT_FAILURE;
         }
 
@@ -122,7 +125,11 @@ int main(int argc, char *argv[])
     memfclose(&fin);
     memfclose(&fout);
 
-    verify_result(out_raw, output_result, OUT_RAW_LEN, 0);
+    if (verify_result(out_raw, output_result, OUT_RAW_LEN, 0) != EXIT_SUCCESS) {
+        printf("FAIL\r\n");
+        return EXIT_FAILURE;
+    }
 
+    printf("PASS\r\n");
     return EXIT_SUCCESS;
 }
