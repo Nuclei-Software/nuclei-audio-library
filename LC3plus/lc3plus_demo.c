@@ -259,6 +259,7 @@ int main(int argc, char *argv[])
                         &nChannels, &nSamplesFile, &bipsIn);
     if (input_wav == NULL) {
         printf("Error opening wav file!\r\n");
+        printf("FAIL\r\n");
         return EXIT_FAILURE;
     }
 
@@ -268,12 +269,14 @@ int main(int argc, char *argv[])
         nSamplesFile, FRAME_TIME, ARG_EPMODE, ARG_HRMODE);
     if (output_bitstream == NULL) {
         printf("Error opening bitstream file!\r\n");
+        printf("FAIL\r\n");
         return EXIT_FAILURE;
     }
 
     int status = encode(input_wav, output_bitstream, sampleRate, nChannels,
                         TARGET_BITRATE);
     if (status != EXIT_SUCCESS) {
+        printf("FAIL\r\n");
         return status;
     }
 
@@ -284,6 +287,7 @@ int main(int argc, char *argv[])
     // verify result
     status = verify_result(enc_bin, enc_result, ENC_BIN_LEN, 0);
     if (status != EXIT_SUCCESS) {
+        printf("FAIL\r\n");
         return status;
     }
 
@@ -299,6 +303,7 @@ int main(int argc, char *argv[])
         &nSamplesFile, &frame_ms, &epmode, &hrmode);
     if (input_bitstream == NULL) {
         printf("Error opening bitstream file!\r\n");
+        printf("FAIL\r\n");
         return EXIT_FAILURE;
     }
 
@@ -306,12 +311,14 @@ int main(int argc, char *argv[])
     output_wav = CreateWav(dec_result, DEC_WAV_LEN, sampleRate, nChannels, 16);
     if (output_wav == NULL) {
         printf("Error creating wav file!\r\n");
+        printf("FAIL\r\n");
         return EXIT_FAILURE;
     }
 
     status = decode(input_bitstream, output_wav, sampleRate, nChannels,
                     nSamplesFile, frame_ms, epmode);
     if (status != EXIT_SUCCESS) {
+        printf("FAIL\r\n");
         return status;
     }
 
@@ -329,10 +336,12 @@ int main(int argc, char *argv[])
 #endif
     );
     if (status != EXIT_SUCCESS) {
+        printf("FAIL\r\n");
         return status;
     }
 
     printf("Decoding done!\r\n");
+    printf("PASS\r\n");
 
     return EXIT_SUCCESS;
 }
