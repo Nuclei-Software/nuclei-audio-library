@@ -95,7 +95,7 @@ int main(int argc, char *argv[]) {
 		// check result
 		for(p = littleendian, i = 0; i < 640; ++i) {
 			if(*p++ != *pref++) {
-				printf("error!\n");
+				printf("FAIL\r\n");
 				return 1;
 			}
 		}
@@ -103,7 +103,7 @@ int main(int argc, char *argv[]) {
 	memfclose(in);
 	D_IF_exit(amr);
 	wav_write_close(wav);
-	printf("finish!\n");
+	printf("PASS\r\n");
 	return 0;
 }
 

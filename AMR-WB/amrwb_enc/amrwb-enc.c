@@ -132,7 +132,7 @@ int main(int argc, char *argv[]) {
 		// check result
         for (p = outbuf, i = 0; i < n; i++) {
             if (*p++ != *pref++) {
-                printf("error!\n");
+                printf("FAIL\r\n");
                 return 1;
             }
         }
@@ -141,7 +141,7 @@ int main(int argc, char *argv[]) {
 	memfclose(out);
 	E_IF_exit(amr);
 	wav_read_close(wav);
-  	printf("finish\r\n");
+  	printf("PASS\r\n");
 
 	return 0;
 }
