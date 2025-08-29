@@ -231,14 +231,17 @@ int main(int argc, char *argv[])
     printf("Start encoding...\r\n");
     len = encode(16000, 1, OPUS_APPLICATION_AUDIO);
     if (len <= 0) {
+        printf("FAIL\r\n");
         return EXIT_FAILURE;
     }
 
     printf("Start decoding...\r\n");
     int status = decode(16000, 1, len);
     if (status != EXIT_SUCCESS) {
+        printf("FAIL\r\n");
         return status;
     }
 
+    printf("PASS\r\n");
     return EXIT_SUCCESS;
 }
