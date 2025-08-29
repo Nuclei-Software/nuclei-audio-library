@@ -46,7 +46,6 @@ gen/
 tmp*/
 Scratch*
 scratch*
-bitstream*
 Backup*
 
 usb_info.json
