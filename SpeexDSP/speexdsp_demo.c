@@ -39,6 +39,20 @@ int verify_result(const uint8_t *ref, const uint8_t *res, int len,
     return EXIT_SUCCESS;
 }
 
+int verify_result_i16(const int16_t *ref, const int16_t *res, int len,
+                      int threshold) {
+    for (int i = 0; i < len; i++) {
+        if (abs(ref[i] - res[i]) > threshold) {
+            printf(
+                "Result mismatch at byte %d!, expected 0x%04x, got 0x%04x\r\n",
+                i, ref[i], res[i]);
+            return EXIT_FAILURE;
+        }
+    }
+    printf("Result matches!\r\n");
+    return EXIT_SUCCESS;
+}
+
 int main(int argc, char *argv[])
 {
     MemoryFile *fin = NULL;
@@ -125,10 +139,18 @@ int main(int argc, char *argv[])
     memfclose(&fin);
     memfclose(&fout);
 
+#if defined(FIXED_POINT)
     if (verify_result(out_raw, output_result, OUT_RAW_LEN, 0) != EXIT_SUCCESS) {
         printf("FAIL\r\n");
         return EXIT_FAILURE;
     }
+#else
+    if (verify_result_i16((const int16_t *)out_raw, (int16_t *)output_result,
+                          OUT_RAW_LEN / 2, 1) != EXIT_SUCCESS) {
+        printf("FAIL\r\n");
+        return EXIT_FAILURE;
+    }
+#endif
 
     printf("PASS\r\n");
     return EXIT_SUCCESS;
