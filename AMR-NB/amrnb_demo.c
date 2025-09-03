@@ -63,6 +63,7 @@ enum Mode findMode(int rate) {
 }
 
 int encode() {
+    printf("bitrate: %d\r\n", BITRATE);
     enum Mode mode = findMode(BITRATE);
     int ch, dtx = 0;
     const char *infile, *outfile;
@@ -123,10 +124,15 @@ int encode() {
 
         BENCH_START(amrnb_encode);
         n = Encoder_Interface_Encode(amr, mode, buf, outbuf, 0);
-        BENCH_END(amrnb_encode);
+        BENCH_SAMPLE(amrnb_encode);
 
         memfwrite(outbuf, 1, n, out);
     }
+    double avg_cycle = BENCH_GET_SUMCYC() * 1.0 / BENCH_GET_LPCNT();
+    // 8k sample rate, process 160 samples each frame, so multiply with 50
+    double mcps = avg_cycle * 50 / 1000000;
+    printf("CSV, amrnb_encode, %.02f\r\n", mcps);
+
     free(inputBuf);
     memfclose(&out);
     Encoder_Interface_exit(amr);
@@ -139,6 +145,8 @@ int decode() {
     char header[6];
     int n;
     void *wav, *amr;
+
+    BENCH_RESET(amrnb_decode);
 
     in = memfopen((void *)enc_amr, ENC_AMR_LEN);
     if (!in) {
@@ -175,7 +183,7 @@ int decode() {
         /* Decode the packet */
         BENCH_START(amrnb_decode);
         Decoder_Interface_Decode(amr, buffer, outbuffer, 0);
-        BENCH_END(amrnb_decode);
+        BENCH_SAMPLE(amrnb_decode);
 
         /* Convert to little endian and write to wav */
         ptr = littleendian;
@@ -185,6 +193,10 @@ int decode() {
         }
         wav_write_data(wav, littleendian, 320);
     }
+    double avg_cycle = BENCH_GET_SUMCYC() * 1.0 / BENCH_GET_LPCNT();
+    double mcps = avg_cycle * 50 / 1000000;
+    printf("CSV, amrnb_decode, %.02f\r\n", mcps);
+
     memfclose(&in);
     Decoder_Interface_exit(amr);
     wav_write_close(wav);
