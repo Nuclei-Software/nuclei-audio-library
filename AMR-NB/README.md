@@ -1,10 +1,9 @@
 # AMR-NB Codec
 
-This is the AMR-NB encoder/decoder adapted for the Nuclei CPU.
+This project provides the **AMR-NB encoder/decoder** optimized for **Nuclei CPUs**.
 
-The origin source code is available [here](https://sourceforge.net/projects/opencore-amr/files/opencore-amr/), current version is [0.1.6](https://sourceforge.net/projects/opencore-amr/files/opencore-amr/opencore-amr-0.1.6.tar.gz/download).
-
-AMR-NB only support 8k sample rate. We designed a `amrnb_demo` to show how to use the SBC codec by encoding/decoding loop. We also encode and decode the same audio data on x86 platform, and compare the results run on Nuclei CPU to ensure the correctness.
+The origin source code comes from [opencore-amr](https://sourceforge.net/projects/opencore-amr/files/opencore-amr/)
+(current version :[0.1.6](https://sourceforge.net/projects/opencore-amr/files/opencore-amr/opencore-amr-0.1.6.tar.gz/download)).
 
 ## File Structure
 
@@ -18,37 +17,70 @@ AMR-NB only support 8k sample rate. We designed a `amrnb_demo` to show how to us
 
 ## Prerequests
 
-Please refer to the [Prerequests](../README.md#prerequests) section in the README.md of parent directory.
+Please refer to the [Prerequests](../README.md#prerequests) section in the parent
+directory's README.
 
 ## Build
 
-First, change to the directory where `Makefile` is located. We take Nuclei N300 CPU as an example.
+Switch to the directory containing the `Makefile`.  
+Below are build examples for the **Nuclei N300 CPU**.
 
-To build without extension:
-
-```shell
-make CORE=n300fd ARCH_EXT= all
-```
-
-To build with B and P extension:
+Build without extension:
 
 ```shell
-make CORE=n300fd ARCH_EXT=_zba_zbb_zbc_zbs_xxldspn3x all
+make CORE=n300 ARCH_EXT= all
 ```
 
-For more information about Nuclei CPU Architecture extension, please refer to [ARCH_EXT](https://doc.nucleisys.com/nuclei_sdk/develop/buildsystem.html#arch-ext) section in Nuclei SDK documentation.
+Build with B and P extension:
+
+```shell
+make CORE=n300 ARCH_EXT=_zba_zbb_zbc_zbs_xxldspn3x all
+```
+
+For details about Nuclei CPU architecture extensions, see the [ARCH_EXT section](https://doc.nucleisys.com/nuclei_sdk/develop/buildsystem.html#arch-ext)
+in the Nuclei SDK documentation.
 
 ## Performance Test
 
-The data for test input is prepared in [in_1s_8k.h](./data/in_1s_8k.h). The input data is generated from [in_1s_8k.wav](./data/in_1s_8k.wav) by `xxd` tool. The input audio is a single channel, 8k sample rate, PCM_S16LE format audio file.
+### Generate Test Data
 
-We set encode bitrate to 12.2kbps, the [enc.amr](./data/enc.amr) is the encoded output run on x86 platform, and the [dec.wav](./data/dec.wav) is the decoded output run on x86 platform. We also transfer these two files to [enc_amr.h](./data/enc_amr.h) and [dec_wav.h](./data/dec_wav.h) for reference. We compare the results run on Nuclei CPU with the reference output to ensure the correctness. 
+Codec performance depends on both bitrate and input audio data.  
+To simplify testing with different bitrates and audio files, a helper script is provided:
 
-We record the CPU cycles consumed to encode/decode, and caclulate the average cycles as shown in the following table. To show the performance of Nuclei CPU extensions, we compare the cpu cycles consumed between w/ and w/o extension. For w/o extension, the build option is `ARCH_EXT=`, for w/ extension, the build option is `ARCH_EXT=_zba_zbb_zbc_zbs_xxldspn3x`.
+👉 [data/bin/gendata.sh](./data/bin/gendata.sh)
 
-    Test bitstream: n300_dual_best_config_ku060_16M_7cd945994_18d811786_202408191002.bit
+> [!NOTE]  
+> This script is only supported on **Linux x86_64**  
+> It relies on prebuilt binaries (encoder/decoder) available only for x86_64.  
+> You may also build these binaries yourself if needed.
 
-| case | w/o ext (avg cycles) | w/ ext (avg cycles) | speedup ratio |
-| -- | -- | -- | -- |
-| encode | 578708.10 | 528383.84 | 1.10 |
-| decode | 124616.40 | 122306.18 | 1.02 |
+To view usage details:
+
+```bash
+./data/bin/gendata.sh -h
+```
+
+### Expected Output
+
+A typical output looks like this:
+
+```txt
+Nuclei SDK Build Time: Sep  3 2025, 17:55:22
+Download Mode: ILM
+CPU Frequency 50003968 Hz
+CPU HartID: 0
+Start Encoding...
+bitrate: 12200
+CSV, amrnb_encode, 23.05
+Result matches!
+Start Decoding...
+CSV, amrnb_decode, 13.88
+Result matches!
+PASS
+```
+
+The key results are prefixed with `CSV`, making them easy to parse in scripts
+for further analysis.
+
+The performance metric is reported in **MCPS (Milion Cycles Per Second)**, which
+represents the number of CPU cycles required to process one second of audio data.
