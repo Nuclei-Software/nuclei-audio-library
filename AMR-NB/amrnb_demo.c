@@ -5,7 +5,7 @@
 
 #include "dec_wav.h"
 #include "enc_amr.h"
-#include "in_1s_8k.h"
+#include "input.h"
 
 #include "memfop.h"
 
@@ -14,6 +14,10 @@
 #include "wrapper.h"
 
 #include "nmsis_bench.h"
+
+#define INPUT_LEN (sizeof(input))
+#define ENC_AMR_LEN (sizeof(enc_amr))
+#define DEC_WAV_LEN (sizeof(dec_wav))
 
 uint8_t enc_result[ENC_AMR_LEN] = {0};
 uint8_t dec_result[DEC_WAV_LEN] = {0};
@@ -37,8 +41,29 @@ int verify_result(const uint8_t *ref, const uint8_t *res, int len,
     return EXIT_SUCCESS;
 }
 
+enum Mode findMode(int rate) {
+    struct {
+        enum Mode mode;
+        int rate;
+    } modes[] = {{MR475, 4750}, {MR515, 5150}, {MR59, 5900},   {MR67, 6700},
+                 {MR74, 7400},  {MR795, 7950}, {MR102, 10200}, {MR122, 12200}};
+    int closest = -1;
+    int closestdiff = 0;
+    unsigned int i;
+    for (i = 0; i < sizeof(modes) / sizeof(modes[0]); i++) {
+        if (modes[i].rate == rate)
+            return modes[i].mode;
+        if (closest < 0 || closestdiff > abs(modes[i].rate - rate)) {
+            closest = i;
+            closestdiff = abs(modes[i].rate - rate);
+        }
+    }
+    fprintf(stderr, "Using bitrate %d\n", modes[closest].rate);
+    return modes[closest].mode;
+}
+
 int encode() {
-    enum Mode mode = MR122;
+    enum Mode mode = findMode(BITRATE);
     int ch, dtx = 0;
     const char *infile, *outfile;
     MemoryFile *out;
@@ -47,7 +72,7 @@ int encode() {
     int inputSize;
     uint8_t *inputBuf;
 
-    wav = wav_read_open(in_1s_8k_wav, in_1s_8k_wav_len);
+    wav = wav_read_open(input, INPUT_LEN);
     if (!wav) {
         printf("Unable to open wav file %s\r\n", infile);
         return EXIT_FAILURE;
