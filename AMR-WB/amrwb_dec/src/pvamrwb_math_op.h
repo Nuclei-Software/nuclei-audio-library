@@ -48,8 +48,7 @@ terms listed above has been obtained from the copyright holder.
 ----------------------------------------------------------------------------*/
 
 #include "pv_amr_wb_type_defs.h"
-#include "evalsoc.h"
-#include "nmsis_core.h"
+#include "macro.h"
 
 /*----------------------------------------------------------------------------
 ; DEFINES
@@ -103,9 +102,10 @@ extern "C"
 
 
     
-#if (defined (__riscv_dsp))
+#if defined(SUPPORT_DSP_STD)
     static inline int16 mult_int16_r(int16 var1, int16 var2) {
-        return __RV_KHMBB(var1, var2);
+        int32 tmp = (int32)var1 * (int32)var2;
+        return __RV_SCLIP32(__RV_KSLRAW_U(tmp, -15), 16);
     }
     static inline int16 shr_rnd(int16 var1, int16 var2) {
         return __RV_KSLRA16_U(var1, -var2);

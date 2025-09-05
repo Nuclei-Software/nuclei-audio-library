@@ -49,8 +49,7 @@ extern "C"
 
 #include "normalize_amr_wb.h"
 #include "pvamrwbdecoder_basic_op.h"
-#include "evalsoc.h"
-#include "nmsis_core.h"
+#include "macro.h"
 
 #if defined(C_EQUIVALENT)
 
@@ -85,7 +84,7 @@ extern "C"
     static inline int16 add_int16(int16 var1, int16 var2)
     {
         int32 L_sum;
-#if (defined (__riscv_dsp))
+#if defined(SUPPORT_DSP_STD)
         L_sum = __RV_KADD16(var1, var2);
 #else
         L_sum = (int32) var1 + var2;
@@ -128,7 +127,7 @@ extern "C"
     {
         int32 L_diff;
 
-#if (defined (__riscv_dsp))
+#if defined(SUPPORT_DSP_STD)
         L_diff = __RV_KSUB16(var1, var2);
 #else
         L_diff = (int32) var1 - var2;
@@ -169,7 +168,7 @@ extern "C"
     static inline int16 mult_int16(int16 var1, int16 var2)
     {
         int32 L_product;
-#if (defined (__riscv_dsp))
+#if defined(SUPPORT_DSP_STD)
         L_product = __RV_KHM16(var1, var2);
 #else
         L_product = ((int32) var1 * (int32) var2) >> 15;
@@ -210,7 +209,7 @@ extern "C"
 
     static inline int32 add_int32(int32 L_var1, int32 L_var2)
     {
-#if (defined (__riscv_dsp))
+#if defined(SUPPORT_DSP_STD)
         int32 L_var_out = __RV_KADDW(L_var1, L_var2);
         return L_var_out;
 #else
@@ -311,7 +310,7 @@ extern "C"
     static inline   int32 mac_16by16_to_int32(int32 L_var3, int16 var1, int16 var2)
     {
         int32 L_var_out;
-#if (defined (__riscv_dsp))
+#if defined(SUPPORT_DSP_STD)
         L_var_out = __RV_KDMABB(L_var3, var1, var2);
 #else
         int32 L_mul;
@@ -374,7 +373,7 @@ extern "C"
         int32 L_var_out;
         int32 L_mul;
 
-#if (defined (__riscv_dsp))
+#if defined(SUPPORT_DSP_STD)
         L_mul = __RV_KDMBB(var1, var2);
         L_var_out = __RV_KSUBW(L_var3, L_mul);
 #else
@@ -431,7 +430,7 @@ extern "C"
     static inline int32 mul_16by16_to_int32(int16 var1, int16 var2)
     {
         int32 L_mul;
-#if (defined (__riscv_dsp))
+#if defined(SUPPORT_DSP_STD)
         L_mul = __RV_KDMBB(var1, var2);
 #else
 

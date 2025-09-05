@@ -45,8 +45,7 @@ terms listed above has been obtained from the copyright holder.
 
 
 #include "normalize_amr_wb.h"
-#include "evalsoc.h"
-#include "nmsis_core.h"
+#include "macro.h"
 
 
 #define MAX_32 (int32)0x7fffffffL
@@ -157,7 +156,7 @@ static inline  int16 shl_int16(int16 var1, int16 var2)
 static inline  int32 shl_int32(int32 L_var1, int16 var2)
 {
     int32 L_var_out;
-#if (defined (__riscv_dsp))
+#if defined(SUPPORT_DSP_STD)
     L_var_out = __RV_KSLRAW(L_var1, var2);
 #else
     if (var2 > 0)
@@ -203,7 +202,7 @@ static inline  int32 shl_int32(int32 L_var1, int16 var2)
 static inline  int32 shr_int32(int32 L_var1, int16 var2)
 {
     int32 L_var_out;
-#if (defined (__riscv_dsp))
+#if defined(SUPPORT_DSP_STD)
     L_var_out = __RV_KSLRAW(L_var1, -var2);
 #else
 
