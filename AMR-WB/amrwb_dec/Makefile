@@ -4,7 +4,7 @@ NUCLEI_SDK_ROOT ?= ../../../..
 
 SRCDIRS = . src
 
-INCDIRS = . inc src
+INCDIRS = . inc src ../data
 
 STDCLIB ?= newlib_full
 

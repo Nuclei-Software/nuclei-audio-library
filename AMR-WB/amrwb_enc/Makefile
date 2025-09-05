@@ -4,7 +4,7 @@ NUCLEI_SDK_ROOT ?= ../../../..
 
 SRCDIRS = . src
 
-INCDIRS = . inc
+INCDIRS = . inc ../data
 
 COMMON_FLAGS := -O3
 

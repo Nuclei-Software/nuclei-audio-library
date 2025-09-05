@@ -20,18 +20,19 @@
 #include <stdint.h>
 #include <string.h>
 #include "wavwriter.h"
-#include <dec_if.h>
+#include "dec_if.h"
 
-#include "input.h"
-#include "output.h"
+#include "enc_amr.h"
+#include "dec_wav.h"
 #include "memfop.h"
 #include "nmsis_bench.h"
 
+#define ENC_AMR_LEN (sizeof(enc_amr))
+#define DEC_WAV_LEN (sizeof(dec_wav))
+
 BENCH_DECLARE_VAR();
 
-extern unsigned char input_array[INPUTDATA_SIZE];
-extern unsigned char output_array[OUTPUTDATA_SIZE]; // reference data
-extern unsigned char output[OUTPUTDATA_SIZE]; // for store results
+uint8_t dec_result[DEC_WAV_LEN] = {0};
 
 /* From pvamrwbdecoder_api.h, by dividing by 8 and rounding up */
 const int sizes[] = { 17, 23, 32, 36, 40, 46, 50, 58, 60, 5, -1, -1, -1, -1, -1, 0 };
@@ -42,10 +43,10 @@ int main(int argc, char *argv[]) {
 	int n;
 	void* amr;
 	struct wav_writer* wav;
-	uint8_t* pref; // the reference data pointer
+	const uint8_t* pref; // the reference data pointer
 
 	// open file
-	in = memfopen(input_array, INPUTDATA_SIZE);
+	in = memfopen(enc_amr, ENC_AMR_LEN);
 	
 	// read input data and check header
 	n = memfread(header, 1, 9, in);
@@ -54,7 +55,7 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 
-	MemoryFile *out = memfopen(output, OUTPUTDATA_SIZE);
+	MemoryFile *out = memfopen(dec_result, DEC_WAV_LEN);
 	wav = wav_write_open(out, 16000, 16, 1);
 	if (!wav) {
 		fprintf(stderr, "Unable to open %s\n", argv[2]);
@@ -62,7 +63,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	amr = D_IF_init();
-	pref = output_array;
+	pref = dec_wav + 44;
 	while (1) {
 		uint8_t buffer[500], littleendian[640], *ptr, *p;
 		int size, i;

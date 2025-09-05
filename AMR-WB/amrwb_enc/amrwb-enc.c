@@ -24,8 +24,11 @@
 #include "wavreader.h"
 
 #include "input.h"
-#include "output.h"
+#include "enc_amr.h"
 #include "nmsis_bench.h"
+
+#define INPUT_LEN (sizeof(input))
+#define ENC_AMR_LEN (sizeof(enc_amr))
 
 BENCH_DECLARE_VAR();
 
@@ -59,12 +62,10 @@ int findMode(int rate) {
 	return modes[closest].mode;
 }
 
-extern unsigned char input_array[INPUTDATA_SIZE];
-extern unsigned char output_array[OUTPUTDATA_SIZE]; // reference data
-extern unsigned char output[OUTPUTDATA_SIZE]; // for store results
+uint8_t enc_result[ENC_AMR_LEN] = {0};
 
 int main(int argc, char *argv[]) {
-	int mode = 8;
+	int mode;
 	int ch, dtx = 0;
 	MemoryFile* out;
 	void *wav, *amr;
@@ -73,11 +74,11 @@ int main(int argc, char *argv[]) {
 	uint8_t* inputBuf;
 	uint8_t* pref; // the reference data pointer
 
-	int rate = 23850;
+	int rate = BITRATE;
 	dtx = 1;
 	mode = findMode(rate);
 
-	wav = wav_read_open(input_array, INPUTDATA_SIZE);
+	wav = wav_read_open(input, INPUT_LEN);
 	if (!wav) {
 		printf("Unable to open wav file\n");
 		return 1;
@@ -102,14 +103,14 @@ int main(int argc, char *argv[]) {
 	inputBuf = (uint8_t*) malloc(inputSize);
 
 	amr = E_IF_init();
-	out = memfopen(output, OUTPUTDATA_SIZE);
+	out = memfopen(enc_result, ENC_AMR_LEN);
 	if (!out) {
 		return 1;
 	}
 
 	memfwrite("#!AMR-WB\n", 1, 9, out);
 	// set reference data start from 9
-    pref = output_array + 9;
+    pref = enc_amr + 9;
 	while (1) {
 		int read, i, n;
 		short buf[320];
