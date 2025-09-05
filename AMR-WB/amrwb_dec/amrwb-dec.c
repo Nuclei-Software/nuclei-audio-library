@@ -83,7 +83,7 @@ int main(int argc, char *argv[]) {
 		/* Decode the packet */
 		BENCH_START(decode);
 		D_IF_decode(amr, buffer, outbuffer, 0);
-		BENCH_END(decode);
+		BENCH_SAMPLE(decode);
 
 		/* Convert to little endian and write to wav */
 		ptr = littleendian;
@@ -101,6 +101,11 @@ int main(int argc, char *argv[]) {
 			}
 		}
 	}
+    double avg_cycle = BENCH_GET_SUMCYC() * 1.0 / BENCH_GET_LPCNT();
+    // 16k sample rate, process 320 samples each frame, so multiply with 50
+    double mcps = avg_cycle * 50 / 1000000;
+    printf("CSV, amrwb_decode, %.02f\r\n", mcps);
+
 	memfclose(in);
 	D_IF_exit(amr);
 	wav_write_close(wav);

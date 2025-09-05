@@ -127,7 +127,7 @@ int main(int argc, char *argv[]) {
 		}
     	BENCH_START(encode);
 		n = E_IF_encode(amr, mode, buf, outbuf, dtx);
-    	BENCH_END(encode);
+    	BENCH_SAMPLE(encode);
 		memfwrite(outbuf, 1, n, out);
 
 		// check result
@@ -138,6 +138,11 @@ int main(int argc, char *argv[]) {
             }
         }
 	}
+    double avg_cycle = BENCH_GET_SUMCYC() * 1.0 / BENCH_GET_LPCNT();
+    // 16k sample rate, process 320 samples each frame, so multiply with 50
+    double mcps = avg_cycle * 50 / 1000000;
+    printf("CSV, amrwb_encode, %.02f\r\n", mcps);
+
 	free(inputBuf);
 	memfclose(out);
 	E_IF_exit(amr);
