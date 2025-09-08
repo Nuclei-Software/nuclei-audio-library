@@ -1,0 +1,22 @@
+{
+    "run_config": {
+        "target" : "hardware",
+        "hardware" : {
+            "baudrate": 115200,
+            "timeout": 60
+        },
+        "qemu": {
+            "qemu32": "qemu-system-riscv32",
+            "qemu64": "qemu-system-riscv64",
+            "timeout": 60
+        }
+    },
+    "build_configs": {
+        "rv32imafdcv" : {
+            "rv32imacb": {"CORE":"n300", "ARCH_EXT":"_zba_zbb_zbc_zbs"},
+            "rv32imacbp": {"CORE":"n300", "ARCH_EXT":"_zba_zbb_zbc_zbs_xxldspn3x"}
+        }
+    },
+    "expecteds" : {
+    }
+}
