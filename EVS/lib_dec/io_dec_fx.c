@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "data/memfop.h"
 #include "options.h"     /* Compilation switches                   */
 #include "stl.h"
 #include "cnst_fx.h"       /* Common constants                       */
@@ -51,8 +52,12 @@ static char * bit_rate_to_string(char *string, Word32 bit_rate)
 void io_ini_dec_fx(
     const int argc,                /* i  : command line arguments number             */
     char *argv[],             /* i  : command line arguments                    */
-    FILE **f_stream,          /* o  : input bitstream file                      */
-    FILE **f_synth,           /* o  : output synthesis file                     */
+    void *stream_data,
+    Word32 stream_len,
+    MemoryFile **f_stream,          /* o  : input bitstream file                      */
+    void *synth_data,
+    Word32 synth_len,
+    MemoryFile **f_synth,           /* o  : output synthesis file                     */
     Word16 *quietMode,             /* o  : limited printouts                         */
     Word16 *noDelayCmp,            /* o  : turn off delay compensation               */
     Decoder_State_fx *st_fx,           /* o  : Decoder static variables structure        */
@@ -215,7 +220,7 @@ void io_ini_dec_fx(
 
     if( i < argc - 1 )
     {
-        if ( (*f_stream = fopen(argv[i], "rb")) == NULL)
+        if ( (*f_stream = memfopen(stream_data, stream_len)) == NULL)
         {
             fprintf(stderr,"Error: input bitstream file %s cannot be opened\n\n", argv[i]);
             usage_dec();
@@ -227,7 +232,7 @@ void io_ini_dec_fx(
             evs_magic   = 1 ;
             amrwb_magic = 1;
 
-            if(NULL == fgets(buf, 13, *f_stream))
+            if(NULL == memfgets(buf, 13, *f_stream))
             {
                 fprintf(stderr,"Error: input bitstream file %s cannot be read\n\n", argv[i]);
                 usage_dec();
@@ -246,7 +251,7 @@ void io_ini_dec_fx(
 
             if( evs_magic != 0 )
             {
-                if ((fread(&buf,sizeof(char), 4, *f_stream) != 4 ) || !((buf[3] == 1) && (buf[2] == 0) && (buf[1] == 0) &&  (buf[0] == 0)) )
+                if ((memfread(&buf,sizeof(char), 4, *f_stream) != 4 ) || !((buf[3] == 1) && (buf[2] == 0) && (buf[1] == 0) &&  (buf[0] == 0)) )
                 {
                     fprintf(stderr, "Error: input bitstream file %s specifies unsupported number of evs audio channels\n\n",argv[i]);
                     usage_dec();
@@ -276,10 +281,10 @@ void io_ini_dec_fx(
         {
             /* G.192 format ....  preread the G.192 sync header */
             UWord16 utmp;
-            if ( fread( &utmp, sizeof(unsigned short), 1, *f_stream ) != 1 )
+            if ( memfread( &utmp, sizeof(unsigned short), 1, *f_stream ) != 1 )
             {
                 /* error during pre-reading */
-                if( ferror( *f_stream ) )
+                if( memferror( *f_stream ) )
                 {
                     fprintf(stderr, "Error: input G.192 bitstream file %s , can not be read  \n\n",argv[i] );
                 }
@@ -296,7 +301,7 @@ void io_ini_dec_fx(
                 usage_dec();
             }
             /* now rewind the G.192 bitstream file */
-            fseek( *f_stream , 0L, SEEK_SET );
+            memfseek( *f_stream , 0L, SEEK_SET );
         }
         /*  JBM format */
 
@@ -316,7 +321,7 @@ void io_ini_dec_fx(
 
     if( i < argc )
     {
-        if ( (*f_synth = fopen(argv[i], "wb")) == NULL )
+        if ( (*f_synth = memfopen(synth_data, synth_len)) == NULL )
         {
             fprintf( stderr, "Error: ouput synthesis file %s cannot be opened\n\n", argv[i] );
             usage_dec();
@@ -346,11 +351,11 @@ void io_ini_dec_fx(
             read_indices_mime( st_fx, *f_stream, 1 );   /* rew_flag == 1 ,  checks only very first  frame  */
             if( st_fx->amrwb_rfc4867_flag != 0 )
             {
-                fseek(*f_stream,strlen(AMRWB_MAGIC_NUMBER),SEEK_SET);    /* restart after 9 bytes */
+                memfseek(*f_stream,strlen(AMRWB_MAGIC_NUMBER),SEEK_SET);    /* restart after 9 bytes */
             }
             else
             {
-                fseek(*f_stream,strlen(EVS_MAGIC_NUMBER)+4, SEEK_SET); /* restart after  16 bytes */
+                memfseek(*f_stream,strlen(EVS_MAGIC_NUMBER)+4, SEEK_SET); /* restart after  16 bytes */
             }
         }
 

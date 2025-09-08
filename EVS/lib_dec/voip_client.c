@@ -7,6 +7,7 @@
 #include <string.h>
 #include <time.h>
 #include <assert.h>
+#include "data/memfop.h"
 #include "options.h"
 #include "stl.h"
 #include "prot_fx.h"
@@ -35,8 +36,8 @@ extern long frame;                 /* Counter of frames */
 
 Word16 decodeVoip(
     Decoder_State_fx *st_fx,
-    FILE *f_stream,
-    FILE *f_synth,
+    MemoryFile *f_stream,
+    MemoryFile *f_synth,
 #ifdef SUPPORT_JBM_TRACEFILE
     const char *jbmTraceFileName,
 #endif
@@ -51,7 +52,7 @@ Word16 decodeVoip(
     EVS_RTPDUMP_DEPACKER_ERROR rtpdumpDepackerError = EVS_RTPDUMP_DEPACKER_NO_ERROR;
 
     Word16 optimum_offset, FEC_hi;
-    FILE *f_offset = 0;
+    MemoryFile *f_offset = 0;
 
     /* main loop */
     Word32 nextPacketRcvTime_ms = 0;
@@ -101,7 +102,7 @@ Word16 decodeVoip(
 
     if(jbmFECoffsetFileName)
     {
-        f_offset =  fopen( jbmFECoffsetFileName, "w+" );
+        f_offset =  memfopen( NULL, 0 );
         if(f_offset == NULL)
         {
             fprintf(stderr,"unable to open CA offset file: %s\n", jbmFECoffsetFileName);
@@ -120,7 +121,7 @@ Word16 decodeVoip(
         EVS_RTPDUMP_DEPACKER_close(&rtpdumpDepacker);
         if( f_offset ) 
         {
-            fclose(f_offset);
+            memfclose(&f_offset);
         }
         return -1;
     }
@@ -133,7 +134,7 @@ Word16 decodeVoip(
         EVS_RTPDUMP_DEPACKER_close(&rtpdumpDepacker);
         if( f_offset )
         {
-            fclose(f_offset);
+            memfclose(&f_offset);
         }
         EVS_RX_Close(&hRX);
         return -1;
@@ -176,7 +177,7 @@ Word16 decodeVoip(
         EVS_RTPDUMP_DEPACKER_close(&rtpdumpDepacker);
         if( f_offset )
         {
-            fclose(f_offset);
+            memfclose(&f_offset);
         }
         EVS_RX_Close(&hRX);
         return -1;
@@ -214,7 +215,7 @@ Word16 decodeVoip(
                 EVS_RTPDUMP_DEPACKER_close(&rtpdumpDepacker);
                 if( f_offset ) 
                 {
-                    fclose(f_offset);
+                    memfclose(&f_offset);
                 }
                 EVS_RX_Close(&hRX);
                 return -1;
@@ -255,7 +256,7 @@ Word16 decodeVoip(
                 EVS_RTPDUMP_DEPACKER_close(&rtpdumpDepacker);
                 if( f_offset ) 
                 {
-                    fclose(f_offset);
+                    memfclose(&f_offset);
                 }
                 EVS_RX_Close(&hRX);
                 return -1;
@@ -276,11 +277,11 @@ Word16 decodeVoip(
         {
             if ( FEC_hi == 1)
             {
-                fprintf( f_offset, "HI " );
+                // fprintf( f_offset, "HI " );
             }
             else
             {
-                fprintf( f_offset, "LO " );
+                // fprintf( f_offset, "LO " );
             }
 
             if ( optimum_offset == 1 || optimum_offset == 2 )
@@ -300,7 +301,7 @@ Word16 decodeVoip(
                 optimum_offset = 7;
             }
 
-            fprintf( f_offset, "%d\n", optimum_offset );
+            // fprintf( f_offset, "%d\n", optimum_offset );
         }
 
 
@@ -311,7 +312,7 @@ Word16 decodeVoip(
             EVS_RTPDUMP_DEPACKER_close(&rtpdumpDepacker);
             if( f_offset ) 
             {
-                fclose(f_offset);
+                memfclose(&f_offset);
             }
             EVS_RX_Close(&hRX);
             return -1;
@@ -321,13 +322,13 @@ Word16 decodeVoip(
         /* do final delay compensation */
         IF ( dec_delay == 0 )
         {
-            fwrite( pcmBuf, sizeof(Word16), nSamples, f_synth );
+            memfwrite( pcmBuf, sizeof(Word16), nSamples, f_synth );
         }
         ELSE
         {
             IF ( sub(dec_delay, nSamples) <= 0 )
             {
-                fwrite( pcmBuf + dec_delay, sizeof(Word16), sub(nSamples, dec_delay), f_synth );
+                memfwrite( pcmBuf + dec_delay, sizeof(Word16), sub(nSamples, dec_delay), f_synth );
                 dec_delay = 0;
                 move16();
             }
@@ -346,7 +347,7 @@ Word16 decodeVoip(
 
     /* add zeros at the end to have equal length of synthesized signals */
     set16_fx( pcmBuf, 0, zero_pad );
-    fwrite( pcmBuf, sizeof(Word16), zero_pad, f_synth );
+    memfwrite( pcmBuf, sizeof(Word16), zero_pad, f_synth );
 
     if( quietMode == 0 )
     {

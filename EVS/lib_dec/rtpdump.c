@@ -2,17 +2,19 @@
     EVS Codec 3GPP TS26.442 Nov 04, 2021. Version 12.15.0 / 13.10.0 / 14.6.0 / 15.4.0 / 16.4.0
   ====================================================================================*/
 
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include "rtpdump.h"
+#include "data/memfop.h"
 
 struct RTPDUMP
 {
-  FILE * file;
-  unsigned int startSeconds;
-  unsigned int startMicroSeconds;
-  unsigned int source;
+  MemoryFile * file;
+  uint32_t startSeconds;
+  uint32_t startMicroSeconds;
+  uint32_t source;
   unsigned short port;
 };
 
@@ -45,10 +47,10 @@ static unsigned char * parseByte( unsigned char * buffer, unsigned char * value 
 }
 
 /** function to read a 32-bit value from the file */
-static int readLong( FILE * file, unsigned int * value )
+static int readLong( MemoryFile * file, uint32_t * value )
 {
   char buffer[4] = {0};
-  if( fread( buffer, 4, 1, file ) != 1U )
+  if( memfread( buffer, 4, 1, file ) != 1U )
   {
     return -1;
   }
@@ -61,10 +63,10 @@ static int readLong( FILE * file, unsigned int * value )
 }
 
 /** function to read a 16-bit value from the file */
-static int readShort( FILE * file, unsigned short * value )
+static int readShort( MemoryFile * file, unsigned short * value )
 {
   char buffer[2] = {0};
-  if( fread( buffer, 2, 1, file ) != 1U )
+  if( memfread( buffer, 2, 1, file ) != 1U )
   {
     return -1;
   }
@@ -75,14 +77,14 @@ static int readShort( FILE * file, unsigned short * value )
 }
 
 /** function to write a 32-bit value to the file */
-static int writeLong( FILE * file, unsigned int value )
+static int writeLong( MemoryFile * file, unsigned int value )
 {
   char buffer[4] = {0};
   buffer[3] = value & 0xff;
   buffer[2] = (value >> 8) & 0xff;
   buffer[1] = (value >> 16) & 0xff;
   buffer[0] = (value >> 24) & 0xff;
-  if( fwrite( buffer, 4, 1, file ) != 1U )
+  if( memfwrite( buffer, 4, 1, file ) != 1U )
   {
     return -1;
   }
@@ -90,12 +92,12 @@ static int writeLong( FILE * file, unsigned int value )
 }
 
 /** function to write a 16-bit value to the file */
-static int writeShort( FILE * file, unsigned short value )
+static int writeShort( MemoryFile * file, unsigned short value )
 {
   char buffer[2] = {0};
   buffer[1] = value & 0xff;
   buffer[0] = (value >> 8) & 0xff;
-  if( fwrite( buffer, 2, 1, file ) != 1U )
+  if( memfwrite( buffer, 2, 1, file ) != 1U )
   {
     return -1;
   }
@@ -103,9 +105,9 @@ static int writeShort( FILE * file, unsigned short value )
 }
 
 /** function to write a 8-bit value to the file */
-static int writeByte( FILE * file, unsigned char value )
+static int writeByte( MemoryFile * file, unsigned char value )
 {
-  if(fputc(value, file) == value)
+  if(memfputc(value, file) == value)
   {
     return 0;
   }
@@ -130,7 +132,7 @@ static int readHeader(struct RTPDUMP * hRTPDUMP)
   unsigned int port = 0;
   unsigned int a, b, c, d;
 
-  fgets( buffer, sizeof(buffer), hRTPDUMP->file );
+  memfgets( buffer, sizeof(buffer), hRTPDUMP->file );
   if(sscanf(buffer, "#!rtpplay%3s %127[0123456789.]/%u\n", version, address, &port) == 3)
   {
     if(sscanf(address, "%u.%u.%u.%u", &a, &b, &c, &d) != 4)
@@ -164,7 +166,7 @@ static int readHeader(struct RTPDUMP * hRTPDUMP)
 static int writeHeader(struct RTPDUMP * hRTPDUMP)
 {
   /* write rtpdump header */
-  fprintf(hRTPDUMP->file, "#!rtpplay%s %s/%d\n", "1.0", "127.0.0.1", 5000);
+  // fprintf(hRTPDUMP->file, "#!rtpplay%s %s/%d\n", "1.0", "127.0.0.1", 5000);
   if(!writeLong(hRTPDUMP->file, hRTPDUMP->startSeconds) &&
      !writeLong(hRTPDUMP->file, hRTPDUMP->startMicroSeconds) &&
      !writeLong(hRTPDUMP->file, hRTPDUMP->source) &&
@@ -180,11 +182,12 @@ static int writeHeader(struct RTPDUMP * hRTPDUMP)
 RTPDUMP_ERROR
 RTPDUMP_OpenForReading(RTPDUMP_HANDLE* phRTPDUMP, const char * filename)
 {
-  return RTPDUMP_OpenWithFileToRead(phRTPDUMP, fopen( filename, "rb" ));
+  // return RTPDUMP_OpenWithFileToRead(phRTPDUMP, memfopen( filename, "rb" ));
+  return RTPDUMP_OpenWithFileToRead(phRTPDUMP, memfopen( NULL, 0 ));
 }
 
 RTPDUMP_ERROR
-RTPDUMP_OpenWithFileToRead(RTPDUMP_HANDLE* phRTPDUMP, FILE *file)
+RTPDUMP_OpenWithFileToRead(RTPDUMP_HANDLE* phRTPDUMP, MemoryFile *file)
 {
   *phRTPDUMP = (RTPDUMP_HANDLE) calloc(1, sizeof(struct RTPDUMP) );
   if ( !phRTPDUMP )
@@ -217,7 +220,8 @@ RTPDUMP_OpenForWriting(RTPDUMP_HANDLE* phRTPDUMP, const char * filename)
   }
 
   /* open file stream */
-  (*phRTPDUMP)->file = fopen( filename, "wb" );
+  // (*phRTPDUMP)->file = fopen( filename, "wb" );
+  (*phRTPDUMP)->file = memfopen( NULL, 0 );
   if( (*phRTPDUMP)->file == NULL )
   {
     return RTPDUMP_FILE_NOT_FOUND;
@@ -278,7 +282,7 @@ RTPDUMP_ReadPacket(RTPDUMP_HANDLE hRTPDUMP,
   /* read entire RTP packet */
   if( length != 0U)
   {
-    fread( packet->data, length, 1, hRTPDUMP->file );
+    memfread( packet->data, length, 1, hRTPDUMP->file );
   }
 
   RTPDUMP_ParseRTPHeader(packet);
@@ -303,7 +307,7 @@ RTPDUMP_WritePacket(RTPDUMP_HANDLE hRTPDUMP,
   writeLong(hRTPDUMP->file, packet->ssrc);
 
   /* RTP payload */
-  fwrite(packet->data + packet->headerSize, packet->payloadSize, 1, hRTPDUMP->file);
+  memfwrite(packet->data + packet->headerSize, packet->payloadSize, 1, hRTPDUMP->file);
   return RTPDUMP_NO_ERROR;
 }
 
@@ -322,7 +326,7 @@ RTPDUMP_Close(RTPDUMP_HANDLE* phRTPDUMP, short closeFile)
 
   if(closeFile && (*phRTPDUMP)->file)
   {
-    fclose((*phRTPDUMP)->file);
+    memfclose(&(*phRTPDUMP)->file);
   }
 
   free(*phRTPDUMP);

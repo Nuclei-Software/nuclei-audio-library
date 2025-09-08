@@ -12,6 +12,8 @@
 #include "rom_com_fx.h"
 #include "mime.h"
 
+#include "data/memfop.h"
+
 /*-------------------------------------------------------------------*
 * pack_bit()
 *
@@ -458,7 +460,7 @@ void reset_indices_dec_fx(
 
 void write_indices_fx(
     Encoder_State_fx *st_fx,        /* i/o: encoder state structure */
-    FILE *file          /* i  : output bitstream file   */
+    MemoryFile *file          /* i  : output bitstream file   */
     , UWord8 *pFrame,     /* i: byte array with bit packet and byte aligned coded speech data */
     Word16 pFrame_size  /* i: size of the binary encoded access unit [bits] */
 )
@@ -516,9 +518,9 @@ void write_indices_fx(
         /* Create and write ToC header */
         /*  qbit always  set to  1 on encoder side  for AMRWBIO ,  no qbit in use for EVS, but set to 0(bad)  */
         header = (UWord8)(st_fx->Opt_AMR_WB_fx << 5 | st_fx->Opt_AMR_WB_fx << 4 | rate2EVSmode(st_fx->nb_bits_tot_fx * 50));
-        fwrite( &header, sizeof(UWord8), 1, file );
+        memfwrite( &header, sizeof(UWord8), 1, file );
         /* Write speech bits */
-        fwrite( pFrame, sizeof(UWord8), (pFrame_size + 7)>>3, file );
+        memfwrite( pFrame, sizeof(UWord8), (pFrame_size + 7)>>3, file );
     }
 
     /* Clearing of indices */
@@ -532,7 +534,7 @@ void write_indices_fx(
     if( st_fx->bitstreamformat == G192 )
     {
         /* write the serial stream into file */
-        fwrite( stream, sizeof(unsigned short), 2+stream[1], file );
+        memfwrite( stream, sizeof(unsigned short), 2+stream[1], file );
     }
     /* reset index pointers */
     st_fx->nb_bits_tot_fx = 0;
@@ -1285,7 +1287,7 @@ Word32 BIT_ALLOC_IDX_16KHZ_fx(Word32 brate, Word16 ctype, Word16 sfrm, Word16 tc
 
 Word16 read_indices_fx(                /* o  : 1 = reading OK, 0 = problem            */
     Decoder_State_fx *st,                /* i/o: decoder state structure                */
-    FILE *file,              /* i  : bitstream file                         */
+    MemoryFile *file,              /* i  : bitstream file                         */
     Word16 rew_flag            /* i  : rewind flag (rewind file after reading)*/
 )
 {
@@ -1310,9 +1312,9 @@ Word16 read_indices_fx(                /* o  : 1 = reading OK, 0 = problem      
     do
     {
         /* read the Sync header */
-        if ( fread( &utmp, sizeof(unsigned short), 1, file ) != 1 )
+        if ( memfread( &utmp, sizeof(unsigned short), 1, file ) != 1 )
         {
-            if( ferror( file ) )
+            if( memferror( file ) )
             {
                 /* error during reading */
                 fprintf(stderr, "\nError reading the bitstream !");
@@ -1338,9 +1340,9 @@ Word16 read_indices_fx(                /* o  : 1 = reading OK, 0 = problem      
         }
 
         /* read the Frame Length field from the bitstream */
-        if ( fread( &num_bits, sizeof(unsigned short), 1, file ) != 1 )
+        if ( memfread( &num_bits, sizeof(unsigned short), 1, file ) != 1 )
         {
-            if( ferror( file ) )
+            if( memferror( file ) )
             {
                 /* error during reading */
                 fprintf(stderr, "\nError reading the bitstream !");
@@ -1373,7 +1375,7 @@ Word16 read_indices_fx(                /* o  : 1 = reading OK, 0 = problem      
         }
         pt_stream = stream;
 
-        num_bits_read = (Word16) fread( pt_stream, sizeof(unsigned short), num_bits, file );
+        num_bits_read = (Word16) memfread( pt_stream, sizeof(unsigned short), num_bits, file );
 
         if( num_bits_read != num_bits )
         {
@@ -1530,7 +1532,7 @@ Word16 read_indices_fx(                /* o  : 1 = reading OK, 0 = problem      
     /* (used in io_enc() to print out info about technologies and to initialize the codec) */
     if ( rew_flag )
     {
-        rewind( file );
+        memrewind( file );
         st->total_brate_fx = total_brate;
         move16();
         return 1;
@@ -1770,7 +1772,7 @@ static void read_indices_mime_handle_sti_and_all_zero_bits(
 
 Word16 read_indices_mime(                /* o  : 1 = reading OK, 0 = problem            */
     Decoder_State_fx *st,                /* i/o: decoder state structure                */
-    FILE *file,                          /* i  : bitstream file                         */
+    MemoryFile *file,                          /* i  : bitstream file                         */
     Word16 rew_flag                      /* i  : rewind flag (rewind file after reading) */
 )
 {
@@ -1793,9 +1795,9 @@ Word16 read_indices_mime(                /* o  : 1 = reading OK, 0 = problem    
     reset_indices_dec_fx( st );
 
     /* read the FT Header field from the bitstream */
-    if ( fread( &header, sizeof(UWord8), 1, file ) != 1 )
+    if ( memfread( &header, sizeof(UWord8), 1, file ) != 1 )
     {
-        if( ferror( file ) )
+        if( memferror( file ) )
         {
             /* error during reading */
             fprintf(stderr, "\nError reading the bitstream !");
@@ -1913,7 +1915,7 @@ Word16 read_indices_mime(                /* o  : 1 = reading OK, 0 = problem    
     }
 
     /* read serial stream of indices from file to the local buffer */
-    num_bytes_read = (Word16) fread( pFrame, sizeof(UWord8), (num_bits + 7)>>3, file );
+    num_bytes_read = (Word16) memfread( pFrame, sizeof(UWord8), (num_bits + 7)>>3, file );
     if( num_bytes_read != (num_bits + 7)>>3 )
     {
         fprintf(stderr, "\nError, invalid number of bytes read ! Exiting ! \n");

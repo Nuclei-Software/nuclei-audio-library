@@ -5,6 +5,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include "evs_rtp_payload.h"
+#include "data/memfop.h"
 
 static void evsPayload_unpackFrame_compact_amrWbIo(const char *payload, uint16_t payloadSizeBits, uint16_t iProtectedSize,
                                                    unsigned char **framePtr, uint16_t *frameSizeInBits) {
@@ -181,7 +182,7 @@ bool evsHeaderFullPayload_unpackFrame(const char *payload, uint16_t payloadSizeB
   return true;
 }
 
-EVS_RTPDUMP_DEPACKER_ERROR EVS_RTPDUMP_DEPACKER_open(EVS_RTPDUMP_DEPACKER *self, FILE *file, bool hf_only) {
+EVS_RTPDUMP_DEPACKER_ERROR EVS_RTPDUMP_DEPACKER_open(EVS_RTPDUMP_DEPACKER *self, MemoryFile *file, bool hf_only) {
   RTPDUMP_ERROR rtpdumpError;
   self->hf_only = hf_only;
   self->frameFollowing = false;

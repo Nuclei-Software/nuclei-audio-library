@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "data/memfop.h"
 #include "stl.h"
 #include "options.h"        /* Compilation switches                   */
 #include "cnst_fx.h"        /* Common constants                       */
@@ -47,11 +48,15 @@ static char * bit_rate_to_string(char *string, Word32 bit_rate)
 void io_ini_enc_fx(
     const int   argc,                /* i  : command line arguments number             */
     char  *argv[],             /* i  : command line arguments                    */
-    FILE  **f_input,           /* o  : input signal file                         */
-    FILE  **f_stream,          /* o  : output bitstream file                     */
-    FILE  **f_rate,            /* o  : bitrate switching profile (0 if N/A)      */
-    FILE  **f_bwidth,          /* o  : bandwidth switching profile (0 if N/A)    */
-    FILE  **f_rf,              /* o  : channel aware configuration file          */
+    void *input_data,
+    Word32 input_len,
+    MemoryFile **f_input,           /* o  : input signal file                         */
+    void *stream_data,
+    Word32 stream_len,
+    MemoryFile **f_stream,          /* o  : output bitstream file                     */
+    MemoryFile **f_rate,            /* o  : bitrate switching profile (0 if N/A)      */
+    MemoryFile **f_bwidth,          /* o  : bandwidth switching profile (0 if N/A)    */
+    MemoryFile **f_rf,              /* o  : channel aware configuration file          */
     Word16 *quietMode,         /* o  : limit printouts                           */
     Word16 *noDelayCmp,        /* o  : turn off delay compensation               */
     Encoder_State_fx *st                  /* o  : state structure                           */
@@ -130,7 +135,8 @@ void io_ini_enc_fx(
             {
                 st->max_bwidth_fx = max_bwidth_user = FB;
             }
-            else if ( (*f_bwidth = fopen(argv[i+1], "rb")) == NULL )
+            // else if ( (*f_bwidth = fopen(argv[i+1], "rb")) == NULL )
+            else if ( (*f_bwidth = memfopen(NULL, 0)) == NULL )
             {
                 fprintf(stderr, "Error: incorect bandwidth specification or the bandwidth profile file could not be opened: %s\n\n", argv[i+1]);
                 usage_enc();
@@ -138,13 +144,13 @@ void io_ini_enc_fx(
             /* read first bandwidth value from the profile file (just to check validity) */
             if ( *f_bwidth != NULL )
             {
-                if ( fscanf( *f_bwidth, "%d %s", &tmp, stmp) == EOF )
-                {
-                    fprintf (stderr,"Error: cannot read the bandwidth profile file\n\n");
-                    usage_enc();
-                }
+                // if ( fscanf( *f_bwidth, "%d %s", &tmp, stmp) == EOF )
+                // {
+                //     fprintf (stderr,"Error: cannot read the bandwidth profile file\n\n");
+                //     usage_enc();
+                // }
 
-                rewind(*f_bwidth);
+                memrewind(*f_bwidth);
 
                 if ( (st->max_bwidth_fx = CONV_BWIDTH( stmp )) == -1 )
                 {
@@ -281,7 +287,8 @@ void io_ini_enc_fx(
                     first_char = rf_file_name[0];
                     if ( first_char != '-' )
                     {
-                        if ( (*f_rf = fopen(rf_file_name, "r")) == NULL )
+                        // if ( (*f_rf = fopen(rf_file_name, "r")) == NULL )
+                        if ( (*f_rf = memfopen(NULL, 0)) == NULL )
                         {
                             fprintf(stderr, "Error: Incorrect specification of channal aware configuration or the CA configuration file could not be opened: %s\n\n", argv[i]);
                             usage_enc();
@@ -329,20 +336,21 @@ void io_ini_enc_fx(
         /* check if profile file has been entered instead of a fixed bitrate */
         if (sscanf(argv[i], "%d", &tmp) != 1)
         {
-            if ( (*f_rate = fopen(argv[i], "rb")) == NULL )
+            // if ( (*f_rate = fopen(argv[i], "rb")) == NULL )
+            if ( (*f_rate = memfopen(NULL, 0)) == NULL )
             {
                 fprintf(stderr, "Error: bitrate profile file %s could not be opened\n\n", argv[i]);
                 usage_enc();
             }
 
             /* read first bitrate value from the profile file (just to check validity)*/
-            if ( fread( &st->total_brate_fx, 4, 1, *f_rate ) != 1 && feof(*f_rate) )
+            if ( memfread( &st->total_brate_fx, 4, 1, *f_rate ) != 1 && memfeof(*f_rate) )
             {
                 fprintf (stderr,"Error: cannot read the bitrate profile file\n\n");
                 usage_enc();
             }
 
-            rewind(*f_rate);
+            memrewind(*f_rate);
 
             fprintf(stdout, "Bitrate switching file: %s\n", argv[i]);
         }
@@ -449,7 +457,7 @@ void io_ini_enc_fx(
 
     if( i < argc-1 )
     {
-        if ( (*f_input = fopen(argv[i], "rb")) == NULL )
+        if ( (*f_input = memfopen(input_data, input_len)) == NULL )
         {
             fprintf(stderr, "Error: input audio file %s could not be opened\n\n", argv[i]);
             usage_enc();
@@ -470,7 +478,7 @@ void io_ini_enc_fx(
 
     if( i < argc )
     {
-        if ( (*f_stream = fopen(argv[i], "wb")) == NULL)
+        if ( (*f_stream = memfopen(stream_data, stream_len)) == NULL)
         {
             fprintf(stderr, "Error: output bitstream file %s could not be opened\n\n", argv[i]);
             usage_enc();
@@ -481,10 +489,10 @@ void io_ini_enc_fx(
         if( st->bitstreamformat == MIME )
         {
             char buf[4];
-            fwrite(EVS_MAGIC_NUMBER, sizeof(char), strlen(EVS_MAGIC_NUMBER), *f_stream);
+            memfwrite(EVS_MAGIC_NUMBER, sizeof(char), strlen(EVS_MAGIC_NUMBER), *f_stream);
             buf[0] = buf[1] = buf[2] = 0;
             buf[3] = 1;
-            fwrite(&buf, sizeof(char), 4, *f_stream);
+            memfwrite(&buf, sizeof(char), 4, *f_stream);
             fprintf(stdout, "Output bitstream file format: MIME");
         }
     }
@@ -707,7 +715,7 @@ void io_ini_enc_fx(
 void read_next_rfparam_fx(
     Word16 *rf_fec_offset,    /* o: rf offset                         */
     Word16 *rf_fec_indicator, /* o: rf FEC indicator                  */
-    FILE* f_rf                /* i: file pointer to read parameters   */
+    MemoryFile* f_rf                /* i: file pointer to read parameters   */
 )
 {
     char rline[10], str[4];
@@ -721,9 +729,9 @@ void read_next_rfparam_fx(
     if( f_rf != NULL )
     {
 
-        while ( fgets(rline, 10, f_rf) == NULL && feof(f_rf) )
+        while ( memfgets(rline, 10, f_rf) == NULL && memfeof(f_rf) )
         {
-            rewind(f_rf);
+            memrewind(f_rf);
         }
     }
     else
@@ -776,7 +784,7 @@ void read_next_rfparam_fx(
 void read_next_brate_fx(
     Word32  *total_brate,             /* i/o: total bitrate                             */
     const Word32 last_total_brate,    /* i  : last total bitrate                        */
-    FILE   *f_rate,                   /* i  : bitrate switching profile (0 if N/A)      */
+    MemoryFile   *f_rate,                   /* i  : bitrate switching profile (0 if N/A)      */
     Word32  input_Fs,                 /* i  : input sampling frequency                  */
     Word16 *Opt_AMR_WB,               /* i  : flag indicating AMR-WB IO mode            */
     Word16 *Opt_SC_VBR,               /* i/o: SC-VBR flag                               */
@@ -789,9 +797,9 @@ void read_next_brate_fx(
     /* read next bitrate value from the profile file */
     if( f_rate != NULL )
     {
-        while ( fread( total_brate, 4, 1, f_rate ) != 1 && feof(f_rate) )
+        while ( memfread( total_brate, 4, 1, f_rate ) != 1 && memfeof(f_rate) )
         {
-            rewind(f_rate);
+            memrewind(f_rate);
         }
     }
     else
@@ -925,7 +933,7 @@ void read_next_brate_fx(
 
 void read_next_bwidth_fx(
     Word16  *max_bwidth,            /* i/o: maximum encoded bandwidth                 */
-    FILE    *f_bwidth,              /* i  : bandwidth switching profile (0 if N/A)    */
+    MemoryFile    *f_bwidth,              /* i  : bandwidth switching profile (0 if N/A)    */
     Word32  *bwidth_profile_cnt,    /* i/o: counter of frames for bandwidth switching profile file */
     Word32   input_Fs               /* i  : input sampling frequency                  */
 )
@@ -936,10 +944,10 @@ void read_next_bwidth_fx(
     if ( *bwidth_profile_cnt == 0 )
     {
         /* read next bandwidth value and number of frames from the profile file */
-        while ( (res = fscanf( f_bwidth, "%d %3s", bwidth_profile_cnt, stmp)) != 2 && feof(f_bwidth))
-        {
-            rewind(f_bwidth);
-        }
+        // while ( (res = fscanf( f_bwidth, "%d %3s", bwidth_profile_cnt, stmp)) != 2 && memfeof(f_bwidth))
+        // {
+        //     rewind(f_bwidth);
+        // }
 
         (*bwidth_profile_cnt)--;
 

@@ -5,6 +5,7 @@
 #ifndef PROT_COM_FX_H
 #define PROT_COM_FX_H
 #include <stdio.h>
+#include "data/memfop.h"
 #include "options.h"        /* Compilation switches                   */
 #include "rom_com_fx.h"     /* Compilation switches                   */
 #include "typedefs.h"
@@ -88,11 +89,15 @@ void evs_enc_fx(
 void io_ini_enc_fx(
     const int   argc,                /* i  : command line arguments number             */
     char  *argv[],             /* i  : command line arguments                    */
-    FILE  **f_input,           /* o  : input signal file                         */
-    FILE  **f_stream,          /* o  : output bitstream file                     */
-    FILE  **f_rate,            /* o  : bitrate switching profile (0 if N/A)      */
-    FILE  **f_bwidth,          /* o  : bandwidth switching profile (0 if N/A)    */
-    FILE  **f_rf,              /* o  : channel aware config profile (0 if N/A)   */
+    void *input_data,
+    Word32 input_len,
+    MemoryFile **f_input,           /* o  : input signal file                         */
+    void *stream_data,
+    Word32 stream_len,
+    MemoryFile **f_stream,          /* o  : output bitstream file                     */
+    MemoryFile **f_rate,            /* o  : bitrate switching profile (0 if N/A)      */
+    MemoryFile **f_bwidth,          /* o  : bandwidth switching profile (0 if N/A)    */
+    MemoryFile **f_rf,              /* o  : channel aware config profile (0 if N/A)   */
     Word16 *quietMode,         /* o  : limit printouts                           */
     Word16 *noDelayCmp,        /* o  : turn off delay compensation               */
     Encoder_State_fx *st       /* o  : state structure                           */
@@ -101,13 +106,13 @@ void io_ini_enc_fx(
 void read_next_rfparam_fx(
     Word16* rf_fec_offset,    /* o: rf offset                         */
     Word16* rf_fec_indicator, /* o: rf FEC indicator                  */
-    FILE* f_rf                /* i: file pointer to read parameters   */
+    MemoryFile* f_rf                /* i: file pointer to read parameters   */
 );
 
 void read_next_brate_fx(
     Word32  *total_brate,             /* i/o: total bitrate                             */
     const Word32 last_total_brate,    /* i  : last total bitrate                        */
-    FILE  *f_rate,                    /* i  : bitrate switching profile (0 if N/A)      */
+    MemoryFile *f_rate,                    /* i  : bitrate switching profile (0 if N/A)      */
     Word32   input_Fs,                /* i  : input sampling frequency                  */
     Word16 *Opt_AMR_WB,               /* i  : flag indicating AMR-WB IO mode            */
     Word16 *Opt_SC_VBR,               /* i/o: SC-VBR flag                               */
@@ -117,7 +122,7 @@ void read_next_brate_fx(
 
 void read_next_bwidth_fx(
     Word16  *max_bwidth,            /* i/o: maximum encoded bandwidth                 */
-    FILE    *f_bwidth,              /* i  : bandwidth switching profile (0 if N/A)    */
+    MemoryFile *f_bwidth,              /* i  : bandwidth switching profile (0 if N/A)    */
     Word32  *bwidth_profile_cnt,    /* i/o: counter of frames for bandwidth switching profile file */
     Word32   input_Fs               /* i  : input sampling frequency                  */
 );
@@ -159,20 +164,20 @@ void reset_indices_dec_fx(
 
 void write_indices_fx(
     Encoder_State_fx *st_fx,                  /* i/o: encoder state structure */
-    FILE *file                       /* i  : output bitstream file                     */
+    MemoryFile *file                       /* i  : output bitstream file                     */
     , UWord8 *pFrame,     /* i: byte array with bit packet and byte aligned coded speech data */
     Word16 pFrame_size  /* i: size of the binary encoded access unit [bits] */
 );
 
 Word16 read_indices_fx(                     /* o  : 1 = OK, 0 = something wrong            */
     Decoder_State_fx *st_fx,                    /* i/o: decoder state structure */
-    FILE *file,                      /* i  : bitstream file                         */
+    MemoryFile *file,                      /* i  : bitstream file                         */
     Word16 rew_flag                    /* i  : rewind flag (rewind file after reading) */
 );
 
 Word16 read_indices_mime(                /* o  : 1 = reading OK, 0 = problem            */
     Decoder_State_fx *st,                /* i/o: decoder state structure                */
-    FILE *file,                          /* i  : bitstream file                         */
+    MemoryFile *file,                          /* i  : bitstream file                         */
     Word16 rew_flag                      /* i  : rewind flag (rewind file after reading)*/
 );
 
@@ -263,8 +268,8 @@ void evs_dec_fx(
 
 Word16 decodeVoip(
     Decoder_State_fx *st_fx,
-    FILE *f_stream,
-    FILE *f_synth,
+    MemoryFile *f_stream,
+    MemoryFile *f_synth,
 #ifdef SUPPORT_JBM_TRACEFILE
     const char *jbmTraceFileName,
 #endif
@@ -276,8 +281,12 @@ Word16 decodeVoip(
 void io_ini_dec_fx(
     const int argc,                /* i  : command line arguments number             */
     char *argv[],             /* i  : command line arguments                    */
-    FILE **f_stream,          /* o  : input bitstream file                      */
-    FILE **f_synth,           /* o  : output synthesis file                     */
+    void *stream_data,
+    Word32 stream_len,
+    MemoryFile **f_stream,          /* o  : input bitstream file                      */
+    void *synth_data,
+    Word32 synth_len,
+    MemoryFile **f_synth,           /* o  : output synthesis file                     */
     Word16 *quietMode,             /* o  : limited printouts                         */
     Word16 *noDelayCmp,            /* o  : turn off delay compensation               */
     Decoder_State_fx *st_fx,           /* o  : Decoder static variables structure        */

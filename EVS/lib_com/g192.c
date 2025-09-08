@@ -2,13 +2,14 @@
     EVS Codec 3GPP TS26.442 Nov 04, 2021. Version 12.15.0 / 13.10.0 / 14.6.0 / 15.4.0 / 16.4.0
   ====================================================================================*/
 
+#include "data/memfop.h"
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 
 #ifndef _WIN32
-#include <netinet/in.h>
+// #include <netinet/in.h>
 #include <stdint.h>
 #else
 #include <Winsock2.h>
@@ -42,7 +43,7 @@ typedef signed __int64     int64_t;
 /* main handle */
 struct __G192
 {
-    FILE * file;
+    MemoryFile * file;
 };
 
 /*
@@ -50,7 +51,7 @@ struct __G192
  */
 
 G192_ERROR
-G192_Reader_Open(G192_HANDLE* phG192, FILE * filename)
+G192_Reader_Open(G192_HANDLE* phG192, MemoryFile * filename)
 {
     /* create handle */
     *phG192 = (G192_HANDLE) calloc(1, sizeof(struct __G192) );
@@ -117,26 +118,26 @@ G192_ReadVoipFrame_short(G192_HANDLE const hG192,
     Word16 rtpPayloadSize;
 
     /* RTP packet size */
-    if(fread(&rtpPacketSize, sizeof(rtpPacketSize), 1, hG192->file) != 1)
+    if(memfread(&rtpPacketSize, sizeof(rtpPacketSize), 1, hG192->file) != 1)
     {
-        if(feof( hG192->file) != 0)
+        if(memfeof( hG192->file) != 0)
         {
             return G192_EOF;
         }
-        fprintf(stderr, "RTP Packet Size could't be read\n");
+        // fprintf(stderr, "RTP Packet Size could't be read\n");
         return G192_READ_ERROR;
     }
 
     if(rtpPacketSize <= 12)
     {
-        fprintf(stderr, "RTP Packet size too small: %d\n", rtpPacketSize);
+        // fprintf(stderr, "RTP Packet size too small: %d\n", rtpPacketSize);
         return G192_INVALID_DATA;
     }
 
     /* RTP packet arrival time */
-    if(fread(rcvTime_ms, sizeof(*rcvTime_ms), 1, hG192->file) != 1)
+    if(memfread(rcvTime_ms, sizeof(*rcvTime_ms), 1, hG192->file) != 1)
     {
-        if(feof( hG192->file) != 0)
+        if(memfeof( hG192->file) != 0)
         {
             return G192_EOF;
         }
@@ -145,9 +146,9 @@ G192_ReadVoipFrame_short(G192_HANDLE const hG192,
     }
 
     /* RTP packet header (part without sequence number) */
-    if(fread(&rtpPacketHeaderPart1, sizeof(rtpPacketHeaderPart1), 1, hG192->file) != 1)
+    if(memfread(&rtpPacketHeaderPart1, sizeof(rtpPacketHeaderPart1), 1, hG192->file) != 1)
     {
-        if(feof( hG192->file) != 0)
+        if(memfeof( hG192->file) != 0)
         {
             return G192_EOF;
         }
@@ -162,9 +163,9 @@ G192_ReadVoipFrame_short(G192_HANDLE const hG192,
     }
 
     /* RTP sequence number */
-    if(fread(rtpSequenceNumber, sizeof(*rtpSequenceNumber), 1, hG192->file) != 1)
+    if(memfread(rtpSequenceNumber, sizeof(*rtpSequenceNumber), 1, hG192->file) != 1)
     {
-        if(feof( hG192->file) != 0)
+        if(memfeof( hG192->file) != 0)
         {
             return G192_EOF;
         }
@@ -172,11 +173,11 @@ G192_ReadVoipFrame_short(G192_HANDLE const hG192,
         return G192_READ_ERROR;
     }
 
-    *rtpSequenceNumber = ntohs(*rtpSequenceNumber);
+    // *rtpSequenceNumber = ntohs(*rtpSequenceNumber);
     /* RTP timestamp */
-    if(fread(rtpTimeStamp, sizeof(*rtpTimeStamp), 1, hG192->file) != 1)
+    if(memfread(rtpTimeStamp, sizeof(*rtpTimeStamp), 1, hG192->file) != 1)
     {
-        if(feof( hG192->file) != 0)
+        if(memfeof( hG192->file) != 0)
         {
             return G192_EOF;
         }
@@ -184,11 +185,11 @@ G192_ReadVoipFrame_short(G192_HANDLE const hG192,
         return G192_READ_ERROR;
     }
 
-    *rtpTimeStamp = ntohl(*rtpTimeStamp);
+    // *rtpTimeStamp = ntohl(*rtpTimeStamp);
     /* RTP ssrc */
-    if(fread(&ssrc, sizeof(ssrc), 1, hG192->file) != 1)
+    if(memfread(&ssrc, sizeof(ssrc), 1, hG192->file) != 1)
     {
-        if(feof( hG192->file) != 0)
+        if(memfeof( hG192->file) != 0)
         {
             return G192_EOF;
         }
@@ -204,9 +205,9 @@ G192_ReadVoipFrame_short(G192_HANDLE const hG192,
         return G192_INVALID_DATA;
     }
     /* RTP payload */
-    if(fread(rtpPayloadG192, sizeof(Word16), 2, hG192->file) != 2)
+    if(memfread(rtpPayloadG192, sizeof(Word16), 2, hG192->file) != 2)
     {
-        if(feof( hG192->file) != 0)
+        if(memfeof( hG192->file) != 0)
         {
             return G192_EOF;
         }
@@ -225,9 +226,9 @@ G192_ReadVoipFrame_short(G192_HANDLE const hG192,
                 rtpPayloadSize, *num_bits);
         return G192_INVALID_DATA;
     }
-    if( (Word16)fread(serial, sizeof(Word16), *num_bits, hG192->file) != *num_bits)
+    if( (Word16)memfread(serial, sizeof(Word16), *num_bits, hG192->file) != *num_bits)
     {
-        if(feof( hG192->file) != 0)
+        if(memfeof( hG192->file) != 0)
         {
             return G192_EOF;
         }

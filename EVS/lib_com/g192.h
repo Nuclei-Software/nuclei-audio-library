@@ -2,6 +2,8 @@
     EVS Codec 3GPP TS26.442 Nov 04, 2021. Version 12.15.0 / 13.10.0 / 14.6.0 / 15.4.0 / 16.4.0
   ====================================================================================*/
 
+#include "data/memfop.h"
+#include "typedefs.h"
 #ifndef G192_H
 #define G192_H G192_H
 
@@ -40,7 +42,7 @@ typedef struct __G192 * G192_HANDLE;
  */
 
 G192_ERROR
-G192_Reader_Open(G192_HANDLE* phG192, FILE * filename);
+G192_Reader_Open(G192_HANDLE* phG192, MemoryFile * filename);
 
 G192_ERROR
 G192_ReadVoipFrame_compact(G192_HANDLE const hG192,

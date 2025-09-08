@@ -6,6 +6,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
+#include "data/memfop.h"
 #include "rtpdump.h"
 
 #ifdef __cplusplus
@@ -153,7 +154,7 @@ typedef enum {
   EVS_RTPDUMP_DEPACKER_PAYLOAD_ERROR
 } EVS_RTPDUMP_DEPACKER_ERROR;
 
-EVS_RTPDUMP_DEPACKER_ERROR EVS_RTPDUMP_DEPACKER_open(EVS_RTPDUMP_DEPACKER *self, FILE *file, bool hf_only);
+EVS_RTPDUMP_DEPACKER_ERROR EVS_RTPDUMP_DEPACKER_open(EVS_RTPDUMP_DEPACKER *self, MemoryFile *file, bool hf_only);
 
 EVS_RTPDUMP_DEPACKER_ERROR EVS_RTPDUMP_DEPACKER_readNextFrame(
     EVS_RTPDUMP_DEPACKER *self,

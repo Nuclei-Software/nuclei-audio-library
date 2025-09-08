@@ -3,6 +3,7 @@
   ====================================================================================*/
 
 #pragma once
+#include "data/memfop.h"
 #include <stdint.h>
 #include <stdio.h>
 
@@ -45,7 +46,7 @@ RTPDUMP_ERROR
 RTPDUMP_OpenForReading(RTPDUMP_HANDLE* phRTPDUMP, const char * filename);
 
 RTPDUMP_ERROR
-RTPDUMP_OpenWithFileToRead(RTPDUMP_HANDLE* phRTPDUMP, FILE *file);
+RTPDUMP_OpenWithFileToRead(RTPDUMP_HANDLE* phRTPDUMP, MemoryFile *file);
 
 RTPDUMP_ERROR
 RTPDUMP_OpenForWriting(RTPDUMP_HANDLE* phRTPDUMP, const char * filename);
