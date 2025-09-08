@@ -62,8 +62,10 @@ Release/
 *.dep
 *.ewt
 
-# clangd cache files
+# clang tools related files
 .cache
+.clangd
+.clang-format
 
 # compile_commands.json generated from bear
 compile_commands.json
