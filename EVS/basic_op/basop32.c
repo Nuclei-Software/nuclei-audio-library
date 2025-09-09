@@ -138,7 +138,11 @@ extern int currCounter;
  |   Local Functions                                                         |
  |___________________________________________________________________________|
 */
+#if !defined(SUPPORT_DSP_STD)
+// If p-ext is supported, 'saturate' need to be used in 'basop32.h'
+// So declare and implement it in the header file
 static Word16 saturate (Word32 L_var1);
+#endif
 
 
 /*___________________________________________________________________________
@@ -186,6 +190,7 @@ Flag Carry = 0;
  |             range : 0xffff 8000 <= var_out <= 0x0000 7fff.                |
  |___________________________________________________________________________|
 */
+#if !defined(SUPPORT_DSP_STD)
 static Word16 saturate (Word32 L_var1)
 {
     Word16 var_out;
@@ -212,6 +217,7 @@ static Word16 saturate (Word32 L_var1)
 
     return (var_out);
 }
+#endif
 
 
 /*___________________________________________________________________________
@@ -247,6 +253,7 @@ static Word16 saturate (Word32 L_var1)
  |             range : 0xffff 8000 <= var_out <= 0x0000 7fff.                |
  |___________________________________________________________________________|
 */
+#if !defined(SUPPORT_DSP_STD)
 Word16 add (Word16 var1, Word16 var2)
 {
     Word16 var_out;
@@ -260,6 +267,7 @@ Word16 add (Word16 var1, Word16 var2)
 #endif
     return (var_out);
 }
+#endif
 
 
 /*___________________________________________________________________________
@@ -295,6 +303,7 @@ Word16 add (Word16 var1, Word16 var2)
  |             range : 0xffff 8000 <= var_out <= 0x0000 7fff.                |
  |___________________________________________________________________________|
 */
+#if !defined(SUPPORT_DSP_STD)
 Word16 sub (Word16 var1, Word16 var2)
 {
     Word16 var_out;
@@ -308,6 +317,7 @@ Word16 sub (Word16 var1, Word16 var2)
 #endif
     return (var_out);
 }
+#endif
 
 
 /*___________________________________________________________________________
@@ -337,6 +347,7 @@ Word16 sub (Word16 var1, Word16 var2)
  |             range : 0x0000 0000 <= var_out <= 0x0000 7fff.                |
  |___________________________________________________________________________|
 */
+#if !defined(SUPPORT_DSP_STD)
 Word16 abs_s (Word16 var1)
 {
     Word16 var_out;
@@ -365,6 +376,7 @@ Word16 abs_s (Word16 var1)
 
     return (var_out);
 }
+#endif
 
 
 /*___________________________________________________________________________
@@ -401,6 +413,7 @@ Word16 abs_s (Word16 var1)
  |             range : 0xffff 8000 <= var_out <= 0x0000 7fff.                |
  |___________________________________________________________________________|
 */
+#if !defined(SUPPORT_DSP_STD)
 Word16 shl (Word16 var1, Word16 var2)
 {
     Word16 var_out;
@@ -444,6 +457,7 @@ Word16 shl (Word16 var1, Word16 var2)
 
     return (var_out);
 }
+#endif
 
 
 /*___________________________________________________________________________
@@ -480,6 +494,7 @@ Word16 shl (Word16 var1, Word16 var2)
  |             range : 0xffff 8000 <= var_out <= 0x0000 7fff.                |
  |___________________________________________________________________________|
 */
+#if !defined(SUPPORT_DSP_STD)
 Word16 shr (Word16 var1, Word16 var2)
 {
     Word16 var_out;
@@ -522,6 +537,7 @@ Word16 shr (Word16 var1, Word16 var2)
 
     return (var_out);
 }
+#endif
 
 
 /*___________________________________________________________________________
@@ -558,6 +574,7 @@ Word16 shr (Word16 var1, Word16 var2)
  |             range : 0xffff 8000 <= var_out <= 0x0000 7fff.                |
  |___________________________________________________________________________|
 */
+#if !defined(SUPPORT_DSP_STD)
 Word16 mult (Word16 var1, Word16 var2)
 {
     Word16 var_out;
@@ -577,6 +594,7 @@ Word16 mult (Word16 var1, Word16 var2)
 #endif
     return (var_out);
 }
+#endif
 
 
 /*___________________________________________________________________________
@@ -613,6 +631,7 @@ Word16 mult (Word16 var1, Word16 var2)
  |             range : 0x8000 0000 <= L_var_out <= 0x7fff ffff.              |
  |___________________________________________________________________________|
 */
+#if !defined(SUPPORT_DSP_STD)
 Word32 L_mult (Word16 var1, Word16 var2)
 {
     Word32 L_var_out;
@@ -637,6 +656,7 @@ Word32 L_mult (Word16 var1, Word16 var2)
 
     return (L_var_out);
 }
+#endif
 
 
 /*___________________________________________________________________________
@@ -667,6 +687,7 @@ Word32 L_mult (Word16 var1, Word16 var2)
  |             range : 0xffff 8000 <= var_out <= 0x0000 7fff.                |
  |___________________________________________________________________________|
 */
+#if 0 // move this code to the header file and static inline
 Word16 negate (Word16 var1)
 {
     Word16 var_out;
@@ -682,6 +703,7 @@ Word16 negate (Word16 var1)
 
     return (var_out);
 }
+#endif
 
 
 /*___________________________________________________________________________
@@ -711,6 +733,7 @@ Word16 negate (Word16 var1)
  |             range : 0xffff 8000 <= var_out <= 0x0000 7fff.                |
  |___________________________________________________________________________|
 */
+#if 0 // move this code to the header file and static inline
 Word16 extract_h (Word32 L_var1)
 {
     Word16 var_out;
@@ -725,6 +748,7 @@ Word16 extract_h (Word32 L_var1)
 
     return (var_out);
 }
+#endif
 
 
 /*___________________________________________________________________________
@@ -754,6 +778,7 @@ Word16 extract_h (Word32 L_var1)
  |             range : 0xffff 8000 <= var_out <= 0x0000 7fff.                |
  |___________________________________________________________________________|
 */
+#if 0 // move this code to the header file and static inline
 Word16 extract_l (Word32 L_var1)
 {
     Word16 var_out;
@@ -768,6 +793,7 @@ Word16 extract_l (Word32 L_var1)
 
     return (var_out);
 }
+#endif
 
 
 /*___________________________________________________________________________
@@ -800,6 +826,7 @@ Word16 extract_l (Word32 L_var1)
  |             range : 0xffff 8000 <= var_out <= 0x0000 7fff.                |
  |___________________________________________________________________________|
 */
+#if !defined(SUPPORT_DSP_STD)
 Word16 round_fx (Word32 L_var1)
 {
     Word16 var_out;
@@ -820,6 +847,7 @@ BASOP_SATURATE_WARNING_ON
 
     return (var_out);
 }
+#endif
 
 
 /*___________________________________________________________________________
@@ -858,6 +886,7 @@ BASOP_SATURATE_WARNING_ON
  |             range : 0x8000 0000 <= L_var_out <= 0x7fff ffff.              |
  |___________________________________________________________________________|
 */
+#if !defined(SUPPORT_DSP_STD)
 Word32 L_mac (Word32 L_var3, Word16 var1, Word16 var2)
 {
     Word32 L_var_out;
@@ -876,6 +905,7 @@ Word32 L_mac (Word32 L_var3, Word16 var1, Word16 var2)
 
     return (L_var_out);
 }
+#endif
 
 
 /*___________________________________________________________________________
@@ -914,6 +944,7 @@ Word32 L_mac (Word32 L_var3, Word16 var1, Word16 var2)
  |             range : 0x8000 0000 <= L_var_out <= 0x7fff ffff.              |
  |___________________________________________________________________________|
 */
+#if !defined(SUPPORT_DSP_STD)
 Word32 L_msu (Word32 L_var3, Word16 var1, Word16 var2)
 {
     Word32 L_var_out;
@@ -932,6 +963,7 @@ Word32 L_msu (Word32 L_var3, Word16 var1, Word16 var2)
 
     return (L_var_out);
 }
+#endif
 
 
 /*___________________________________________________________________________
@@ -1089,6 +1121,7 @@ Word32 L_msuNs (Word32 L_var3, Word16 var1, Word16 var2)
  |             range : 0x8000 0000 <= L_var_out <= 0x7fff ffff.              |
  |___________________________________________________________________________|
 */
+#if !defined(SUPPORT_DSP_STD)
 Word32 L_add (Word32 L_var1, Word32 L_var2)
 {
     Word32 L_var_out;
@@ -1112,6 +1145,7 @@ Word32 L_add (Word32 L_var1, Word32 L_var2)
 
     return (L_var_out);
 }
+#endif
 
 
 /*___________________________________________________________________________
@@ -1145,6 +1179,7 @@ Word32 L_add (Word32 L_var1, Word32 L_var2)
  |             range : 0x8000 0000 <= L_var_out <= 0x7fff ffff.              |
  |___________________________________________________________________________|
 */
+#if !defined(SUPPORT_DSP_STD)
 Word32 L_sub (Word32 L_var1, Word32 L_var2)
 {
     Word32 L_var_out;
@@ -1168,6 +1203,7 @@ Word32 L_sub (Word32 L_var1, Word32 L_var2)
 
     return (L_var_out);
 }
+#endif
 
 
 /*___________________________________________________________________________
@@ -1417,6 +1453,7 @@ Word32 L_sub_c (Word32 L_var1, Word32 L_var2)
  |             range : 0x8000 0000 <= L_var_out <= 0x7fff ffff.              |
  |___________________________________________________________________________|
 */
+#if 0 // move this code to the header file and static inline
 Word32 L_negate (Word32 L_var1)
 {
     Word32 L_var_out;
@@ -1432,6 +1469,7 @@ Word32 L_negate (Word32 L_var1)
 
     return (L_var_out);
 }
+#endif
 
 
 /*___________________________________________________________________________
@@ -1467,6 +1505,7 @@ Word32 L_negate (Word32 L_var1)
  |             range : 0x8000 <= var_out <= 0x7fff.                          |
  |___________________________________________________________________________|
 */
+#if !defined(SUPPORT_DSP_STD)
 Word16 mult_r (Word16 var1, Word16 var2)
 {
     Word16 var_out;
@@ -1488,6 +1527,7 @@ Word16 mult_r (Word16 var1, Word16 var2)
 #endif
     return (var_out);
 }
+#endif
 
 
 /*___________________________________________________________________________
@@ -1523,9 +1563,9 @@ Word16 mult_r (Word16 var1, Word16 var2)
  |             range : 0x8000 0000 <= L_var_out <= 0x7fff ffff.              |
  |___________________________________________________________________________|
 */
+#if !defined(SUPPORT_DSP_STD)
 Word32 L_shl (Word32 L_var1, Word16 var2)
 {
-
     Word32 L_var_out = 0L;
 
     if (var2 <= 0)
@@ -1561,6 +1601,7 @@ Word32 L_shl (Word32 L_var1, Word16 var2)
             L_var_out = L_var1;
         }
     }
+
     #if (WMOPS)
     multiCounter[currCounter].L_shl++;
       #endif
@@ -1569,6 +1610,7 @@ Word32 L_shl (Word32 L_var1, Word16 var2)
 
     return (L_var_out);
 }
+#endif
 
 
 /*___________________________________________________________________________
@@ -1604,6 +1646,7 @@ Word32 L_shl (Word32 L_var1, Word16 var2)
  |             range : 0x8000 0000 <= L_var_out <= 0x7fff ffff.              |
  |___________________________________________________________________________|
 */
+#if !defined(SUPPORT_DSP_STD)
 Word32 L_shr (Word32 L_var1, Word16 var2)
 {
     Word32 L_var_out;
@@ -1644,6 +1687,7 @@ Word32 L_shr (Word32 L_var1, Word16 var2)
 
     return (L_var_out);
 }
+#endif
 
 
 /*___________________________________________________________________________
@@ -1687,6 +1731,7 @@ Word32 L_shr (Word32 L_var1, Word16 var2)
  |             range : 0xffff 8000 <= var_out <= 0x0000 7fff.                |
  |___________________________________________________________________________|
 */
+#if !defined(SUPPORT_DSP_STD)
 Word16 shr_r (Word16 var1, Word16 var2)
 {
     Word16 var_out;
@@ -1720,6 +1765,7 @@ Word16 shr_r (Word16 var1, Word16 var2)
 
     return (var_out);
 }
+#endif
 
 
 /*___________________________________________________________________________
@@ -1760,6 +1806,7 @@ Word16 shr_r (Word16 var1, Word16 var2)
  |             range : 0x0000 8000 <= L_var_out <= 0x0000 7fff.              |
  |___________________________________________________________________________|
 */
+#if !defined(SUPPORT_DSP_STD)
 Word16 mac_r (Word32 L_var3, Word16 var1, Word16 var2)
 {
     Word16 var_out;
@@ -1779,6 +1826,7 @@ Word16 mac_r (Word32 L_var3, Word16 var1, Word16 var2)
 
     return (var_out);
 }
+#endif
 
 
 /*___________________________________________________________________________
@@ -1819,6 +1867,7 @@ Word16 mac_r (Word32 L_var3, Word16 var1, Word16 var2)
  |             range : 0x0000 8000 <= L_var_out <= 0x0000 7fff.              |
  |___________________________________________________________________________|
 */
+#if !defined(SUPPORT_DSP_STD)
 Word16 msu_r (Word32 L_var3, Word16 var1, Word16 var2)
 {
     Word16 var_out;
@@ -1838,6 +1887,7 @@ Word16 msu_r (Word32 L_var3, Word16 var1, Word16 var2)
 
     return (var_out);
 }
+#endif
 
 
 /*___________________________________________________________________________
@@ -1868,6 +1918,7 @@ Word16 msu_r (Word32 L_var3, Word16 var1, Word16 var2)
  |             range : 0x8000 0000 <= var_out <= 0x7fff 0000.                |
  |___________________________________________________________________________|
 */
+#if 0 // move this code to the header file and static inline
 Word32 L_deposit_h (Word16 var1)
 {
     Word32 L_var_out;
@@ -1882,6 +1933,7 @@ Word32 L_deposit_h (Word16 var1)
 
     return (L_var_out);
 }
+#endif
 
 
 /*___________________________________________________________________________
@@ -1912,6 +1964,7 @@ Word32 L_deposit_h (Word16 var1)
  |             range : 0xFFFF 8000 <= var_out <= 0x0000 7fff.                |
  |___________________________________________________________________________|
 */
+#if 0 // move this code to the header file and static inline
 Word32 L_deposit_l (Word16 var1)
 {
     Word32 L_var_out;
@@ -1926,6 +1979,7 @@ Word32 L_deposit_l (Word16 var1)
 
     return (L_var_out);
 }
+#endif
 
 
 /*___________________________________________________________________________
@@ -1969,6 +2023,7 @@ Word32 L_deposit_l (Word16 var1)
  |             range : 0x8000 0000 <= var_out <= 0x7fff ffff.                |
  |___________________________________________________________________________|
 */
+#if !defined(SUPPORT_DSP_STD)
 Word32 L_shr_r (Word32 L_var1, Word16 var2)
 {
     Word32 L_var_out;
@@ -2001,6 +2056,7 @@ Word32 L_shr_r (Word32 L_var1, Word16 var2)
 
     return (L_var_out);
 }
+#endif
 
 
 /*___________________________________________________________________________
@@ -2031,6 +2087,7 @@ Word32 L_shr_r (Word32 L_var1, Word16 var2)
  |             range : 0x0000 0000 <= var_out <= 0x7fff ffff.                |
  |___________________________________________________________________________|
 */
+#if !defined(SUPPORT_DSP_STD)
 Word32 L_abs (Word32 L_var1)
 {
     Word32 L_var_out;
@@ -2059,6 +2116,7 @@ Word32 L_abs (Word32 L_var1)
 
     return (L_var_out);
 }
+#endif
 
 
 /*___________________________________________________________________________
@@ -2155,6 +2213,7 @@ Word32 L_sat (Word32 L_var1)
  |             range : 0x0000 0000 <= var_out <= 0x0000 000f.                |
  |___________________________________________________________________________|
 */
+#if !defined(SUPPORT_DSP_STD)
 Word16 norm_s (Word16 var1)
 {
     Word16 var_out;
@@ -2190,6 +2249,7 @@ Word16 norm_s (Word16 var1)
 
     return (var_out);
 }
+#endif
 
 
 /*___________________________________________________________________________
@@ -2228,6 +2288,7 @@ Word16 norm_s (Word16 var1)
  |             It's a Q15 value (point between b15 and b14).                 |
  |___________________________________________________________________________|
 */
+#if !defined(SUPPORT_DSP_STD)
 Word16 div_s (Word16 var1, Word16 var2)
 {
     Word16 var_out = 0;
@@ -2293,7 +2354,7 @@ Word16 div_s (Word16 var1, Word16 var2)
 
     return (var_out);
 }
-
+#endif
 
 /*___________________________________________________________________________
  |                                                                           |
@@ -2327,6 +2388,7 @@ Word16 div_s (Word16 var1, Word16 var2)
  |             range : 0x0000 0000 <= var_out <= 0x0000 001f.                |
  |___________________________________________________________________________|
 */
+#if !defined(SUPPORT_DSP_STD)
 Word16 norm_l (Word32 L_var1)
 {
     Word16 var_out;
@@ -2362,6 +2424,7 @@ Word16 norm_l (Word32 L_var1)
 
     return (var_out);
 }
+#endif
 
 /*
  ******************************************************************************
@@ -2610,6 +2673,7 @@ Word16 i_mult (Word16 a, Word16 b)
  |             range : 0x8000 0000 <= L_var_out <= 0x7fff ffff.
  |___________________________________________________________________________
 */
+#if 0 // move this code to the header file and static inline
 Word32 L_mult0 (Word16 var1,Word16 var2)
 {
   Word32 L_var_out;
@@ -2624,6 +2688,7 @@ Word32 L_mult0 (Word16 var1,Word16 var2)
 
   return(L_var_out);
 }
+#endif
 
 
 /*___________________________________________________________________________
@@ -2656,6 +2721,7 @@ Word32 L_mult0 (Word16 var1,Word16 var2)
  |             range : 0x8000 0000 <= L_var_out <= 0x7fff ffff.
  |___________________________________________________________________________
 */
+#if !defined(SUPPORT_DSP_STD)
 Word32 L_mac0 (Word32 L_var3, Word16 var1, Word16 var2)
 {
   Word32 L_var_out;
@@ -2674,6 +2740,7 @@ Word32 L_mac0 (Word32 L_var3, Word16 var1, Word16 var2)
 
   return(L_var_out);
 }
+#endif
 
 
 /*___________________________________________________________________________
@@ -2706,6 +2773,7 @@ Word32 L_mac0 (Word32 L_var3, Word16 var1, Word16 var2)
  |             range : 0x8000 0000 <= L_var_out <= 0x7fff ffff.
  |___________________________________________________________________________
 */
+#if !defined(SUPPORT_DSP_STD)
 Word32 L_msu0 (Word32 L_var3, Word16 var1, Word16 var2)
 {
   Word32 L_var_out;
@@ -2724,6 +2792,7 @@ Word32 L_msu0 (Word32 L_var3, Word16 var1, Word16 var2)
 
   return(L_var_out);
 }
+#endif
 
 
 /* end of file */

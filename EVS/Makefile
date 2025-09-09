@@ -8,6 +8,8 @@ INCDIRS = . basic_math basic_op lib_com lib_dec lib_enc
 
 STDCLIB ?= newlib_small
 
+DOWNLOAD ?= ddr
+
 COMMON_FLAGS := -O3
 
 include $(NUCLEI_SDK_ROOT)/Build/Makefile.base
