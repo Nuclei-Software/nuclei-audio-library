@@ -77,6 +77,7 @@ int main(int argc, char *argv[]) {
 	int rate = BITRATE;
 	dtx = 1;
 	mode = findMode(rate);
+    printf("bitrate: %d\n", rate);
 
 	wav = wav_read_open(input, INPUT_LEN);
 	if (!wav) {
