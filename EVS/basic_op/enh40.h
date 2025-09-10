@@ -25,16 +25,33 @@
 #ifndef _ENH40_H
 #define _ENH40_H
 
-#include "stl.h"
+// #include "stl.h"
  
+#include "macro.h"
+#include "basop32.h"
+
  /*****************************************************************************
  *
  *  Prototypes for enhanced 40 bit arithmetic operators
  *
  *****************************************************************************/
 
-void Mpy_32_16_ss( Word32 L_var1, Word16 var2,   Word32 *L_varout_h, UWord16 *varout_l);
-void Mpy_32_32_ss( Word32 L_var1, Word32 L_var2, Word32 *L_varout_h, UWord32 *L_varout_l);
+STATIC_INLINE void Mpy_32_16_ss( Word32 L_var1, Word16 var2,   Word32 *L_varout_h, UWord16 *varout_l);
+STATIC_INLINE void Mpy_32_32_ss( Word32 L_var1, Word32 L_var2, Word32 *L_varout_h, UWord32 *L_varout_l);
+
+#if defined(SUPPORT_DSP_STD)
+STATIC_INLINE void Mpy_32_16_ss( Word32 L_var1, Word16 var2,   Word32 *L_varout_h, UWord16 *varout_l) {
+    // NOTE: if L_var1 == 0x80000000, var2 == 0x8000, the varout_l is wrong
+    *L_varout_h = __RV_KMMWB2(L_var1, var2);
+    *varout_l = (UWord16)(L_var1 * var2) << 1;
+}
+
+STATIC_INLINE void Mpy_32_32_ss( Word32 L_var1, Word32 L_var2, Word32 *L_varout_h, UWord32 *L_varout_l) {
+    // NOTE: if L_var1 == 0x80000000, L_var2 == 0x80000000, the L_varout_l is wrong
+    *L_varout_h = __RV_KWMMUL(L_var1, L_var2);
+    *L_varout_l = (UWord32)(L_var1 * L_var2) << 1;
+}
+#endif
 
 #endif /*_ENH40_H*/
 

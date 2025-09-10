@@ -39,6 +39,8 @@
 #include <stdlib.h>
 #include "stl.h"
 
+#include "macro.h"
+
 #if (WMOPS)
 extern BASIC_OP multiCounter[MAXCOUNTERS];
 extern int currCounter;
@@ -119,6 +121,7 @@ static __inline UWord32 L_Extract40( Word40 L40_var1) ;
  *    none
  *
  *****************************************************************************/
+#if !defined(SUPPORT_DSP_STD)
 void Mpy_32_16_ss( Word32 L_var1, Word16 var2, Word32 *L_varout_h, UWord16 *varout_l) {
    Word16 var1_h;
    UWord16 uvar1_l;
@@ -246,6 +249,7 @@ void Mpy_32_32_ss( Word32 L_var1, Word32 L_var2, Word32 *L_varout_h, UWord32 *L_
    return;
 }
 
+#endif
 
 /*****************************************************************************
  *
