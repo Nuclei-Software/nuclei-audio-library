@@ -33,8 +33,8 @@
  *****************************************************************************/
 
 
-#include "stl.h"
-
+// #include "stl.h"
+#include "basop32.h"
 
 #if (WMOPS)
 #include "count.h"
@@ -53,7 +53,7 @@ Word32 L_shl_r( Word32 L_var1, Word16 var2);
 
 
 Word16 lshl(    Word16 var1,   Word16 var2);
-Word16 lshr(    Word16 var1,   Word16 var2);
+STATIC_INLINE Word16 lshr(    Word16 var1,   Word16 var2);
 Word32 L_lshl(  Word32 L_var1, Word16 var2);
 Word32 L_lshr(  Word32 L_var1, Word16 var2);
 
@@ -62,7 +62,15 @@ Word16 rotl(    Word16 var1,   Word16 var2, Word16 *var3);
 Word32 L_rotr(  Word32 var1,   Word16 var2, Word16 *var3);
 Word32 L_rotl(  Word32 var1,   Word16 var2, Word16 *var3);
 
-
+#if defined(SUPPORT_DSP_STD)
+STATIC_INLINE Word16 lshr(    Word16 var1,   Word16 var2) {
+   Word16 var_out;
+   UWord32 tmp = var1;
+   tmp &= 0xFFFF;
+   var_out = (var2 >= 16) ? 0:__RV_SRL16(tmp, var2);
+   return var_out;
+}
+#endif
 
 /*****************************************************************************
  *

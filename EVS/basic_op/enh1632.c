@@ -170,6 +170,7 @@ Word16 lshl( Word16 var1, Word16 var2) {
  *                the range 0xffff 8000 <= var_out <= 0x0000 7fff.
  *
  *****************************************************************************/
+#if !defined(SUPPORT_DSP_STD)
 Word16 lshr( Word16 var1, Word16 var2) {
    Word16 var_out;
 
@@ -200,6 +201,7 @@ Word16 lshr( Word16 var1, Word16 var2) {
 
    return( var_out);
 }
+#endif
 
 
 /*****************************************************************************
