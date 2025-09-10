@@ -14,6 +14,8 @@
 #include "rom_com_fx.h"
 #include "rom_enc_fx.h"
 
+#include "macro.h"
+
 
 #define _1_Q9 0x200
 
@@ -41,6 +43,61 @@ Word16 E_ACELP_toeplitz_mul(const Word16 R[], const Word16 c[], Word16 d[], cons
 
     assert(L_subfr <= L_SUBFR16k);
 
+#if defined(SUPPORT_VEC_32X)
+    int32_t vl = L_subfr / 2;
+    vint32m8_t vsum0 = __riscv_vmv_v_x_i32m8(0, vl);
+    vint32m8_t vsum1 = __riscv_vmv_v_x_i32m8(0, vl);
+    {
+        vint16m4_t vR0 = __riscv_vle16_v_i16m4(R, vl);
+        vint16m4_t vR1 = __riscv_vle16_v_i16m4(R + vl, vl);
+        for (i = 0; i < L_subfr - 1; ++i) {
+            vsum0 = __riscv_vwmacc_vx_i32m8(vsum0, c[i], vR0, vl);
+            vsum1 = __riscv_vwmacc_vx_i32m8(vsum1, c[i], vR1, vl);
+            vR0 = __riscv_vslide1up_vx_i16m4(vR0, R[i + 1], vl);
+            vR1 = __riscv_vslide1up_vx_i16m4(vR1, R[abs(vl - 1 - i)], vl);
+        }
+        vsum0 = __riscv_vwmacc_vx_i32m8(vsum0, c[i], vR0, vl);
+        vsum1 = __riscv_vwmacc_vx_i32m8(vsum1, c[i], vR1, vl);
+    }
+    vsum0 = __riscv_vsll_vx_i32m8(vsum0, 1, vl);
+    vsum1 = __riscv_vsll_vx_i32m8(vsum1, 1, vl);
+    __riscv_vse32_v_i32m8((int32_t *)y32, vsum0, vl);
+    __riscv_vse32_v_i32m8((int32_t *)y32 + vl, vsum1, vl);
+
+    vint32m8_t vsum_abs = __riscv_vneg_v_i32m8(vsum0, vl);
+    vsum0 = __riscv_vmax_vv_i32m8(vsum0, vsum_abs, vl);
+    vsum_abs = __riscv_vneg_v_i32m8(vsum1, vl);
+    vsum1 = __riscv_vmax_vv_i32m8(vsum1, vsum_abs, vl);
+
+    /* first keep the result on 32 bits and find absolute maximum */
+    L_tot = L_deposit_l(1);
+    for (int k = 0; k < step; ++k) {
+        uint8_t msk_val = 1u << k;
+        msk_val = msk_val + (msk_val << 4);
+        vuint8m1_t vmsku8 = __riscv_vmv_v_x_u8m1(msk_val, 4);
+        vbool4_t vmsk = __riscv_vreinterpret_v_u8m1_b4(vmsku8);
+
+        vint32m1_t vmax = __riscv_vmv_s_x_i32m1(0, 1);
+        vmax = __riscv_vredmax_vs_i32m8_i32m1_m(vmsk, vsum0, vmax, vl);
+        vmax = __riscv_vredmax_vs_i32m8_i32m1_m(vmsk, vsum1, vmax, vl);
+        L_maxloc = __riscv_vmv_x_s_i32m1_i32(vmax);
+
+        /* tot += 3*max / 8 */
+        L_maxloc = L_shr(L_maxloc, 2);
+        /* Do not warn saturation of L_tot, since its for headroom estimation.
+         */
+        BASOP_SATURATE_WARNING_OFF
+        L_tot = L_add(L_tot, L_maxloc); /* +max/4 */
+        L_maxloc = L_shr(L_maxloc, 1);
+        L_tot = L_add(L_tot, L_maxloc); /* +max/8 */
+        if (highrate) {
+            L_tot = L_add(L_tot, L_maxloc); /* +max/8 */
+            L_maxloc = L_shr(L_maxloc, 1);
+            L_tot = L_add(L_tot, L_maxloc); /* +max/16 */
+        }
+        BASOP_SATURATE_WARNING_ON
+    }
+#else
 
     /* first keep the result on 32 bits and find absolute maximum */
     L_tot = L_deposit_l(1);
@@ -83,6 +140,7 @@ Word16 E_ACELP_toeplitz_mul(const Word16 R[], const Word16 c[], Word16 d[], cons
         }
         BASOP_SATURATE_WARNING_ON
     }
+#endif
 
     /* Find the number of right shifts to do on y32[] so that    */
     /* 6.0 x sumation of max of dn[] in each track not saturate. */
