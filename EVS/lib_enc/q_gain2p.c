@@ -18,6 +18,8 @@
 #include "basop_util.h"
 #include "rom_com_fx.h"
 
+#include "macro.h"
+
 enum FUNC_GAIN_ENC
 {
     FUNC_GAIN_ENC_MLESS = 0,   /* Memory-less gain coding */
@@ -342,6 +344,69 @@ Word16 gain_enc(              /* o   : quantization pitch index                 
     coeff3 = mult_r(coeff3,coeff0);
     coeff4 = mult_r(coeff4,coeff0);
 
+#if defined(SUPPORT_VEC_64X)
+    {
+        size_t avl, vl;
+        uint16_t shiftleft[32];
+        const size_t vlmax = __riscv_vsetvlmax_e16m2();
+        int stage = 0;
+        ptrdiff_t bstride = sizeof(int16_t) * 2;
+        vint32m1_t vmin = __riscv_vmv_s_x_i32m1(MAX_32, 1);
+        const Word16 *pp = p;
+        avl = size;
+
+        for (; (vl = __riscv_vsetvl_e16m2(avl)) > 0; avl -= vl) {
+            for(int i = 0; i < vl; ++i) {
+                shiftleft[i] = norm_s(pp[2*i + 1]);
+            }
+
+            vint16m2_t vodd = __riscv_vlse16_v_i16m2(pp + 1, bstride, vl); // Q15
+            vint16m2_t veven = __riscv_vlse16_v_i16m2(pp, bstride, vl); // Q15
+            pp += vl * 2;
+            vuint16m2_t vshl = __riscv_vle16_v_u16m2(shiftleft, vl);
+            vodd = __riscv_vsll_vv_i16m2(vodd, vshl, vl);
+            vint16m2_t vcode = __riscv_vsmul_vx_i16m2(vodd, gcode0_gi, __RISCV_VXRM_RNU, vl); // Q15
+
+            // L_tmp = g_code^2 * coeff2
+            vint32m4_t vt32 = __riscv_vwmul_vv_i32m4(vcode, vcode, vl); // Q30
+            vint64m8_t vt64 = __riscv_vwmul_vx_i64m8(vt32, coeff2, vl);
+            vt32 = __riscv_vnsra_wx_i32m4(vt64, shr_coeff2 + 14, vl); // Q30
+            vuint32m4_t vshl32 = __riscv_vwcvtu_x_x_v_u32m4(vshl, vl);
+            vint32m4_t vtmp = __riscv_vsra_vv_i32m4(vt32, vshl32, vl);
+
+            // L_tmp -= g_code * coeff3
+            vt32 = __riscv_vwmul_vx_i32m4(vcode, coeff3, vl); // Q30
+            assert(shr_coeff3 >= 1);
+            vt32 = __riscv_vsra_vx_i32m4(vt32, shr_coeff3 - 1, vl);
+            vtmp = __riscv_vsub_vv_i32m4(vtmp, vt32, vl);
+
+            vt32 = __riscv_vwmul_vv_i32m4(vcode, veven, vl); // Q30
+            vt64 = __riscv_vwmul_vx_i64m8(vt32, coeff4, vl);
+            vt32 = __riscv_vnsra_wx_i32m4(vt64, shr_coeff4 + 14, vl);
+            vtmp = __riscv_vadd_vv_i32m4(vtmp, vt32, vl);
+            vtmp = __riscv_vsra_vv_i32m4(vtmp, vshl32, vl);
+
+            vt32 = __riscv_vwmul_vv_i32m4(veven, veven, vl); // Q30
+            vt32 = __riscv_vsra_vx_i32m4(vt32, shr_coeff0, vl);
+            vtmp = __riscv_vadd_vv_i32m4(vtmp, vt32, vl);
+
+            vt32 = __riscv_vwmul_vx_i32m4(veven, coeff1, vl);
+            vt32 = __riscv_vsra_vx_i32m4(vt32, shr_coeff1 - 1, vl);
+            vtmp = __riscv_vsub_vv_i32m4(vtmp, vt32, vl);
+
+            int32_t min_old = __riscv_vmv_x_s_i32m1_i32(vmin);
+            vmin = __riscv_vredmin_vs_i32m4_i32m1(vtmp, vmin, vl);
+            int32_t min = __riscv_vmv_x_s_i32m1_i32(vmin);
+            if (min != min_old) {
+                vbool8_t msk = __riscv_vmseq_vx_i32m4_b8(vtmp, min, vl);
+                Word16 idx = __riscv_vfirst_m_b8(msk, vl);
+                index = stage * vlmax + idx;
+            }
+
+            stage++;
+        }
+    }
+#else
     FOR (i = 0; i < size; i++)
     {
         /*
@@ -383,6 +448,7 @@ Word16 gain_enc(              /* o   : quantization pitch index                 
             dist_min = L_min(L_tmp, dist_min);
         }
     }
+#endif
     index = add(index, min_index);
     *gain_pit = t_qua_gain[2*index+0];
     move16();
