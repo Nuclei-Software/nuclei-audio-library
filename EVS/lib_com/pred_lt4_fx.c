@@ -9,6 +9,8 @@
 #include "prot_fx.h"      /* Function prototypes                    */
 #include "stl.h"
 
+#include "macro.h"
+
 
 /*-------------------------------------------------------------------*
  * Function  pred_lt4:                                               *
@@ -47,6 +49,67 @@ void pred_lt4(
         x0--;
     }
 
+#if defined(SUPPORT_VEC_32X)
+    Word16 *pexcO = excO;
+    if(L_subfr == 65) {
+        x1 = x0++;
+        x2 = x1+1;
+
+        vint16m4_t vc1 = __riscv_vlse16_v_i16m4(win + frac, sizeof(int16_t) * up_sample, nb_coef);
+        vint16m4_t vc2 = __riscv_vlse16_v_i16m4(win + up_sample - frac, sizeof(int16_t) * up_sample, nb_coef);
+
+        vint16m4_t vx1 = __riscv_vlse16_v_i16m4(x1, -sizeof(int16_t), nb_coef);
+        vint16m4_t vx2 = __riscv_vlse16_v_i16m4(x2, sizeof(int16_t), nb_coef);
+
+        vint32m8_t vsum = __riscv_vmv_v_x_i32m8(0, nb_coef);
+        vsum = __riscv_vwmacc_vv_i32m8(vsum, vx1, vc1, nb_coef);
+        vsum = __riscv_vwmacc_vv_i32m8(vsum, vx2, vc2, nb_coef);
+
+        vint32m1_t vs = __riscv_vmv_s_x_i32m1(0, 1);
+        vs = __riscv_vredsum_vs_i32m8_i32m1(vsum, vs, nb_coef);
+        s = __riscv_vmv_x_s_i32m1_i32(vs);
+
+#if (INTERP_EXP != -1)
+        s = L_shl(s,INTERP_EXP+1);
+#endif
+        *pexcO++ = round_fx(s);
+    }
+
+    const size_t vl = 16;
+    for (int loop = 0; loop < 4; ++loop) {
+        x1 = x0 + loop * 16;
+        x2 = x1 + 1;
+
+        vint16m2_t vx1 = __riscv_vle16_v_i16m2(x1, vl);
+        vint16m2_t vx2 = __riscv_vle16_v_i16m2(x2, vl);
+        vint32m4_t vsum = __riscv_vmv_v_x_i32m4(0, vl);
+        const Word16 *px1 = x1 - 1;
+        const Word16 *px2 = x2 + vl;
+        c1 = (&win[frac]);
+        c2 = (&win[up_sample - frac]);
+
+        for (int i = 0; i < nb_coef - 1; ++i) {
+            vsum = __riscv_vwmacc_vx_i32m4(vsum, *c1, vx1, vl);
+            vsum = __riscv_vwmacc_vx_i32m4(vsum, *c2, vx2, vl);
+            vx1 = __riscv_vslide1up_vx_i16m2(vx1, *px1--, vl);
+            vx2 = __riscv_vslide1down_vx_i16m2(vx2, *px2++, vl);
+            c1 += up_sample;
+            c2 += up_sample;
+        }
+        vsum = __riscv_vwmacc_vx_i32m4(vsum, *c1, vx1, vl);
+        vsum = __riscv_vwmacc_vx_i32m4(vsum, *c2, vx2, vl);
+
+#if (INTERP_EXP != -1)
+        vsum = __riscv_vsll_vx_i32m4(vsum, 1, vl);
+#endif
+
+        vsum = __riscv_vadd_vx_i32m4(vsum, 0x8000, vl);
+        vint16m2_t vsum16 = __riscv_vnsra_wx_i16m2(vsum, 16, vl);
+        __riscv_vse16_v_i16m2(pexcO, vsum16, vl);
+        pexcO += vl;
+    }
+
+#else
     FOR (j=0; j<L_subfr; j++)
     {
         x1 = x0++;
@@ -70,6 +133,7 @@ void pred_lt4(
 
         excO[j] = round_fx(s);
     }
+#endif
     return;
 }
 
