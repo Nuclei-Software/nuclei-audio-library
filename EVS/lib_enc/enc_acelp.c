@@ -423,6 +423,54 @@ Word16 E_ACELP_hh_corr(Word16 *x, Word16 *y, Word16 L_subfr, Word16 bits)
     Word16 i, j, k = 0; /* initialize just to avoid compiler warning */
     Word32 L_tmp, L_sum;
 
+#if defined(SUPPORT_VEC_32X)
+    int32_t autocorr;
+    for (int loop = 0; loop < 2; ++loop) {
+        size_t vl = L_subfr / 2;
+
+        vint16m4_t vx = __riscv_vle16_v_i16m4(x + loop * vl, vl);
+        // TOBE bit exact
+        vint32m8_t vsum_odd = __riscv_vmv_v_x_i32m8(0, vl);
+        vint32m8_t vsum_even = __riscv_vmv_v_x_i32m8(0, vl);
+
+        int i = 0;
+        if (loop == 0) {
+            for (i = 0; i < vl; i += 2) {
+                vsum_even = __riscv_vwmacc_vx_i32m8(vsum_even, x[i], vx, vl);
+                vx = __riscv_vslide1down_vx_i16m4(vx, x[vl + i], vl);
+                vsum_odd = __riscv_vwmacc_vx_i32m8(vsum_odd, x[i + 1], vx, vl);
+                vx = __riscv_vslide1down_vx_i16m4(vx, x[vl + i + 1], vl);
+            }
+            for (i = vl; i < L_subfr; i += 2) {
+                vsum_even = __riscv_vwmacc_vx_i32m8(vsum_even, x[i], vx, vl);
+                vx = __riscv_vslide1down_vx_i16m4(vx, 0, vl);
+                vsum_odd = __riscv_vwmacc_vx_i32m8(vsum_odd, x[i + 1], vx, vl);
+                vx = __riscv_vslide1down_vx_i16m4(vx, 0, vl);
+            }
+        } else {
+            for (i = 0; i < vl; i += 2) {
+                vsum_even = __riscv_vwmacc_vx_i32m8(vsum_even, x[i], vx, vl);
+                vx = __riscv_vslide1down_vx_i16m4(vx, 0, vl);
+                vsum_odd = __riscv_vwmacc_vx_i32m8(vsum_odd, x[i + 1], vx, vl);
+                vx = __riscv_vslide1down_vx_i16m4(vx, 0, vl);
+            }
+        }
+        vsum_even = __riscv_vsra_vx_i32m8(vsum_even, 1, vl);
+        vsum_odd = __riscv_vsra_vx_i32m8(vsum_odd, 1, vl);
+        vint32m8_t vsum = __riscv_vadd_vv_i32m8(vsum_even, vsum_odd, vl);
+
+        if (loop == 0) {
+            autocorr = __riscv_vmv_x_s_i32m8_i32(vsum);
+            k = norm_l(autocorr);
+        }
+        // left shift k and right shift 16 + bits
+        size_t shift = 16 + bits - k;
+        vint16m4_t vy =
+            __riscv_vnclip_wx_i16m4(vsum, shift, __RISCV_VXRM_RNU, vl);
+        __riscv_vse16_v_i16m4(y + loop * vl, vy, vl);
+    }
+    k++;
+#else
     FOR (i = 0; i < L_subfr-1; i++)
     {
         L_tmp = L_mult0( x[i], x[0] );
@@ -456,6 +504,7 @@ Word16 E_ACELP_hh_corr(Word16 *x, Word16 *y, Word16 L_subfr, Word16 bits)
     y[i] = round_fx( L_shl( L_sum, k ) );
 
     k = add(1, k);
+#endif
 
     return k;
 }
