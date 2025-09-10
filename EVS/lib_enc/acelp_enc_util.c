@@ -212,6 +212,32 @@ void E_ACELP_conv(
     Word16 i, k;
     Word32 L_tmp;
 
+#if defined(SUPPORT_VEC_32X) && defined(SUPPORT_VL256)
+    size_t vl = L_SUBFR;
+    vint16m4_t vxn2 = __riscv_vle16_v_i16m4(xn2, vl);
+    vint32m8_t vsum = __riscv_vwmul_vx_i32m8(vxn2, 0x1000, vl);
+
+    // get cn2[0]
+    L_tmp = __riscv_vmv_x_s_i32m8_i32(vsum);
+    vsum = __riscv_vslide1down_vx_i32m8(vsum, 0, vl);
+    vl--;
+    // cn2[0] = round_fx(L_shl(L_tmp,5));
+    cn2[0] = (L_tmp + 0x400) >> 11;
+
+    vint16m4_t vh2 = __riscv_vle16_v_i16m4(h2 + 1, vl);
+    for (i = 0; i < L_SUBFR - 2; ++i) {
+        vsum = __riscv_vwmacc_vx_i32m8(vsum, -cn2[i], vh2, vl);
+        L_tmp = __riscv_vmv_x_s_i32m8_i32(vsum);
+        // cn2[i + 1] = round_fx(L_shl(L_tmp,5));
+        cn2[i + 1] = (L_tmp + 0x400) >> 11;
+        vsum = __riscv_vslide1down_vx_i32m8(vsum, 0, vl);
+        vl--;
+    }
+    vsum = __riscv_vwmacc_vx_i32m8(vsum, -cn2[i], vh2, vl);
+    L_tmp = __riscv_vmv_x_s_i32m8_i32(vsum);
+    // cn2[i + 1] = round_fx(L_shl(L_tmp,5));
+    cn2[i + 1] = (L_tmp + 0x400) >> 11;
+#else
     FOR (k=0; k<L_SUBFR; k++)
     {
         /*cn2[k] = xn2[k];     */
@@ -223,6 +249,7 @@ void E_ACELP_conv(
         }
         cn2[k] = round_fx(L_shl(L_tmp,5));
     }
+#endif
 }
 
 void E_ACELP_build_code(
