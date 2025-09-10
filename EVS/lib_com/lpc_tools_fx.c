@@ -39,17 +39,72 @@ void autocorr_fx(
     Word16 fact;
     Word32 L_sum, L_tmp;
 
+#if defined(SUPPORT_VEC_32X)
+    int avl, vl;
+    const Word16 *psrc;
+    Word16 *pdst;
+    const Word16 *pwind;
+#endif
+
     IF(sub(rev_flag,1) == 0)
     {
+#if defined(SUPPORT_VEC_32X)
+        avl = len;
+        psrc = x;
+        pdst = y;
+        pwind = wind + len - 1;
+        for (; (vl = __riscv_vsetvl_e16m8(avl)) > 0; avl -= vl) {
+            vint16m8_t vx = __riscv_vle16_v_i16m8(psrc, vl);
+            psrc += vl;
+            vint16m8_t vw = __riscv_vlse16_v_i16m8(pwind, -sizeof(Word16), vl);
+            pwind -= vl;
+            // Q15 x Q15 -> Q15 with saturation and rouding
+            vint16m8_t vmult =
+                __riscv_vsmul_vv_i16m8(vx, vw, __RISCV_VXRM_RNU, vl);
+            __riscv_vse16_v_i16m8(pdst, vmult, vl);
+            pdst += vl;
+        }
+#else
         /* Windowing of signal */
         FOR (i = 0; i < len; i++)
         {
             y[i] = mult_r(x[i], wind[len-i-1]);
             move16();
         }
+#endif
     }
     ELSE IF( sub(sym_flag,1) == 0 )
     {
+#if defined(SUPPORT_VEC_32X)
+        avl = len / 2;
+        psrc = x;
+        pdst = y;
+        pwind = wind;
+        for (; (vl = __riscv_vsetvl_e16m8(avl)) > 0; avl -= vl) {
+            vint16m8_t vx = __riscv_vle16_v_i16m8(psrc, vl);
+            psrc += vl;
+            vint16m8_t vw = __riscv_vle16_v_i16m8(pwind, vl);
+            pwind += vl;
+            // Q15 x Q15 -> Q15 with saturation and rouding
+            vint16m8_t vmult =
+                __riscv_vsmul_vv_i16m8(vx, vw, __RISCV_VXRM_RNU, vl);
+            __riscv_vse16_v_i16m8(pdst, vmult, vl);
+            pdst += vl;
+        }
+        avl = len / 2;
+        pwind--;
+        for (; (vl = __riscv_vsetvl_e16m8(avl)) > 0; avl -= vl) {
+            vint16m8_t vx = __riscv_vle16_v_i16m8(psrc, vl);
+            psrc += vl;
+            vint16m8_t vw = __riscv_vlse16_v_i16m8(pwind, -sizeof(Word16), vl);
+            pwind -= vl;
+            // Q15 x Q15 -> Q15 with saturation and rouding
+            vint16m8_t vmult =
+                __riscv_vsmul_vv_i16m8(vx, vw, __RISCV_VXRM_RNU, vl);
+            __riscv_vse16_v_i16m8(pdst, vmult, vl);
+            pdst += vl;
+        }
+#else
         /* symmetric window of even length */
         FOR( i=0; i<len/2; i++ )
         {
@@ -61,27 +116,91 @@ void autocorr_fx(
             y[i] = mult_r(x[i], wind[len-i-1]);
             move16();
         }
+#endif
     }
     ELSE  /* assymetric window */
     {
+#if defined(SUPPORT_VEC_32X)
+        avl = len;
+        psrc = x;
+        pdst = y;
+        pwind = wind;
+
+        const size_t vlmax = __riscv_vsetvlmax_e16m8();
+        vl = 2 * vlmax;
+        for (; avl - vl >= 0; avl -= vl) {
+            vint16m8_t vw0 = __riscv_vle16_v_i16m8(pwind, vlmax);
+            pwind += vlmax;
+            vint16m8_t vx0 = __riscv_vle16_v_i16m8(psrc, vlmax);
+            psrc += vlmax;
+            vx0 = __riscv_vsmul_vv_i16m8(vx0, vw0, __RISCV_VXRM_RNU, vlmax);
+            __riscv_vse16_v_i16m8(pdst, vx0, vlmax);
+            pdst += vlmax;
+
+            vint16m8_t vw1 = __riscv_vle16_v_i16m8(pwind, vlmax);
+            pwind += vlmax;
+            vint16m8_t vx1 = __riscv_vle16_v_i16m8(psrc, vlmax);
+            psrc += vlmax;
+            vx1 = __riscv_vsmul_vv_i16m8(vx1, vw1, __RISCV_VXRM_RNU, vlmax);
+            __riscv_vse16_v_i16m8(pdst, vx1, vlmax);
+            pdst += vlmax;
+        }
+
+        if (avl > vlmax) {
+            vl = avl - vlmax;
+            vint16m8_t vx0 = __riscv_vle16_v_i16m8(psrc, vlmax);
+            psrc += vlmax;
+            vint16m8_t vw0 = __riscv_vle16_v_i16m8(pwind, vlmax);
+            pwind += vlmax;
+            vx0 = __riscv_vsmul_vv_i16m8(vx0, vw0, __RISCV_VXRM_RNU, vlmax);
+            __riscv_vse16_v_i16m8(pdst, vx0, vlmax);
+            pdst += vlmax;
+
+            vint16m8_t vx1 = __riscv_vle16_v_i16m8(psrc, vl);
+            vint16m8_t vw1 = __riscv_vle16_v_i16m8(pwind, vl);
+            vx1 = __riscv_vsmul_vv_i16m8(vx1, vw1, __RISCV_VXRM_RNU, vl);
+            __riscv_vse16_v_i16m8(pdst, vx1, vl);
+        } else if (avl > 0) {
+            vint16m8_t vx0 = __riscv_vle16_v_i16m8(psrc, avl);
+            vint16m8_t vw0 = __riscv_vle16_v_i16m8(pwind, avl);
+            vx0 = __riscv_vsmul_vv_i16m8(vx0, vw0, __RISCV_VXRM_RNU, avl);
+            __riscv_vse16_v_i16m8(pdst, vx0, avl);
+        }
+#else
         FOR (i = 0; i < len; i++)
         {
             y[i] = mult_r(x[i], wind[i]);
             move16();
         }
+#endif
     }
 
 
     /* calculate energy of signal */
+#if defined(SUPPORT_VEC_32X)
+    vint32m1_t vsum = __riscv_vmv_s_x_i32m1(0x00100000, 1);
+    avl = len;
+    psrc = y;
+    for (; (vl = __riscv_vsetvl_e16m4(avl)) > 0; avl -= vl) {
+        vint16m4_t vy = __riscv_vle16_v_i16m4(psrc, vl);
+        psrc += vl;
+        vint32m8_t vmult =
+            __riscv_vwmul_vv_i32m8(vy, vy, vl);      // Q2.30 = Q15 x Q15
+        vmult = __riscv_vsra_vx_i32m8(vmult, 7, vl); // shift right to Q9.23
+        vsum = __riscv_vredsum_vs_i32m8_i32m1(vmult, vsum, vl);
+    }
+    L_sum = __riscv_vmv_x_s_i32m1_i32(vsum);
+#else
     L_sum = L_deposit_h(16); /* sqrt(256), avoid overflow after rounding */
     FOR (i=0; i<len; i+=2)
     {
         L_tmp = L_mult0(y[i], y[i]);
         L_tmp = L_and(L_tmp, ~(128-1));
-        L_tmp = L_mac0(L_tmp, y[i+1], y[i+1]);
+        L_tmp = L_mac0(L_tmp, y[i+1], y[i+1]); // Q30 = Q15 x Q15
         L_tmp = L_shr(L_tmp, 7);
-        L_sum = L_add(L_sum, L_tmp);
+        L_sum = L_add(L_sum, L_tmp); // Q9.23 format
     }
+#endif
 
     /* scale signal to avoid overflow in autocorrelation */
     norm = norm_l(L_sum);
@@ -90,11 +209,73 @@ void autocorr_fx(
     IF (shift > 0)
     {
         fact = lshr(-32768, shift);
+#if defined(SUPPORT_VEC_32X)
+        const size_t vlmax = __riscv_vsetvlmax_e16m8();
+        avl = len;
+        psrc = y;
+        pdst = y;
+
+        vl = 3 * vlmax;
+        for (; avl - vl >= 0; avl -= vl) {
+            vint16m8_t vx0 = __riscv_vle16_v_i16m8(psrc, vlmax);
+            psrc += vlmax;
+            vx0 = __riscv_vsmul_vx_i16m8(vx0, fact, __RISCV_VXRM_RNU, vlmax);
+            __riscv_vse16_v_i16m8(pdst, vx0, vlmax);
+            pdst += vlmax;
+
+            vint16m8_t vx1 = __riscv_vle16_v_i16m8(psrc, vlmax);
+            psrc += vlmax;
+            vx1 = __riscv_vsmul_vx_i16m8(vx1, fact, __RISCV_VXRM_RNU, vlmax);
+            __riscv_vse16_v_i16m8(pdst, vx1, vlmax);
+            pdst += vlmax;
+
+            vint16m8_t vx2 = __riscv_vle16_v_i16m8(psrc, vlmax);
+            psrc += vlmax;
+            vx2 = __riscv_vsmul_vx_i16m8(vx2, fact, __RISCV_VXRM_RNU, vlmax);
+            __riscv_vse16_v_i16m8(pdst, vx2, vlmax);
+            pdst += vlmax;
+        }
+
+        if (avl > 2 * vlmax) {
+            vint16m8_t vx0 = __riscv_vle16_v_i16m8(psrc, vlmax);
+            psrc += vlmax;
+            vx0 = __riscv_vsmul_vx_i16m8(vx0, fact, __RISCV_VXRM_RNU, vlmax);
+            __riscv_vse16_v_i16m8(pdst, vx0, vlmax);
+            pdst += vlmax;
+
+            vint16m8_t vx1 = __riscv_vle16_v_i16m8(psrc, vlmax);
+            psrc += vlmax;
+            vx1 = __riscv_vsmul_vx_i16m8(vx1, fact, __RISCV_VXRM_RNU, vlmax);
+            __riscv_vse16_v_i16m8(pdst, vx1, vlmax);
+            pdst += vlmax;
+
+            vl = avl - 2 * vlmax;
+            vint16m8_t vx2 = __riscv_vle16_v_i16m8(psrc, vl);
+            vx2 = __riscv_vsmul_vx_i16m8(vx2, fact, __RISCV_VXRM_RNU, vl);
+            __riscv_vse16_v_i16m8(pdst, vx2, vl);
+        } else if (avl > vlmax) {
+            vint16m8_t vx0 = __riscv_vle16_v_i16m8(psrc, vlmax);
+            psrc += vlmax;
+            vx0 = __riscv_vsmul_vx_i16m8(vx0, fact, __RISCV_VXRM_RNU, vlmax);
+            __riscv_vse16_v_i16m8(pdst, vx0, vlmax);
+            pdst += vlmax;
+
+            vl = avl - vlmax;
+            vint16m8_t vx1 = __riscv_vle16_v_i16m8(psrc, vl);
+            vx1 = __riscv_vsmul_vx_i16m8(vx1, fact, __RISCV_VXRM_RNU, vl);
+            __riscv_vse16_v_i16m8(pdst, vx1, vl);
+        } else {
+            vint16m8_t vx0 = __riscv_vle16_v_i16m8(psrc, avl);
+            vx0 = __riscv_vsmul_vx_i16m8(vx0, fact, __RISCV_VXRM_RNU, avl);
+            __riscv_vse16_v_i16m8(pdst, vx0, avl);
+        }
+#else
         FOR (i = 0; i < len; i++)
         {
             y[i] = mult_r(y[i], fact);
             move16();
         }
+#endif
     }
     ELSE
     {
@@ -103,16 +284,74 @@ void autocorr_fx(
     }
 
     /* Compute and normalize r[0] */
+#if defined(SUPPORT_VEC_32X)
+    vsum = __riscv_vmv_s_x_i32m1(1, 1);
+    avl = len;
+    psrc = y;
+    for (; (vl = __riscv_vsetvl_e16m4(avl)) > 0; avl -= vl) {
+        vint16m4_t vy = __riscv_vle16_v_i16m4(psrc, vl);
+        psrc += vl;
+        vint32m8_t vtmp =
+            __riscv_vsll_vx_i32m8(__riscv_vwcvt_x_x_v_i32m8(vy, vl), 16, vl);
+        vint32m8_t vmult =
+            __riscv_vsmul_vv_i32m8(vtmp, vtmp, __RISCV_VXRM_RNU, vl);
+        vsum = __riscv_vredsum_vs_i32m8_i32m1(vmult, vsum, vl);
+    }
+    L_sum = __riscv_vmv_x_s_i32m1_i32(vsum);
+#else
     L_sum = L_mac(1, y[0], y[0]);
     FOR (i = 1; i < len; i++)
     {
         L_sum = L_mac(L_sum, y[i], y[i]);
     }
+#endif
     norm = norm_l(L_sum);
     L_sum = L_shl(L_sum, norm);
     L_Extract(L_sum, &r_h[0], &r_l[0]);        /* Put in DPF format (see oper_32b) */
 
     /* Compute r[1] to r[m] */
+#if defined(SUPPORT_VEC_32X)
+    const size_t vlmax = __riscv_vsetvlmax_e16m1();
+    avl = m;
+    int stage = 0;
+    for (; (vl = __riscv_vsetvl_e16m1(avl)) > 0; avl -= vl) {
+        // init sum
+        vint32m2_t vsum = __riscv_vmv_v_x_i32m2(0, vl);
+        // load silde window
+        vint16m1_t vw = __riscv_vle16_v_i16m1(y + 1 + stage * vlmax, vl);
+
+        for (int i = 0; i < len - 1; ++i) {
+            int16_t val = 0;
+            int idx = stage * vlmax + vl + i + 1;
+            if (idx < len) {
+                val = y[idx];
+            }
+
+            vint32m2_t vtmp = __riscv_vsll_vx_i32m2(
+                __riscv_vwcvt_x_x_v_i32m2(vw, vl), 16, vl);
+            vint32m2_t vmult = __riscv_vsmul_vx_i32m2(vtmp, (Word32)y[i] << 16,
+                                                      __RISCV_VXRM_RNU, vl);
+            vw = __riscv_vslide1down_vx_i16m1(vw, val, vl);
+            vsum = __riscv_vadd_vv_i32m2(vsum, vmult, vl);
+        }
+
+        // left shift
+        vsum = __riscv_vsll_vx_i32m2(vsum, norm, vl);
+
+        // split output
+        vint16m1_t vhi = __riscv_vnsra_wx_i16m1(vsum, 16, vl);
+        vint16m1_t vlo = __riscv_vnsra_wx_i16m1(
+            __riscv_vand_vx_i32m2(vsum, 0x0000FFFF, vl), 1, vl);
+
+        // store output
+        Word16 *dst_h = r_h + 1 + stage * vlmax;
+        Word16 *dst_l = r_l + 1 + stage * vlmax;
+        __riscv_vse16_v_i16m1(dst_h, vhi, vl);
+        __riscv_vse16_v_i16m1(dst_l, vlo, vl);
+
+        stage++;
+    }
+#else
     FOR (i = 1; i <= m; i++)
     {
         L_sum = L_mult(y[0],y[i]);
@@ -124,6 +363,7 @@ void autocorr_fx(
         L_sum = L_shl(L_sum, norm);
         L_Extract(L_sum, &r_h[i], &r_l[i]);    /* Put in DPF format (see oper_32b) */
     }
+#endif
 
     *Q_r = sub(norm, shl(shift, 1));
     move16();
