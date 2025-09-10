@@ -5,6 +5,7 @@
 #endif
 #include "oper_32b.h"
 
+#if !defined(SUPPORT_DSP_STD)
 /* 32x16 multiply: */
 Word32 Mult_32_16(Word32 a, Word16 b)
 {
@@ -21,6 +22,7 @@ Word32 Mult_32_16(Word32 a, Word16 b)
 #endif
     return result;
 }
+
 /* 32x32 multiply: */
 Word32 Mult_32_32(Word32 a, Word32 b)
 {
@@ -75,3 +77,4 @@ Word32 Msub_32_16(Word32 L_num, Word32 a, Word16 b)
     return result;
 }
 
+#endif
