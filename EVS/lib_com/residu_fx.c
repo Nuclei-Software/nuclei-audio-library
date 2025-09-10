@@ -8,6 +8,8 @@
 #include "prot_fx.h"       /* Function prototypes                    */
 #include "stl.h"
 
+#include "macro.h"
+
 /*--------------------------------------------------------------------*
  * Residu3_lc_fx:
  *
@@ -34,6 +36,27 @@ void Residu3_lc_fx(
         q = add(q, shift);
     *y++ = shl(x[0], shift);
     move16();
+#if defined(SUPPORT_VEC_32X)
+    size_t avl, vl;
+    const size_t vlmax = __riscv_vsetvlmax_e16m4();
+    avl = lg - 1;
+    int stage = 0;
+    for (; (vl = __riscv_vsetvl_e16m4(avl)) > 0; avl -= vl) {
+        vint16m4_t vx = __riscv_vle16_v_i16m4(x + 2 + stage * vlmax, vl);
+        vint32m8_t vsum = __riscv_vmv_v_x_i32m8(0, vl);
+        for (int i = 0; i <= m; ++i) {
+            int16_t idx = stage * vlmax + 1 - i;
+            int16_t val = (idx >= 0) ? x[idx] : 0;
+            vx = __riscv_vslide1up_vx_i16m4(vx, val, vl);
+            vsum = __riscv_vwmacc_vx_i32m8(vsum, a[i], vx, vl);
+        }
+        vint16m4_t vy =
+            __riscv_vnclip_wx_i16m4(vsum, 15 - q, __RISCV_VXRM_RNU, vl);
+        __riscv_vse16_v_i16m4(y, vy, vl);
+        y += vl;
+        stage++;
+    }
+#else
 
     FOR (i = 1; i < m; i++)
     {
@@ -59,6 +82,7 @@ void Residu3_lc_fx(
         s = L_shl(s, q);
         *y++ = round_fx(s);
     }
+#endif
 }
 
 /*--------------------------------------------------------------------*
