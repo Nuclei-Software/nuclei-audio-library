@@ -11,6 +11,7 @@
 #include "rom_com_fx.h"
 #include "rom_enc_fx.h"
 
+#include "macro.h"
 
 #define _2_ 0x4000 /*Q12*/
 #define _1_ 0x2000 /*Q12*/
@@ -699,6 +700,29 @@ void E_ACELP_pulsesign(const Word16 cn[], Word16 dn[], Word16 dn2[], Word16 sign
 
 
     /* calculate energy for normalization of cn[] and dn[] */
+#if defined(SUPPORT_VEC_32X)
+    {
+        size_t avl, vl;
+        avl = L_subfr;
+        vint32m1_t vsumval = __riscv_vmv_s_x_i32m1(1, 1);
+        vint32m1_t vsumcor = __riscv_vmv_s_x_i32m1(1, 1);
+        const Word16 *pcn = cn;
+        const Word16 *pdn = dn;
+        for (; (vl = __riscv_vsetvl_e16m4(avl)) > 0; avl -= vl) {
+            vl = __riscv_vsetvl_e16m4(avl);
+            vint16m4_t vcn = __riscv_vle16_v_i16m4(pcn, vl);
+            vint16m4_t vdn = __riscv_vle16_v_i16m4(pdn, vl);
+            vint32m8_t vmulval = __riscv_vwmul_vv_i32m8(vcn, vcn, vl);
+            vint32m8_t vmulcor = __riscv_vwmul_vv_i32m8(vdn, vdn, vl);
+            vsumval = __riscv_vredsum_vs_i32m8_i32m1(vmulval, vsumval, vl);
+            vsumcor = __riscv_vredsum_vs_i32m8_i32m1(vmulcor, vsumcor, vl);
+            pcn += vl;
+            pdn += vl;
+        }
+        Lval = __riscv_vmv_x_s_i32m1_i32(vsumval);
+        Lcor = __riscv_vmv_x_s_i32m1_i32(vsumcor);
+    }
+#else
     Lval = L_mac0(1, cn[0], cn[0]);
     Lcor = L_mac0(1, dn[0], dn[0]);
 
@@ -707,6 +731,7 @@ void E_ACELP_pulsesign(const Word16 cn[], Word16 dn[], Word16 dn2[], Word16 sign
         Lval = L_mac0(Lval, cn[i], cn[i]);
         Lcor = L_mac0(Lcor, dn[i], dn[i]);
     }
+#endif
 
     e_dn = 31;
     move16();
@@ -729,6 +754,56 @@ void E_ACELP_pulsesign(const Word16 cn[], Word16 dn[], Word16 dn2[], Word16 sign
 
     sign_neg = negate(sign_val);
 
+    // update sign[i], vec[i], dn[i] and dn2[i]
+#if defined(SUPPORT_VEC_32X)
+    {
+        size_t avl, vl;
+        avl = L_subfr;
+        const Word16 *pcn = cn;
+        Word16 *pdn = dn;
+        Word16 *pdn2 = dn2;
+        Word16 *psign = sign;
+        Word16 *pvec = vec;
+        static int flag = 0;
+        for (; (vl = __riscv_vsetvl_e16m4(avl)) > 0; avl -= vl) {
+            vint16m4_t vcn = __riscv_vle16_v_i16m4(pcn, vl);
+            pcn += vl;
+            vint16m4_t vdn = __riscv_vle16_v_i16m4(pdn, vl);
+            vint32m8_t vsum = __riscv_vwmul_vx_i32m8(vcn, k_cn, vl);
+            vsum = __riscv_vwmacc_vx_i32m8(vsum, k_dn, vdn, vl);
+            vint16m4_t vval =
+                __riscv_vnclip_wx_i16m4(vsum, 11, __RISCV_VXRM_RNU, vl);
+
+            // update dn[i]
+            vbool4_t msk = __riscv_vmslt_vx_i16m4_b4(vval, 0, vl);
+            vdn = __riscv_vneg_v_i16m4_mu(msk, vdn, vdn, vl);
+            __riscv_vse16_v_i16m4(pdn, vdn, vl);
+            pdn += vl;
+
+            // update dn2[i]
+            vint16m4_t vdn2 = __riscv_vneg_v_i16m4(vval, vl);
+            vdn2 = __riscv_vmax_vv_i16m4(vval, vdn2, vl);
+            __riscv_vse16_v_i16m4(pdn2, vdn2, vl);
+            pdn2 += vl;
+
+            // update sign[i], vec[i]
+            vint16m4_t vidx = __riscv_vsra_vx_i16m4(vval, 15, vl);
+            msk = __riscv_vmseq_vx_i16m4_b4(vidx, 0, vl);
+            vbool4_t nmsk = __riscv_vmnot_m_b4(msk, vl);
+            vint16m4_t vsign; // = __riscv_vmv_v_x_i16m4(sign_neg, vl)
+            vsign = __riscv_vmerge_vxm_i16m4(vsign, sign_val, msk, vl);
+            vsign = __riscv_vmerge_vxm_i16m4(vsign, sign_neg, nmsk, vl);
+            vint16m4_t vvec; //  = __riscv_vmv_v_x_i16m4(sign_val, vl)
+            vvec = __riscv_vmerge_vxm_i16m4(vvec, sign_neg, msk, vl);
+            vvec = __riscv_vmerge_vxm_i16m4(vvec, sign_val, nmsk, vl);
+
+            __riscv_vse16_v_i16m4(psign, vsign, vl);
+            psign += vl;
+            __riscv_vse16_v_i16m4(pvec, vvec, vl);
+            pvec += vl;
+        }
+    }
+#else
     signs[0] = sign_neg;
     move16();
     signs[1] = sign_val;
@@ -758,6 +833,7 @@ void E_ACELP_pulsesign(const Word16 cn[], Word16 dn[], Word16 dn2[], Word16 sign
         dn2[i] = abs_s(val);
         move16();	/* dn2[] = mix of dn[] and cn[]            */
     }
+#endif
 }
 
 
