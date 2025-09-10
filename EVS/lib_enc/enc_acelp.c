@@ -839,6 +839,101 @@ void E_ACELP_pulsesign(const Word16 cn[], Word16 dn[], Word16 dn2[], Word16 sign
 
 void E_ACELP_findcandidates(Word16 dn2[], Word16 dn2_pos[], Word16 pos_max[])
 {
+#if defined(SUPPORT_VEC_32X)
+    vint16m1_t vidx0, vidx1, vidx2, vidx3;
+    vbool16_t msk;
+    int16_t idx;
+
+    vint16m1_t vx0 = __riscv_vmv_v_x_i16m1(-1, 8);
+    vint16m1_t vx1 = __riscv_vmv_v_x_i16m1(-1, 8);
+    vint16m1_t vx2 = __riscv_vmv_v_x_i16m1(-1, 8);
+    vint16m1_t vx3 = __riscv_vmv_v_x_i16m1(-1, 8);
+
+    const Word16 *pdn2 = dn2;
+    for (int i = 0; i < 8; ++i) {
+        msk = __riscv_vmslt_vx_i16m1_b16(vx0, *pdn2, 8);
+        idx = __riscv_vcpop_m_b16(msk, 8);
+        vx0 = __riscv_vslide1down_vx_i16m1_tu(vx0, vx0, *pdn2, idx);
+        vidx0 = __riscv_vslide1down_vx_i16m1_tu(vidx0, vidx0, 4 * i, idx);
+        pdn2++;
+
+        msk = __riscv_vmslt_vx_i16m1_b16(vx1, *pdn2, 8);
+        idx = __riscv_vcpop_m_b16(msk, 8);
+        vx1 = __riscv_vslide1down_vx_i16m1_tu(vx1, vx1, *pdn2, idx);
+        vidx1 = __riscv_vslide1down_vx_i16m1_tu(vidx1, vidx1, 4 * i + 1, idx);
+        pdn2++;
+
+        msk = __riscv_vmslt_vx_i16m1_b16(vx2, *pdn2, 8);
+        idx = __riscv_vcpop_m_b16(msk, 8);
+        vx2 = __riscv_vslide1down_vx_i16m1_tu(vx2, vx2, *pdn2, idx);
+        vidx2 = __riscv_vslide1down_vx_i16m1_tu(vidx2, vidx2, 4 * i + 2, idx);
+        pdn2++;
+
+        msk = __riscv_vmslt_vx_i16m1_b16(vx3, *pdn2, 8);
+        idx = __riscv_vcpop_m_b16(msk, 8);
+        vx3 = __riscv_vslide1down_vx_i16m1_tu(vx3, vx3, *pdn2, idx);
+        vidx3 = __riscv_vslide1down_vx_i16m1_tu(vidx3, vidx3, 4 * i + 3, idx);
+        pdn2++;
+    }
+
+    int16_t min0 = __riscv_vmv_x_s_i16m1_i16(vx0);
+    int16_t min1 = __riscv_vmv_x_s_i16m1_i16(vx1);
+    int16_t min2 = __riscv_vmv_x_s_i16m1_i16(vx2);
+    int16_t min3 = __riscv_vmv_x_s_i16m1_i16(vx3);
+
+    int rem = (L_SUBFR >> 2) - 8;
+    for (int i = 0; i < rem; ++i) {
+        if (*pdn2 > min0) {
+            msk = __riscv_vmslt_vx_i16m1_b16(vx0, *pdn2, 8);
+            idx = __riscv_vcpop_m_b16(msk, 8);
+            vx0 = __riscv_vslide1down_vx_i16m1_tu(vx0, vx0, *pdn2, idx);
+            vidx0 =
+                __riscv_vslide1down_vx_i16m1_tu(vidx0, vidx0, 32 + 4 * i, idx);
+            min0 = __riscv_vmv_x_s_i16m1_i16(vx0);
+        }
+        pdn2++;
+
+        if (*pdn2 > min1) {
+            msk = __riscv_vmslt_vx_i16m1_b16(vx1, *pdn2, 8);
+            idx = __riscv_vcpop_m_b16(msk, 8);
+            vx1 = __riscv_vslide1down_vx_i16m1_tu(vx1, vx1, *pdn2, idx);
+            vidx1 = __riscv_vslide1down_vx_i16m1_tu(vidx1, vidx1,
+                                                    32 + 4 * i + 1, idx);
+            min1 = __riscv_vmv_x_s_i16m1_i16(vx1);
+        }
+        pdn2++;
+
+        if (*pdn2 > min2) {
+            msk = __riscv_vmslt_vx_i16m1_b16(vx2, *pdn2, 8);
+            idx = __riscv_vcpop_m_b16(msk, 8);
+            vx2 = __riscv_vslide1down_vx_i16m1_tu(vx2, vx2, *pdn2, idx);
+            vidx2 = __riscv_vslide1down_vx_i16m1_tu(vidx2, vidx2,
+                                                    32 + 4 * i + 2, idx);
+            min2 = __riscv_vmv_x_s_i16m1_i16(vx2);
+        }
+        pdn2++;
+
+        if (*pdn2 > min3) {
+            msk = __riscv_vmslt_vx_i16m1_b16(vx3, *pdn2, 8);
+            idx = __riscv_vcpop_m_b16(msk, 8);
+            vx3 = __riscv_vslide1down_vx_i16m1_tu(vx3, vx3, *pdn2, idx);
+            vidx3 = __riscv_vslide1down_vx_i16m1_tu(vidx3, vidx3,
+                                                    32 + 4 * i + 3, idx);
+            min3 = __riscv_vmv_x_s_i16m1_i16(vx3);
+        }
+        pdn2++;
+    }
+
+    __riscv_vsse16_v_i16m1(dn2_pos + 7, -sizeof(Word16), vidx0, 8);
+    __riscv_vsse16_v_i16m1(dn2_pos + 15, -sizeof(Word16), vidx1, 8);
+    __riscv_vsse16_v_i16m1(dn2_pos + 23, -sizeof(Word16), vidx2, 8);
+    __riscv_vsse16_v_i16m1(dn2_pos + 31, -sizeof(Word16), vidx3, 8);
+
+    pos_max[0] = dn2_pos[0];
+    pos_max[1] = dn2_pos[8];
+    pos_max[2] = dn2_pos[16];
+    pos_max[3] = dn2_pos[24];
+#else
     Word16 i, k, j, i8;
     Word16 *ps_ptr;
 
@@ -865,6 +960,7 @@ void E_ACELP_findcandidates(Word16 dn2[], Word16 dn2_pos[], Word16 pos_max[])
         pos_max[i] = dn2_pos[i8];
         move16();
     }
+#endif
 }
 
 
