@@ -545,19 +545,39 @@ void E_ACELP_4tsearchx(Word16 dn[], const Word16 cn[], Word16 Rw[], Word16 code[
     nb_pulse_m2 = sub(nb_pulse, 2);
 
     /* Init to avoid crash when the search does not find a solution */
+#if defined(SUPPORT_VEC_32X)
+    {
+        vint16m8_t vid =
+            __riscv_vreinterpret_v_u16m8_i16m8(__riscv_vid_v_u16m8(nb_pulse));
+        __riscv_vse16_v_i16m8(codvec, vid, nb_pulse);
+    }
+#else
     FOR (k=0; k<nb_pulse; k++)
     {
         codvec[k] = k;
         move16();
     }
+#endif
 
     scale = 0;
     move16();
+#if defined(SUPPORT_VEC_32X)
+    size_t vl = L_SUBFR / 2;
+    vint16m4_t vrw0 = __riscv_vle16_v_i16m4(Rw, vl);
+    vint16m4_t vrw1 = __riscv_vle16_v_i16m4(Rw + vl, vl);
+    vint32m8_t vmul0 = __riscv_vwmul_vv_i32m8(vrw0, vrw0, vl);
+    vint32m8_t vmul1 = __riscv_vwmul_vv_i32m8(vrw1, vrw1, vl);
+    vint32m1_t vsum = __riscv_vmv_s_x_i32m1(0, 1);
+    vsum = __riscv_vredsum_vs_i32m8_i32m1(vmul0, vsum, vl);
+    vsum = __riscv_vredsum_vs_i32m8_i32m1(vmul1, vsum, vl);
+    s = __riscv_vmv_x_s_i32m1_i32(vsum);
+#else
     s = L_mult0(Rw[0], Rw[0]);
     FOR (i = 1; i < L_SUBFR; i++)
     {
         s = L_mac0(s, Rw[i], Rw[i]);
     }
+#endif
     if (s_and(sub(nb_pulse, 9) >= 0, L_sub(s, 0x800000) > 0))
     {
         scale = -1;
@@ -600,11 +620,18 @@ void E_ACELP_4tsearchx(Word16 dn[], const Word16 cn[], Word16 Rw[], Word16 code[
     /* Set up autocorrelation vector */
     R = R_buf+L_SUBFR-1;
     Copy_Scale_sig(Rw, R, L_SUBFR, scale);
+#if defined(SUPPORT_VEC_32X)
+    {
+        vint16m8_t vr = __riscv_vle16_v_i16m8(R, L_SUBFR);
+        __riscv_vsse16_v_i16m8(R, -sizeof(Word16), vr, L_SUBFR);
+    }
+#else
     FOR (k=1; k<L_SUBFR; k++)
     {
         R[-k] = R[k];
         move16();
     }
+#endif
 
     /* Sign value */
     sign_val_2 = 0x2000;
