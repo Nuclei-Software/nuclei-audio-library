@@ -148,6 +148,29 @@ void Residu3_fx(
     q = add( norm_s(a[0]), 1 );
     if (shift != 0)
         q = add(q, shift);
+#if defined(SUPPORT_VEC_32X)
+    size_t avl, vl;
+    const size_t vlmax = __riscv_vsetvlmax_e16m2();
+    avl = lg;
+
+    int stage = 0;
+    for (; (vl = __riscv_vsetvl_e16m2(avl)) > 0; avl -= vl) {
+        vl = __riscv_vsetvl_e16m2(avl);
+        vint16m2_t vx = __riscv_vle16_v_i16m2(x + stage * vlmax, vl);
+        vint32m4_t vsum = __riscv_vmv_v_x_i32m4(0, vl);
+        for (int i = 0; i <= 16; ++i) {
+            vsum = __riscv_vwmacc_vx_i32m4(vsum, a[i], vx, vl);
+            int16_t idx = stage * vlmax - 1 - i;
+            int16_t val = x[idx];
+            vx = __riscv_vslide1up_vx_i16m2(vx, val, vl);
+        }
+        vint16m2_t vy =
+            __riscv_vnclip_wx_i16m2(vsum, 15 - q, __RISCV_VXRM_RNU, vl);
+        __riscv_vse16_v_i16m2(y, vy, vl);
+        y += vl;
+        stage++;
+    }
+#else
     FOR (i = 0; i < lg; i++)
     {
         s = L_mult(x[i], a[0]);
@@ -171,6 +194,7 @@ void Residu3_fx(
         s = L_shl(s, q);
         y[i] = round_fx(s);
     }
+#endif
 }
 
 /*==========================================================================*/
