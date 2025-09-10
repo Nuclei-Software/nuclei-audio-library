@@ -6,6 +6,7 @@
 #include "stl.h"
 #include "options.h" /* Needed for Stack Counting Mechanism Macros (when Instrumented) */
 
+#if !defined(SUPPORT_DSP_STD)
 Word32 Mpy_32_16_1(Word32 x, Word16 y)
 {
     Word32 mh;
@@ -55,4 +56,5 @@ Word32 Mpy_32_32_r(Word32 x, Word32 y)
 
     return (mh);
 }
+#endif
 

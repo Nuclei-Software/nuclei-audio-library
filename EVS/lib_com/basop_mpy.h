@@ -7,6 +7,7 @@
 
 #include "stl.h"
 #include "options.h"
+#include "basop32.h"
 
 /**
  * \brief 	32*16 Bit fractional Multiplication using 40 bit OPS
@@ -18,7 +19,7 @@
  *
  * \return x*y
  */
-Word32 Mpy_32_16_1(Word32 x,
+STATIC_INLINE Word32 Mpy_32_16_1(Word32 x,
                    Word16 y);
 
 /**
@@ -31,7 +32,7 @@ Word32 Mpy_32_16_1(Word32 x,
  *
  * \return x*y
  */
-Word32 Mpy_32_16_r(Word32 x,
+STATIC_INLINE Word32 Mpy_32_16_r(Word32 x,
                    Word16 y);
 
 /**
@@ -45,7 +46,7 @@ Word32 Mpy_32_16_r(Word32 x,
  *
  * \return x*y
  */
-Word32 Mpy_32_32(Word32 x,
+STATIC_INLINE Word32 Mpy_32_32(Word32 x,
                  Word32 y);
 
 /**
@@ -59,7 +60,7 @@ Word32 Mpy_32_32(Word32 x,
  *
  * \return x*y
  */
-Word32 Mpy_32_32_r(Word32 x, Word32 y);
+STATIC_INLINE Word32 Mpy_32_32_r(Word32 x, Word32 y);
 
 /**
  * \brief 	32*16 Bit integer Multiplication using 40 bit OPS
@@ -100,5 +101,23 @@ void cplxMpy_32_16(Word32 *c_Re,
                   );
 
 #define MUL_F(A,B) Mpy_32_16_1((A),(B))
+
+#if defined(SUPPORT_DSP_STD)
+STATIC_INLINE Word32 Mpy_32_16_1(Word32 x, Word16 y) {
+    return __RV_KMMWB2(x, y);
+}
+
+STATIC_INLINE Word32 Mpy_32_16_r(Word32 x, Word16 y) {
+    return __RV_KMMWB2_U(x, y);
+}
+
+STATIC_INLINE Word32 Mpy_32_32(Word32 x, Word32 y) {
+    return __RV_KWMMUL(x, y);
+}
+
+STATIC_INLINE Word32 Mpy_32_32_r(Word32 x, Word32 y) {
+    return __RV_KWMMUL_U(x, y);
+}
+#endif
 
 #endif /* __BASOP_SETTINGS_H */
