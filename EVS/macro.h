@@ -47,6 +47,18 @@
 #define SUPPORT_VEC_32X
 #endif // defined(__riscv_v) || defined(__riscv_zve64d)
 
+#if defined(__riscv_zvl1024b)
+#define SUPPORT_VL1024
+#define SUPPORT_VL512
+#define SUPPORT_VL256
+#elif defined(__riscv_zvl512b)
+#define SUPPORT_VL512
+#define SUPPORT_VL256
+#elif defined(__riscv_zvl256b)
+#define SUPPORT_VL256
+#endif
+// VLEN128 is alway supported
+#define SUPPORT_VL128
 #endif // defined(__riscv_vector)
 
 #endif
