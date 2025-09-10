@@ -1472,6 +1472,49 @@ static Word32 Dot_product12_OL_back(/* o  : Q31: normalized result (1 < val <= -
     Word16 i, sft;
     Word32 L_sum, L_sum2;
 
+#if defined(SUPPORT_VEC_32X)
+    Word16 lg_lt, lg_gt;
+    int L_sum_idx, L_sum2_idx;
+    Word32 L_sum_[2];
+    if (lg <= lg2) {
+        lg_lt = lg;
+        lg_gt = lg2;
+        L_sum_idx = 0;
+        L_sum2_idx = 1;
+    } else {
+        lg_lt = lg2;
+        lg_gt = lg;
+        L_sum_idx = 1;
+        L_sum2_idx = 0;
+    }
+
+    size_t avl = lg_gt, sub_avl = lg_lt;
+    size_t vl;
+
+    vint32m1_t vsum = __riscv_vmv_s_x_i32m1(0, 1);
+    for (; (vl = __riscv_vsetvl_e16m4(sub_avl)) > 0; sub_avl -= vl) {
+        x -= vl - 1;
+        vint16m4_t vx = __riscv_vle16_v_i16m4(x--, vl);
+        y -= vl - 1;
+        vint16m4_t vy = __riscv_vle16_v_i16m4(y--, vl);
+        vint32m8_t vmul = __riscv_vwmul_vv_i32m8(vx, vy, vl);
+        vsum = __riscv_vredsum_vs_i32m8_i32m1(vmul, vsum, vl);
+    }
+    L_sum_[0] = __riscv_vmv_x_s_i32m1_i32(vsum);
+    avl -= lg_lt;
+    for (; (vl = __riscv_vsetvl_e16m4(avl)) > 0; avl -= vl) {
+        x -= vl - 1;
+        vint16m4_t vx = __riscv_vle16_v_i16m4(x--, vl);
+        y -= vl - 1;
+        vint16m4_t vy = __riscv_vle16_v_i16m4(y--, vl);
+        vint32m8_t vmul = __riscv_vwmul_vv_i32m8(vx, vy, vl);
+        vsum = __riscv_vredsum_vs_i32m8_i32m1(vmul, vsum, vl);
+    }
+    L_sum_[1] = __riscv_vmv_x_s_i32m1_i32(vsum);
+
+    L_sum = (L_sum_[L_sum_idx] << 1) + 1;
+    L_sum2 = (L_sum_[L_sum2_idx] << 1) + 1;
+#else
     L_sum = L_mac(1, x[0], y[0]);
     IF (sub(lg, lg2) <= 0)
     {
@@ -1499,6 +1542,7 @@ static Word32 Dot_product12_OL_back(/* o  : Q31: normalized result (1 < val <= -
             L_sum = L_mac(L_sum, x[-i], y[-i]);
         }
     }
+#endif
 
     /* Q31 */
     sft = norm_l(L_sum);
