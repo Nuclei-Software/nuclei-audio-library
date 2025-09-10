@@ -179,7 +179,20 @@ static void E_ACELP_2pulse_searchx(Word16 nb_pos_ix, Word16 track_x,
     Word16 ps0, ps1, alp2_16, ps2, sq;
     Word32 alp0, alp1, alp2, s;
     Word16 *pR, sgnx;
-    Word16 sqk[2], alpk[2], ik;
+    Word16 ik;
+#if defined(SUPPORT_VEC_32X)
+    Word16 sq_arr[L_SUBFR / 4];
+    Word16 alp2_arr[L_SUBFR / 4];
+    union {
+        Word16 i16[2];
+        Word32 i32;
+    } sqk_union, alpk_union;
+    Word16 *sqk = sqk_union.i16;
+    Word16 *alpk = alpk_union.i16;
+#else
+    Word16 sqk[2], alpk[2];
+#endif
+    static int flag = 0;
 
 
     /* eight dn2 max positions per track */
@@ -230,6 +243,63 @@ static void E_ACELP_2pulse_searchx(Word16 nb_pos_ix, Word16 track_x,
 
         pR = R-x;
 
+#if defined(SUPPORT_VEC_32X)
+        size_t vl = L_SUBFR / 4;
+        ptrdiff_t bstride = sizeof(Word16) * 4;
+        vint16m2_t vdn = __riscv_vlse16_v_i16m2(dn + track_y, bstride, vl);
+        vdn = __riscv_vadd_vx_i16m2(vdn, ps1, vl);
+        vdn = __riscv_vsmul_vv_i16m2(vdn, vdn, __RISCV_VXRM_RNU, vl);
+        __riscv_vse16_v_i16m2(sq_arr, vdn, vl);
+
+        vint16m2_t vcor = __riscv_vlse16_v_i16m2(cor + track_y, bstride, vl);
+        vint16m2_t vsign = __riscv_vlse16_v_i16m2(sign + track_y, bstride, vl);
+        vint32m4_t vmul32 = __riscv_vwcvt_x_x_v_i32m4(vcor, vl);
+        vmul32 = __riscv_vsll_vx_i32m4(vmul32, 16, vl);
+        vint32m4_t vsign32 = __riscv_vwcvt_x_x_v_i32m4(vsign, vl);
+        vsign32 = __riscv_vsll_vx_i32m4(vsign32, 16, vl);
+        vmul32 = __riscv_vsmul_vv_i32m4(vmul32, vsign32, __RISCV_VXRM_RNU, vl);
+
+        vint32m4_t valp2 = __riscv_vmv_v_x_i32m4(alp1, vl);
+        valp2 = __riscv_vsadd_vv_i32m4(valp2, vmul32, vl);
+
+        vint16m2_t vr = __riscv_vlse16_v_i16m2(pR + track_y, bstride, vl);
+        vmul32 = __riscv_vwcvt_x_x_v_i32m4(vr, vl);
+        vmul32 = __riscv_vsll_vx_i32m4(vmul32, 16, vl);
+        // assert(sgnx != 0);
+        if (sgnx < 0) {
+            vsign32 = __riscv_vneg_v_i32m4(vsign32, vl);
+        }
+
+        vmul32 = __riscv_vsmul_vv_i32m4(vmul32, vsign32, __RISCV_VXRM_RNU, vl);
+        valp2 = __riscv_vsadd_vv_i32m4(valp2, vmul32, vl);
+        valp2 = __riscv_vsadd_vx_i32m4(valp2, 0x8000, vl);
+        vint16m2_t valp2_16 = __riscv_vnsra_wx_i16m2(valp2, 16, vl);
+        __riscv_vse16_v_i16m2(alp2_arr, valp2_16, vl);
+
+        for(int i = 0; i < vl; ++i)
+        {
+#if defined(SUPPORT_DSP_STD)
+            alpk[1-ik] = alp2_arr[i];
+            sqk[1-ik] = sq_arr[i];
+            if(ik == 0) {
+                s = __RV_SMXDS(sqk_union.i32, alpk_union.i32);
+            } else {
+                s = __RV_SMXDS(alpk_union.i32, sqk_union.i32);
+            }
+#else
+            alpk[1-ik] = alp2_arr[i];
+            sqk[1-ik] = sq_arr[i];
+            /*s = (alpk * sq) - (sqk * alp2);            MULT(1);MAC(1);*/
+            s = L_msu(L_mult(alpk[ik], sq_arr[i]), sqk[ik], alp2_arr[i]);	/* Q_sq = Q_sqk, Q_alpk = Q_alp */
+#endif
+            if (s > 0)
+            {
+                ik = sub(1, ik);
+                xy_save = L_mac0(i * 4 + track_y, x, L_SUBFR);
+            }
+            // assert( ((s >= 0 && i==0 && y == track_y)) || (y > track_y) || (i > 0));
+        }
+#else
         FOR (y = track_y; y < L_SUBFR; y += 4)
         {
             /*ps2 = ps1 + dn[y];                         ADD(1);*/
@@ -273,6 +343,7 @@ static void E_ACELP_2pulse_searchx(Word16 nb_pos_ix, Word16 track_x,
             }
             assert( ((s >= 0 && i==0 && y == track_y)) || (y > track_y) || (i > 0));
         }
+#endif
     }
     ps1 = extract_l(xy_save);
     pos[1] = s_and(ps1, L_SUBFR-1);
@@ -311,7 +382,19 @@ static void E_ACELP_1pulse_searchx(UWord8 tracks[2],
     Word16 alp1;
     Word32 s;
     Word16 ntracks, t;
-    Word16 sqk[2], alpk[2], ik;
+    Word16 ik;
+#if defined(SUPPORT_VEC_32X)
+    Word16 sq_arr[L_SUBFR / 4];
+    Word16 alp1_arr[L_SUBFR / 4];
+    union {
+        Word16 i16[2];
+        Word32 i32;
+    } sqk_union, alpk_union;
+    Word16 *sqk = sqk_union.i16;
+    Word16 *alpk = alpk_union.i16;
+#else
+    Word16 sqk[2], alpk[2];
+#endif
 
     /* save these to limit memory searches */
     /*alp0 = *alp + R[0];                              INDIRECT(1);*/
@@ -344,6 +427,53 @@ static void E_ACELP_1pulse_searchx(UWord8 tracks[2],
     }
     FOR (t=0; t<ntracks; ++t)
     {
+#if defined(SUPPORT_VEC_32X)
+        size_t vl = L_SUBFR / 4;
+        ptrdiff_t bstride = sizeof(Word16) * 4;
+        vint16m2_t vdn = __riscv_vlse16_v_i16m2(dn + tracks[t], bstride, vl);
+        vdn = __riscv_vsadd_vx_i16m2(vdn, ps0, vl);
+        vdn = __riscv_vsmul_vv_i16m2(vdn, vdn, __RISCV_VXRM_RNU, vl);
+        __riscv_vse16_v_i16m2(sq_arr, vdn, vl);
+
+        vint16m2_t vcor = __riscv_vlse16_v_i16m2(cor + tracks[t], bstride, vl);
+        vint16m2_t vsign = __riscv_vlse16_v_i16m2(sign + tracks[t], bstride, vl);
+        vint32m4_t vmul32 = __riscv_vwcvt_x_x_v_i32m4(vcor, vl);
+        vmul32 = __riscv_vsll_vx_i32m4(vmul32, 16, vl);
+        vint32m4_t vsign32 = __riscv_vwcvt_x_x_v_i32m4(vsign, vl);
+        vsign32 = __riscv_vsll_vx_i32m4(vsign32, 16, vl);
+        vmul32 = __riscv_vsmul_vv_i32m4(vmul32, vsign32, __RISCV_VXRM_RNU, vl);
+
+        vint32m4_t valp1 = __riscv_vmv_v_x_i32m4(alp0, vl);
+        valp1 = __riscv_vsadd_vv_i32m4(valp1, vmul32, vl);
+        valp1 = __riscv_vsadd_vx_i32m4(valp1, 0x8000, vl);
+        vint16m2_t valp1_16 = __riscv_vnsra_wx_i16m2(valp1, 16, vl);
+        __riscv_vse16_v_i16m2(alp1_arr, valp1_16, vl);
+
+        for(int i = 0; i < vl; ++i)
+        {
+#if defined(SUPPORT_DSP_STD)
+            alpk[1-ik] = alp1_arr[i];
+            sqk[1-ik] = sq_arr[i];
+            if(ik == 0) {
+                s = __RV_SMXDS(sqk_union.i32, alpk_union.i32);
+            } else {
+                assert(ik == 1);
+                s = __RV_SMXDS(alpk_union.i32, sqk_union.i32);
+            }
+#else
+            alpk[1-ik] = alp1_arr[i];
+            sqk[1-ik] = sq_arr[i];
+            /*s = (alpk * sq) - (sqk * alp2);            MULT(1);MAC(1);*/
+            s = L_msu(L_mult(alpk[ik], sq_arr[i]), sqk[ik], alp1_arr[i]);	/* Q_sq = Q_sqk, Q_alpk = Q_alp */
+#endif
+            if (s > 0)
+            {
+                ik = sub(1, ik);
+                x_save = i * 4 + tracks[t];
+            }
+            // assert( ((s >= 0 && i==0 && y == track_y)) || (y > track_y) || (i > 0));
+        }
+#else
         FOR (x = tracks[t]; x < L_SUBFR; x += 4)
         {
             /* ps1 = ps0 + dn[x];                             ADD(1);*/
@@ -374,6 +504,7 @@ static void E_ACELP_1pulse_searchx(UWord8 tracks[2],
             }
             assert( t>0 || ((s >= 0) && (x == tracks[t])) || x > tracks[t]);
         }
+#endif
     }
 
     *ps = add(ps0, dn[x_save]);
