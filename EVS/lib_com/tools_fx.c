@@ -11,6 +11,8 @@
 #include "cnst_fx.h"           /* Function prototypes                    */
 #include "stl.h"
 
+#include "macro.h"
+
 #define INV_BANDS10 3277 /* 1/10 in Q15 */
 #define INV_BANDS9  3641 /* 1/9  in Q15 */
 #define INV_BANDS3  10923 /* 1/9  in Q15 */
@@ -2567,6 +2569,33 @@ Word16 dot_prod_satcontr(const Word16 *x, const Word16 *y, Word16 qx, Word16 qy,
  */
 void E_UTIL_f_convolve(const Word16 x[], const Word16 h[], Word16 y[], const Word16 size)
 {
+#if defined(SUPPORT_VEC_32X)
+    size_t avl, vl;
+    avl = size;
+    int stage = 0;
+    const size_t vlmax = __riscv_vsetvlmax_e16m4();
+    for (; (vl = __riscv_vsetvl_e16m4(avl)) > 0; avl -= vl) {
+        // init vsum
+        vint32m8_t vsum = __riscv_vmv_v_x_i32m8(0, vl);
+        // load silde window
+        vint16m4_t vh = __riscv_vle16_v_i16m4(h + stage * vlmax, vl);
+
+        int i = 0;
+        for (; i < stage * vlmax; ++i) {
+            vsum = __riscv_vwmacc_vx_i32m8(vsum, x[i], vh, vl);
+            vh = __riscv_vslide1up_vx_i16m4(vh, h[stage * vlmax - i - 1], vl);
+        }
+        for (; i < stage * vlmax + vl; ++i) {
+            vsum = __riscv_vwmacc_vx_i32m8(vsum, x[i], vh, vl);
+            vh = __riscv_vslide1up_vx_i16m4(vh, 0, vl);
+        }
+
+        vint16m4_t vy = __riscv_vnclip_wx_i16m4(vsum, 15, __RISCV_VXRM_RNU, vl);
+        __riscv_vse16_v_i16m4(y, vy, vl);
+        y += vl;
+        stage++;
+    }
+#else
     Word16 i, n;
     Word32 L_sum;
 
@@ -2584,6 +2613,7 @@ void E_UTIL_f_convolve(const Word16 x[], const Word16 h[], Word16 y[], const Wor
         move16();
 
     }
+#endif
     return;
 }
 
