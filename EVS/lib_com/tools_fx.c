@@ -294,6 +294,37 @@ void Copy_Scale_sig(
     const Word16 exp0   /* i  : exponent: x = round(x << exp)   Qx ?exp  */
 )
 {
+#if defined(SUPPORT_VEC_32X)
+    size_t avl, vl;
+    const size_t vlmax = __riscv_vsetvlmax_e16m4();
+    avl = lg;
+    if (exp0 < 0) {
+        for (; (vl = __riscv_vsetvl_e16m4(avl)) > 0; avl -= vl) {
+            vint16m4_t vx = __riscv_vle16_v_i16m4(x, vl);
+            vx = __riscv_vssra_vx_i16m4(vx, -exp0, __RISCV_VXRM_RNU, vl);
+            __riscv_vse16_v_i16m4(y, vx, vl);
+            x += vl;
+            y += vl;
+        }
+    } else if (exp0 == 0) {
+        for (; (vl = __riscv_vsetvl_e16m4(avl)) > 0; avl -= vl) {
+            __riscv_vse16_v_i16m4(y, __riscv_vle16_v_i16m4(x, vl), vl);
+            x += vl;
+            y += vl;
+        }
+    } else {
+        // exp0 > 0
+        for (; (vl = __riscv_vsetvl_e16m4(avl)) > 0; avl -= vl) {
+            vint16m4_t vx = __riscv_vle16_v_i16m4(x, vl);
+            vint32m8_t vi32 = __riscv_vwcvt_x_x_v_i32m8(vx, vl);
+            vi32 = __riscv_vsll_vx_i32m8(vi32, exp0, vl);
+            vx = __riscv_vnclip_wx_i16m4(vi32, 0, __RISCV_VXRM_RNU, vl);
+            __riscv_vse16_v_i16m4(y, vx, vl);
+            x += vl;
+            y += vl;
+        }
+    }
+#else
     Word16 i;
     Word16 tmp;
 
@@ -321,6 +352,7 @@ void Copy_Scale_sig(
         y[i] = shl(x[i], exp0);
         move16();/* saturation can occur here */
     }
+#endif
 }
 /*-------------------------------------------------------------------*
  * Copy_Scale_sig
