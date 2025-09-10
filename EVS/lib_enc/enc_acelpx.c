@@ -11,6 +11,8 @@
 #include "options.h"
 #include "rom_enc_fx.h"
 
+#include "macro.h"
+
 #define _1_Q11 (2048/*1.0f Q11*/) /* 1.0f in 4Q11 */
 
 static void E_ACELP_update_cor(
@@ -47,6 +49,23 @@ static void E_ACELP_update_cor(
             pRx = R-pos[i];
             pRy = R-pos[1-i];
             /* different sign x and y */
+#if defined(SUPPORT_VEC_32X) && defined(SUPPORT_VL256)
+            if (cor_in != NULL) {
+                vint16m4_t vrx = __riscv_vle16_v_i16m4(pRx, L_SUBFR);
+                vint16m4_t vry = __riscv_vle16_v_i16m4(pRy, L_SUBFR);
+                vint16m4_t vcor_in = __riscv_vle16_v_i16m4(cor_in, L_SUBFR);
+                vint32m8_t vtmp = __riscv_vwsub_vv_i32m8(vrx, vry, L_SUBFR);
+                vtmp = __riscv_vwadd_wv_i32m8(vtmp, vcor_in, L_SUBFR);
+                vint16m4_t vtmp16 = __riscv_vnclip_wx_i16m4(vtmp, 0, __RISCV_VXRM_RNU, L_SUBFR);
+                __riscv_vse16_v_i16m4(cor_out, vtmp16, L_SUBFR);
+            } else {
+                vint16m4_t vrx = __riscv_vle16_v_i16m4(pRx, L_SUBFR);
+                vint16m4_t vry = __riscv_vle16_v_i16m4(pRy, L_SUBFR);
+                vint32m8_t vtmp = __riscv_vwsub_vv_i32m8(vrx, vry, L_SUBFR);
+                vint16m4_t vtmp16 = __riscv_vnclip_wx_i16m4(vtmp, 0, __RISCV_VXRM_RNU, L_SUBFR);
+                __riscv_vse16_v_i16m4(cor_out, vtmp16, L_SUBFR);
+            }
+#else
             FOR (i=0; i<L_SUBFR; i++)
             {
                 tmp = sub(pRx[i], pRy[i]);
@@ -57,6 +76,7 @@ static void E_ACELP_update_cor(
                 cor_out[i] = tmp;
                 move16();
             }
+#endif
         }
         ELSE
         {
@@ -65,6 +85,24 @@ static void E_ACELP_update_cor(
             IF (sign_x > 0)
             {
                 /* sign x and y is positive */
+#if defined(SUPPORT_VEC_32X) && defined(SUPPORT_VL256)
+                if (cor_in != NULL) {
+                    vint16m4_t vrx = __riscv_vle16_v_i16m4(pRx, L_SUBFR);
+                    vint16m4_t vry = __riscv_vle16_v_i16m4(pRy, L_SUBFR);
+                    vint16m4_t vcor_in = __riscv_vle16_v_i16m4(cor_in, L_SUBFR);
+                    vint32m8_t vtmp = __riscv_vwadd_vv_i32m8(vrx, vry, L_SUBFR);
+                    vtmp = __riscv_vwadd_wv_i32m8(vtmp, vcor_in, L_SUBFR);
+                    vint16m4_t vtmp16 = __riscv_vnclip_wx_i16m4(vtmp, 0, __RISCV_VXRM_RNU, L_SUBFR);
+                    __riscv_vse16_v_i16m4(cor_out, vtmp16, L_SUBFR);
+                } else {
+                    vint16m4_t vrx = __riscv_vle16_v_i16m4(pRx, L_SUBFR);
+                    vint16m4_t vry = __riscv_vle16_v_i16m4(pRy, L_SUBFR);
+                    vint32m8_t vtmp = __riscv_vwadd_vv_i32m8(vrx, vry, L_SUBFR);
+                    vint16m4_t vtmp16 = __riscv_vnclip_wx_i16m4(vtmp, 0, __RISCV_VXRM_RNU, L_SUBFR);
+                    __riscv_vse16_v_i16m4(cor_out, vtmp16, L_SUBFR);
+
+                }
+#else
                 FOR (i=0; i<L_SUBFR; i++)
                 {
                     tmp = add(pRx[i], pRy[i]);
@@ -75,10 +113,29 @@ static void E_ACELP_update_cor(
                     cor_out[i] = tmp;
                     move16();
                 }
+#endif
             }
             ELSE
             {
                 /* sign x and y is negative */
+#if defined(SUPPORT_VEC_32X) && defined(SUPPORT_VL256)
+                if (cor_in != NULL) {
+                    vint16m4_t vrx = __riscv_vle16_v_i16m4(pRx, L_SUBFR);
+                    vint16m4_t vry = __riscv_vle16_v_i16m4(pRy, L_SUBFR);
+                    vint16m4_t vcor_in = __riscv_vle16_v_i16m4(cor_in, L_SUBFR);
+                    vint32m8_t vtmp = __riscv_vwsub_vv_i32m8(vcor_in, vrx, L_SUBFR);
+                    vtmp = __riscv_vwsub_wv_i32m8(vtmp, vry, L_SUBFR);
+                    vint16m4_t vtmp16 = __riscv_vnclip_wx_i16m4(vtmp, 0, __RISCV_VXRM_RNU, L_SUBFR);
+                    __riscv_vse16_v_i16m4(cor_out, vtmp16, L_SUBFR);
+                } else {
+                    vint16m4_t vrx = __riscv_vle16_v_i16m4(pRx, L_SUBFR);
+                    vint16m4_t vry = __riscv_vle16_v_i16m4(pRy, L_SUBFR);
+                    vint32m8_t vtmp = __riscv_vwadd_vv_i32m8(vrx, vry, L_SUBFR);
+                    vtmp = __riscv_vneg_v_i32m8(vtmp, L_SUBFR);
+                    vint16m4_t vtmp16 = __riscv_vnclip_wx_i16m4(vtmp, 0, __RISCV_VXRM_RNU, L_SUBFR);
+                    __riscv_vse16_v_i16m4(cor_out, vtmp16, L_SUBFR);
+                }
+#else
                 FOR (i=0; i<L_SUBFR; i++)
                 {
                     tmp = add(pRx[i], pRy[i]);
@@ -93,6 +150,7 @@ static void E_ACELP_update_cor(
                     cor_out[i] = tmp;
                     move16();
                 }
+#endif
             }
         }
     }
