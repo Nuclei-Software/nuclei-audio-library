@@ -14,6 +14,8 @@
 
 #include "stl.h"
 
+#include "macro.h"
+
 #define DOT12_SUBDIV_LD 2  /* log2(number of dot product sub divisions) */
 
 #define HP20_COEF_SCALE  2
@@ -1713,14 +1715,29 @@ Word32 Dot_product12_offs(                 /* (o) Q31: normalized result (1 < va
 )
 {
     Word16 i, sft;
-    Word32 L_sum;
+    Word32 L_sum = 0;
 
 
+#if defined(SUPPORT_VEC_32X)
+    size_t vl, avl;
+    avl = lg;
+    vint32m1_t vsum = __riscv_vmv_s_x_i32m1(L_off, 1);
+    for (; (vl = __riscv_vsetvl_e16m4(avl)) > 0; avl -= vl) {
+        vint16m4_t vx = __riscv_vle16_v_i16m4(x, vl);
+        x += vl;
+        vint16m4_t vy = __riscv_vle16_v_i16m4(y, vl);
+        y += vl;
+        vint32m8_t vmul = __riscv_vwmul_vv_i32m8(vx, vy, vl);
+        vsum = __riscv_vredsum_vs_i32m8_i32m1(vmul, vsum, vl);
+    }
+    L_sum = __riscv_vmv_x_s_i32m1_i32(vsum);
+#else
     L_sum = L_mac0(L_off, x[0], y[0]);
     FOR (i = 1; i < lg; i++)
     {
         L_sum = L_mac0(L_sum, x[i], y[i]);
     }
+#endif
     /* Normalize acc in Q31 */
 
     sft = norm_l(L_sum);
