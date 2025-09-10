@@ -234,6 +234,16 @@ void set16_fx(
     const Word16 N     /* i  : Lenght of the vector                */
 )
 {
+#if defined(SUPPORT_VEC_32X)
+    size_t avl, vl;
+    vl = __riscv_vsetvl_e16m8(N);
+    vint16m8_t vval = __riscv_vmv_v_x_i16m8(a, vl);
+    avl = N;
+    for (; (vl = __riscv_vsetvl_e16m8(avl)) > 0; avl -= vl) {
+        __riscv_vse16_v_i16m8(y, vval, vl);
+        y += vl;
+    }
+#else
     Word16 i;
 
     FOR (i=0 ; i<N ; i++)
@@ -241,6 +251,7 @@ void set16_fx(
         y[i] = a;
         move16();
     }
+#endif
 
     return;
 }
