@@ -91,6 +91,45 @@ Word16 vlpc_1st_cod(              /* output: codebook index                   */
     Copy(w, wout, M);
     /* remove lsf prediction/means */
 
+#if defined(SUPPORT_VEC_32X)
+    size_t avl = 256;
+    size_t vl;
+    ptrdiff_t bstride = sizeof(Word16) * M;
+    p_dico = dico_lsf_abs_8b; /*14Q1*1.28*/
+
+    vint32m1_t vmin = __riscv_vmv_s_x_i32m1(MAX_32, 1);
+    int acc_cnt = 0;
+    for (; (vl = __riscv_vsetvl_e16m4(avl)) > 0; avl -= vl) {
+        const Word16 *pp_dico = p_dico;
+        vint32m8_t vdist = __riscv_vmv_v_x_i32m8(0, vl);
+        for (int i = 0; i < M; ++i) {
+            vint16m4_t vdisco = __riscv_vlse16_v_i16m4(pp_dico, bstride, vl);
+            pp_dico++;
+            vdisco = __riscv_vrsub_vx_i16m4(vdisco, lsf[i], vl);
+            vint16m4_t vwdiff =
+                __riscv_vsmul_vx_i16m4(vdisco, w[i], __RISCV_VXRM_RNU, vl);
+            vwdiff = __riscv_vsra_vx_i16m4(vwdiff, 4, vl);
+            vint32m8_t vmul = __riscv_vwmul_vv_i32m8(vwdiff, vdisco, vl);
+            vdist = __riscv_vadd_vv_i32m8(vdist, vmul, vl);
+        }
+
+        Word32 old = __riscv_vmv_x_s_i32m1_i32(vmin);
+        vmin = __riscv_vredmin_vs_i32m8_i32m1(vdist, vmin, vl);
+        Word32 new = __riscv_vmv_x_s_i32m1_i32(vmin);
+
+        if (old != new) {
+            vbool4_t veq = __riscv_vmseq_vx_i32m8_b4(vdist, new, vl);
+            Word16 idx = __riscv_vfirst_m_b4(veq, vl);
+            index = acc_cnt + idx;
+        }
+
+        p_dico += vl * M;
+        acc_cnt += vl;
+    }
+
+    vint16m2_t vdico = __riscv_vle16_v_i16m2(dico_lsf_abs_8b + index * M, M);
+    __riscv_vse16_v_i16m2(lsfq, vdico, M);
+#else
     /*dist_min = 1.0e30f;*/
     dist_min = L_add(MAX_32, 0);
     p_dico = dico_lsf_abs_8b;        /*14Q1*1.28*/
@@ -126,6 +165,7 @@ Word16 vlpc_1st_cod(              /* output: codebook index                   */
         lsfq[j] = *p_dico++;
         move16();
     }
+#endif
 
 
     return index;
