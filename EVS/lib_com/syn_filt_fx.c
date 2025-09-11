@@ -78,6 +78,31 @@ void syn_filt_s_lc_fx(
     /*-----------------------------------------------------------------------*
      * Do the filtering
      *-----------------------------------------------------------------------*/
+#if defined(SUPPORT_VEC_32X)
+    L_tmp = a0 * *x++; // Q30
+#if defined(SUPPORT_DSP_STD)
+    *y++ = __RV_KSLRAW_U(L_tmp, q - 15);
+#else
+    L_tmp = L_shl(L_tmp, q + 1);
+    *y++ = round_fx(L_tmp);
+#endif
+    assert(__riscv_vlenb() >= 16);
+    size_t vl = M;
+    vint16m2_t va = __riscv_vle16_v_i16m2(a + 1, vl);
+    vint32m4_t vsum = __riscv_vmv_v_x_i32m4(0, vl);
+    for (i = 1; i < lg; ++i) {
+        L_tmp = a0 * *x++; // Q30
+        vsum = __riscv_vwmacc_vx_i32m4_tu(vsum, y[-1], va, vl);
+        L_tmp -= __riscv_vmv_x_s_i32m4_i32(vsum);
+        vsum = __riscv_vslide1down_vx_i32m4(vsum, 0, vl);
+#if defined(SUPPORT_DSP_STD)
+        *y++ = __RV_KSLRAW_U(L_tmp, q - 15);
+#else
+        L_tmp = L_shl(L_tmp, q + 1);
+        *y++ = round_fx(L_tmp);
+#endif
+    }
+#else
     FOR (i = 0; i < M; i++)
     {
         L_tmp = L_mult(*x++, a0);
@@ -97,6 +122,7 @@ void syn_filt_s_lc_fx(
         L_tmp = L_shl(L_tmp, q);
         *y++ = round_fx(L_tmp);
     }
+#endif
 }
 
 /*------------------------------------------------------------------*
@@ -179,6 +205,38 @@ void E_UTIL_synthesis(const Word16 shift, const Word16 a[], const Word16 x[], Wo
     /*-----------------------------------------------------------------------*
      * Do the filtering
      *-----------------------------------------------------------------------*/
+
+#if defined(SUPPORT_VEC_32X)
+    vint16m2_t vmem = __riscv_vmv_v_x_i16m2(0, m);
+    vint32m4_t vsum = __riscv_vmv_v_x_i32m4(0, m);
+    for (int i = 1; i <= m; ++i) {
+        vmem = __riscv_vslide1up_vx_i16m2(vmem, mem[-i], i);
+        vsum = __riscv_vwmacc_vx_i32m4(vsum, a[i], vmem, i);
+    }
+    L_tmp = a0 * *x++; // Q30
+    L_tmp -= __riscv_vmv_x_s_i32m4_i32(vsum);
+    vsum = __riscv_vslide1down_vx_i32m4(vsum, 0, m);
+#if defined(SUPPORT_DSP_STD)
+    *y++ = __RV_KSLRAW_U(L_tmp, q - 15);
+#else
+    L_tmp = L_shl(L_tmp, q + 1);
+    *y++ = round_fx(L_tmp);
+#endif
+    vint16m2_t va = __riscv_vle16_v_i16m2(a + 1, m);
+    for (int i = 1; i < lg; ++i) {
+        L_tmp = a0 * *x++; // Q30
+        vsum = __riscv_vwmacc_vx_i32m4_tu(vsum, y[-1], va, m);
+        L_tmp -= __riscv_vmv_x_s_i32m4_i32(vsum);
+        vsum = __riscv_vslide1down_vx_i32m4(vsum, 0, m);
+#if defined(SUPPORT_DSP_STD)
+        *y++ = __RV_KSLRAW_U(L_tmp, q - 15);
+#else
+        L_tmp = L_shl(L_tmp, q + 1);
+        *y++ = round_fx(L_tmp);
+#endif
+    }
+#else
+
     /* Filtering Only from Input + Memory */
     L_tmp = syn_kern(L_mult(a0, *x++), a, mem);
     L_tmp = L_shl(L_tmp, q);
@@ -209,17 +267,23 @@ void E_UTIL_synthesis(const Word16 shift, const Word16 a[], const Word16 x[], Wo
         L_tmp = L_shl(L_tmp, q);
         *y++ = round_fx(L_tmp);
     }
+    #endif
 
     /*-----------------------------------------------------------------------*
      * Update memory if required
      *-----------------------------------------------------------------------*/
     IF (update != 0)
     {
+#if defined(SUPPORT_VEC_32X)
+        vint16m4_t vy = __riscv_vle16_v_i16m4(y - m, m);
+        __riscv_vse16_v_i16m4(mem - m, vy, m);
+#else
         FOR (i = 0; i < m; i++)
         {
             *--mem = *--y;
             move16();
         }
+#endif
     }
 
     return;
