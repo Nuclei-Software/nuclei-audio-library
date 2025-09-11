@@ -236,12 +236,14 @@ void set_impulse_fx(
     /* Find the ACELP correlations and the pitch gain (for current subframe) */
     /**gain_trans = dot_product( xn, yy1, L_SUBFR )/(dot_product( yy1, yy1, L_SUBFR ) + 0.01f);*/
     /* Compute scalar product <y1[],y1[]> */
-    Ltmp = Dot_product(yy1_fx, yy1_fx, L_SUBFR);
+    // Ltmp = Dot_product(yy1_fx, yy1_fx, L_SUBFR);
+    Ltmp = Dot_product64(yy1_fx, yy1_fx);
     exp_den = norm_l(Ltmp);
     den = extract_h(L_shl(Ltmp, exp_den));
 
     /* Compute scalar product <xn[],y1[]> */
-    Ltmp1 = Dot_product(xn_fx, yy1_fx, L_SUBFR);
+    // Ltmp1 = Dot_product(xn_fx, yy1_fx, L_SUBFR);
+    Ltmp1 = Dot_product64(xn_fx, yy1_fx);
     exp_num = sub(norm_l(Ltmp1), 1);
     num = extract_h(L_shl(Ltmp1, exp_num));
     tmp16 = s_or(shr(num, 16), 1);        /* extract sign if num < 0 tmp16 = -1 else tmp16 = 1 */

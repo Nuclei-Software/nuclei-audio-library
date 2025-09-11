@@ -2700,6 +2700,44 @@ Word32 Dot_product(         /* o  : Sum              */
     const Word16 lg         /* i  : vector length    */
 );
 
+static inline Word32 Dot_product64(                  /* o  : Sum              */
+                                   const Word16 x[], /* i  : 12bits: x vector */
+                                   const Word16 y[]  /* i  : 12bits: y vector */
+) {
+    Word32 L_sum = 0;
+#if defined(SUPPORT_VEC_32X) && defined(SUPPORT_VL256)
+    const size_t vl = 64;
+    vint16m4_t vx = __riscv_vle16_v_i16m4(x, vl);
+    vint16m4_t vy = __riscv_vle16_v_i16m4(y, vl);
+    vint32m1_t vsum = __riscv_vmv_s_x_i32m1(0, 1);
+    vint32m8_t vmul = __riscv_vwmul_vv_i32m8(vx, vy, vl);
+    vmul = __riscv_vsll_vx_i32m8(vmul, 1, vl);
+    vsum = __riscv_vredsum_vs_i32m8_i32m1(vmul, vsum, vl);
+    L_sum = __riscv_vmv_x_s_i32m1_i32(vsum);
+#elif defined(SUPPORT_VEC_32X) && defined(SUPPORT_VL128)
+    const size_t vl = 32;
+    vint16m4_t vx = __riscv_vle16_v_i16m4(x, vl);
+    x += vl;
+    vint16m4_t vy = __riscv_vle16_v_i16m4(y, vl);
+    y += vl;
+    vint32m1_t vsum = __riscv_vmv_s_x_i32m1(0, 1);
+    vint32m8_t vmul = __riscv_vwmul_vv_i32m8(vx, vy, vl);
+    vmul = __riscv_vsll_vx_i32m8(vmul, 1, vl);
+    vsum = __riscv_vredsum_vs_i32m8_i32m1(vmul, vsum, vl);
+
+    vx = __riscv_vle16_v_i16m4(x, vl);
+    vy = __riscv_vle16_v_i16m4(y, vl);
+    vmul = __riscv_vwmul_vv_i32m8(vx, vy, vl);
+    vmul = __riscv_vsll_vx_i32m8(vmul, 1, vl);
+    vsum = __riscv_vredsum_vs_i32m8_i32m1(vmul, vsum, vl);
+
+    L_sum = __riscv_vmv_x_s_i32m1_i32(vsum);
+#else
+    L_sum = Dot_product(x, y, 64);
+#endif
+    return L_sum;
+}
+
 Word16 usquant_fx(          /* o: index of the winning codeword   */
     const Word16 x,         /* i: scalar value to quantize        Qx*/
     Word16 *xq,       /* o: quantized value                 Qx*/

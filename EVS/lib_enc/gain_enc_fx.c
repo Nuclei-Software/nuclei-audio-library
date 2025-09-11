@@ -883,13 +883,15 @@ void gain_enc_tc_fx(
 
     /**gain_code = dotp( xn, y2, L_SUBFR )/( dotp( y2, y2, L_SUBFR ) + 0.01f );*/
     /* Compute scalar product <y2[],y2[]> */
-    L_tmp = Dot_product(y2_fx, y2_fx, L_SUBFR);       /* -18 (y2 Q9) */
+    // L_tmp = Dot_product(y2_fx, y2_fx, L_SUBFR);       /* -18 (y2 Q9) */
+    L_tmp = Dot_product64(y2_fx, y2_fx);       /* -18 (y2 Q9) */
     exp_den = norm_l(L_tmp);
     den = extract_h(L_shl(L_tmp, exp_den));
     exp_den = sub(add(exp_den, 18), shl(Q_xn, 1));
 
     /* Compute scalar product <xn[],y2[]> */
-    L_tmp1 = Dot_product(xn_fx, y2_fx, L_SUBFR);      /* -9 (y2 Q9)  */
+    // L_tmp1 = Dot_product(xn_fx, y2_fx, L_SUBFR);      /* -9 (y2 Q9)  */
+    L_tmp1 = Dot_product64(xn_fx, y2_fx);      /* -9 (y2 Q9)  */
     exp_num = sub(norm_l(L_tmp1),1);
     num = extract_h(L_shl(L_tmp1, exp_num));
     exp_num = sub(add(exp_num, 8 ), Q_xn);

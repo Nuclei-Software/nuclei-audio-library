@@ -618,7 +618,8 @@ void hf_synth_amr_wb_fx(
     pt4 = til0;
     FOR( i=0; i<NB_SUBFR; i++ )
     {
-        enr1 = Dot_product(pt2, pt2, L_SUBFR);      /*2*(Q_syn-3)+1 */
+        // enr1 = Dot_product(pt2, pt2, L_SUBFR);      /*2*(Q_syn-3)+1 */
+        enr1 = Dot_product64(pt2, pt2);      /*2*(Q_syn-3)+1 */
         enr2 = Dot_product(pt1, pt2, L_SUBFR-1);    /*2*(Q_syn-3)+1 */
 
         tmp1 = extract_h(enr1);

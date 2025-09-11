@@ -93,11 +93,31 @@ Word32 Dot_product(     /* o  : Sum              */
     Word16 i;
     Word32 L_sum;
 
+#if defined(SUPPORT_VEC_32X)
+    if (lg >= 32) {
+        size_t avl = lg;
+        size_t vl;
+        vint32m1_t vsum = __riscv_vmv_s_x_i32m1(0, 1);
+        for (; (vl = __riscv_vsetvl_e16m1(avl)) > 0; avl -= vl) {
+            vint16m4_t vx = __riscv_vle16_v_i16m4(x, vl);
+            x += vl;
+            vint16m4_t vy = __riscv_vle16_v_i16m4(y, vl);
+            y += vl;
+            vint32m8_t vmul = __riscv_vwmul_vv_i32m8(vx, vy, vl);
+            vmul = __riscv_vsll_vx_i32m8(vmul, 1, vl);
+            vsum = __riscv_vredsum_vs_i32m8_i32m1(vmul, vsum, vl);
+        }
+        L_sum = __riscv_vmv_x_s_i32m1_i32(vsum);
+    } else {
+#endif
     L_sum = L_mac(1L, x[0], y[0]);
     FOR (i = 1; i < lg; i++)
     {
         L_sum = L_mac(L_sum, x[i], y[i]);
     }
+#if defined(SUPPORT_VEC_32X)
+    }
+#endif
     return L_sum;
 }
 /*---------------------------------------------------------------------*

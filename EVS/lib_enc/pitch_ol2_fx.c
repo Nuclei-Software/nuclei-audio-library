@@ -61,7 +61,8 @@ void pitch_ol2_fx(
     t1 = L_deposit_l(0);
     FOR (t=t_min; t<=t_max; t++)
     {
-        t0 = Dot_product(pt_wsp_fx, pt_wsp_fx-t, L_SUBFR);
+        // t0 = Dot_product(pt_wsp_fx, pt_wsp_fx-t, L_SUBFR);
+        t0 = Dot_product64(pt_wsp_fx, pt_wsp_fx-t);
         *pt_cor_32++ = t0;
         move32();
         t0 = L_abs(t0);
@@ -342,7 +343,8 @@ void StableHighPitchDetect_fx(
     move16();
     FOR( T=pit_min; T<=pit_min_up; T++ )
     {
-        energy1 = Dot_product( pt_wsp, pt_wsp-T, L_SUBFR  );
+        // energy1 = Dot_product( pt_wsp, pt_wsp-T, L_SUBFR  );
+        energy1 = Dot_product64( pt_wsp, pt_wsp-T );
         test();
         IF( (L_sub(energy1,cor_max)>0) || (sub(T,pit_min) ==0) )
         {
