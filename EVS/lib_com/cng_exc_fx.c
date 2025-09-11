@@ -813,7 +813,11 @@ void cng_params_upd_fx(
         /* calculate the spectrum of residual signal */
         Copy(exc2, fft_io, L_frame);
 
+#if defined(SUPPORT_VEC_32X)
+        r_fft_fx_lc_256(fft_io, fft_io);
+#else
         fft_rel_fx(fft_io, L_FFT, LOG2_L_FFT);
+#endif
 
         ptR = &fft_io[1];
         ptI = &fft_io[L_FFT-1];

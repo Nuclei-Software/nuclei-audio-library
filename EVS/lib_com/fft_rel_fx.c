@@ -429,3 +429,360 @@ void r_fft_fx_lc(
         c_fft_fx(phs_tbl, SIZE, NUM_STAGE, temp, out_ptr, isign);
     }
 }
+
+#if defined(SUPPORT_VEC_32X)
+
+const int16_t cfft_twd_len128_re_q15[];
+const int16_t cfft_twd_len128_im_q15[];
+const uint16_t cfft_bridx_len128_q15[];
+const int16_t rfft_twd_len256_re_q15[];
+const int16_t rfft_twd_len256_im_q15[];
+
+void rvv_cfft_128(const Word16 *in_ptr, Word16 *out_ptr, Word16 *buffer) {
+    const long N = 128;
+    int16_t *buf[2] = {buffer, buffer + N * 2};
+    int buf_idx = 0; // data in buf_idx
+
+    const int16_t *ptwd_re = cfft_twd_len128_re_q15;
+    const int16_t *ptwd_im = cfft_twd_len128_im_q15;
+
+    int32_t avl = N >> 1;
+    size_t vl;
+    const int16_t *px = in_ptr;
+    int16_t *py = buf[buf_idx];
+    for (; (vl = __riscv_vsetvl_e16m2(avl)) > 0; avl -= vl) {
+        vint16m2x2_t v_tuple = __riscv_vlseg2e16_v_i16m2x2(px, vl);
+        vint16m2_t va_re = __riscv_vget_v_i16m2x2_i16m2(v_tuple, 0);
+        vint16m2_t va_im = __riscv_vget_v_i16m2x2_i16m2(v_tuple, 1);
+        v_tuple = __riscv_vlseg2e16_v_i16m2x2(px + N, vl);
+        vint16m2_t vb_re = __riscv_vget_v_i16m2x2_i16m2(v_tuple, 0);
+        vint16m2_t vb_im = __riscv_vget_v_i16m2x2_i16m2(v_tuple, 1);
+        px += 2 * vl;
+
+        // scale down to prevent overflow
+        va_re = __riscv_vsra_vx_i16m2(va_re, 1, vl);
+        va_im = __riscv_vsra_vx_i16m2(va_im, 1, vl);
+        vb_re = __riscv_vsra_vx_i16m2(vb_re, 1, vl);
+        vb_im = __riscv_vsra_vx_i16m2(vb_im, 1, vl);
+
+        vint16m2_t vre0 = __riscv_vsadd_vv_i16m2(va_re, vb_re, vl);
+        vre0 = __riscv_vsra_vx_i16m2(vre0, 1, vl);
+        vint16m2_t vim0 = __riscv_vsadd_vv_i16m2(va_im, vb_im, vl);
+        vim0 = __riscv_vsra_vx_i16m2(vim0, 1, vl);
+
+        vint16m2_t vtmp_re = __riscv_vssub_vv_i16m2(va_re, vb_re, vl);
+        vtmp_re = __riscv_vsra_vx_i16m2(vtmp_re, 1, vl);
+        vint16m2_t vtmp_im = __riscv_vssub_vv_i16m2(va_im, vb_im, vl);
+        vtmp_im = __riscv_vsra_vx_i16m2(vtmp_im, 1, vl);
+
+        vint16m2_t vtwd_re = __riscv_vle16_v_i16m2(ptwd_re, vl);
+        ptwd_re += vl;
+        vint16m2_t vtwd_im = __riscv_vle16_v_i16m2(ptwd_im, vl);
+        ptwd_im += vl;
+
+        vint16m2_t vre1 = __riscv_vssub_vv_i16m2(
+            __riscv_vsmul_vv_i16m2(vtmp_re, vtwd_re, __RISCV_VXRM_RNU, vl),
+            __riscv_vsmul_vv_i16m2(vtmp_im, vtwd_im, __RISCV_VXRM_RNU, vl), vl);
+        vint16m2_t vim1 = __riscv_vsadd_vv_i16m2(
+            __riscv_vsmul_vv_i16m2(vtmp_im, vtwd_re, __RISCV_VXRM_RNU, vl),
+            __riscv_vsmul_vv_i16m2(vtmp_re, vtwd_im, __RISCV_VXRM_RNU, vl), vl);
+
+        v_tuple = __riscv_vset_v_i16m2_i16m2x2(v_tuple, 0, vre0);
+        v_tuple = __riscv_vset_v_i16m2_i16m2x2(v_tuple, 1, vre1);
+        __riscv_vsseg2e16_v_i16m2x2(py, v_tuple, vl);
+        v_tuple = __riscv_vset_v_i16m2_i16m2x2(v_tuple, 0, vim0);
+        v_tuple = __riscv_vset_v_i16m2_i16m2x2(v_tuple, 1, vim1);
+        __riscv_vsseg2e16_v_i16m2x2(py + N, v_tuple, vl);
+        py += 2 * vl;
+    }
+
+    for (int a = N >> 1, stage = 0; a > 2; a >>= 1, stage++) {
+        avl = N >> 1;
+        const int16_t *px = buf[buf_idx];
+        int16_t *py = buf[1 - buf_idx];
+
+        for (; (vl = __riscv_vsetvl_e16m2(avl)) > 0; avl -= vl) {
+            vint16m2_t va_re = __riscv_vle16_v_i16m2(px, vl);
+            vint16m2_t va_im = __riscv_vle16_v_i16m2(px + N, vl);
+            vint16m2_t vb_re = __riscv_vle16_v_i16m2(px + N / 2, vl);
+            vint16m2_t vb_im = __riscv_vle16_v_i16m2(px + N * 3 / 2, vl);
+            px += vl;
+
+            vint16m2_t vre0 = __riscv_vadd_vv_i16m2(va_re, vb_re, vl);
+            vre0 = __riscv_vsra_vx_i16m2(vre0, 1, vl);
+            vint16m2_t vim0 = __riscv_vadd_vv_i16m2(va_im, vb_im, vl);
+            vim0 = __riscv_vsra_vx_i16m2(vim0, 1, vl);
+
+            vint16m2_t vtmp_re = __riscv_vsub_vv_i16m2(va_re, vb_re, vl);
+            vtmp_re = __riscv_vsra_vx_i16m2(vtmp_re, 1, vl);
+            vint16m2_t vtmp_im = __riscv_vsub_vv_i16m2(va_im, vb_im, vl);
+            vtmp_im = __riscv_vsra_vx_i16m2(vtmp_im, 1, vl);
+
+            vint16m2_t vtwd_re = __riscv_vle16_v_i16m2(ptwd_re, vl);
+            ptwd_re += vl;
+            vint16m2_t vtwd_im = __riscv_vle16_v_i16m2(ptwd_im, vl);
+            ptwd_im += vl;
+
+            vint16m2_t vre1 = __riscv_vssub_vv_i16m2(
+                __riscv_vsmul_vv_i16m2(vtmp_re, vtwd_re, __RISCV_VXRM_RNU, vl),
+                __riscv_vsmul_vv_i16m2(vtmp_im, vtwd_im, __RISCV_VXRM_RNU, vl),
+                vl);
+            vint16m2_t vim1 = __riscv_vsadd_vv_i16m2(
+                __riscv_vsmul_vv_i16m2(vtmp_re, vtwd_im, __RISCV_VXRM_RNU, vl),
+                __riscv_vsmul_vv_i16m2(vtmp_im, vtwd_re, __RISCV_VXRM_RNU, vl),
+                vl);
+
+            vint16m2x2_t v_tuple;
+            v_tuple = __riscv_vset_v_i16m2_i16m2x2(v_tuple, 0, vre0);
+            v_tuple = __riscv_vset_v_i16m2_i16m2x2(v_tuple, 1, vre1);
+            __riscv_vsseg2e16_v_i16m2x2(py, v_tuple, vl);
+
+            v_tuple = __riscv_vset_v_i16m2_i16m2x2(v_tuple, 0, vim0);
+            v_tuple = __riscv_vset_v_i16m2_i16m2x2(v_tuple, 1, vim1);
+            __riscv_vsseg2e16_v_i16m2x2(py + N, v_tuple, vl);
+            py += 2 * vl;
+        }
+        buf_idx = 1 - buf_idx;
+    }
+
+    avl = N >> 1;
+    px = buf[buf_idx];
+    py = out_ptr;
+    const uint16_t *pidx = cfft_bridx_len128_q15;
+    for (; (vl = __riscv_vsetvl_e16m2(avl)) > 0; avl -= vl) {
+        vint16m2_t va_re = __riscv_vle16_v_i16m2(px, vl);
+        vint16m2_t va_im = __riscv_vle16_v_i16m2(px + N, vl);
+        vint16m2_t vb_re = __riscv_vle16_v_i16m2(px + N / 2, vl);
+        vint16m2_t vb_im = __riscv_vle16_v_i16m2(px + N * 3 / 2, vl);
+        px += vl;
+
+        vint16m2_t vre0 = __riscv_vadd_vv_i16m2(va_re, vb_re, vl);
+        vint16m2_t vim0 = __riscv_vadd_vv_i16m2(va_im, vb_im, vl);
+
+        vint16m2_t vre1 = __riscv_vsub_vv_i16m2(va_re, vb_re, vl);
+        vint16m2_t vim1 = __riscv_vsub_vv_i16m2(va_im, vb_im, vl);
+
+        vuint16m2_t vidx = __riscv_vle16_v_u16m2(pidx, vl);
+        vint16m2x2_t v_tuple;
+        v_tuple = __riscv_vset_v_i16m2_i16m2x2(v_tuple, 0, vre0);
+        v_tuple = __riscv_vset_v_i16m2_i16m2x2(v_tuple, 1, vim0);
+        __riscv_vsoxseg2ei16_v_i16m2x2(py, vidx, v_tuple, vl);
+
+        vidx = __riscv_vle16_v_u16m2(pidx + (N >> 1), vl);
+        v_tuple = __riscv_vset_v_i16m2_i16m2x2(v_tuple, 0, vre1);
+        v_tuple = __riscv_vset_v_i16m2_i16m2x2(v_tuple, 1, vim1);
+
+        pidx += vl;
+        __riscv_vsoxseg2ei16_v_i16m2x2(py, vidx, v_tuple, vl);
+    }
+}
+
+void r_fft_fx_lc_256(
+    const Word16 *in_ptr, /* i  : coefficients in the order re[0], re[1], ...
+                             re[n/2], im[n/2-1], im[n/2-2], ..., im[1] */
+    Word16 *out_ptr /* o  : coefficients in the order re[0], re[1], ... re[n/2],
+                       im[n/2-1], im[n/2-2], ..., im[1] */
+) {
+    const int N = 256;
+    Word16 buffer[256 * 3];
+    Word16 *y = buffer + 512;
+    rvv_cfft_128(in_ptr, y, buffer);
+
+    // Y[0] = F[0] + G[0]
+    const int16_t F0 = y[0];
+    const int16_t G0 = y[1];
+    out_ptr[0] = F0 + G0;
+    out_ptr[N / 2] = F0 - G0;
+
+    size_t avl = (N >> 1) - 1;
+    size_t vl;
+    const int16_t *py = y + 2;
+    const int16_t *py_inv = y + N - 2;
+    int16_t *pout_re = out_ptr + 1;
+    int16_t *pout_im = out_ptr + N -1;
+    ptrdiff_t bstride = -sizeof(int16_t);
+    const int16_t *ptwd_re = rfft_twd_len256_re_q15 + 1;
+    const int16_t *ptwd_im = rfft_twd_len256_im_q15 + 1;
+    for (; (vl = __riscv_vsetvl_e16m2(avl)) > 0; avl -= vl) {
+        // load vx_re, vx_im
+        vint16m2x2_t v_tuple = __riscv_vlseg2e16_v_i16m2x2(py, vl);
+        py += vl * 2;
+        vint16m2_t vy_re = __riscv_vget_v_i16m2x2_i16m2(v_tuple, 0);
+        vint16m2_t vy_im = __riscv_vget_v_i16m2x2_i16m2(v_tuple, 1);
+
+        v_tuple =
+            __riscv_vlsseg2e16_v_i16m2x2(py_inv, -sizeof(int16_t) * 2, vl);
+        py_inv -= vl * 2;
+        vint16m2_t vy_inv_re = __riscv_vget_v_i16m2x2_i16m2(v_tuple, 0);
+        vint16m2_t vy_inv_im = __riscv_vget_v_i16m2x2_i16m2(v_tuple, 1);
+
+        // vFr
+        vint16m2_t vFr_re = __riscv_vadd_vv_i16m2(vy_re, vy_inv_re, vl);
+        vFr_re = __riscv_vsra_vx_i16m2(vFr_re, 1, vl);
+        vint16m2_t vFr_im = __riscv_vsub_vv_i16m2(vy_im, vy_inv_im, vl);
+        vFr_im = __riscv_vsra_vx_i16m2(vFr_im, 1, vl);
+
+        // vGr
+        vint16m2_t vGr_re = __riscv_vadd_vv_i16m2(vy_inv_im, vy_im, vl);
+        vGr_re = __riscv_vsra_vx_i16m2(vGr_re, 1, vl);
+        vint16m2_t vGr_im = __riscv_vsub_vv_i16m2(vy_inv_re, vy_re, vl);
+        vGr_im = __riscv_vsra_vx_i16m2(vGr_im, 1, vl);
+
+        vint16m2_t vtwd_re = __riscv_vle16_v_i16m2(ptwd_re, vl);
+        ptwd_re += vl;
+        vint16m2_t vtwd_im = __riscv_vle16_v_i16m2(ptwd_im, vl);
+        ptwd_im += vl;
+
+        vint16m2_t vout_re = __riscv_vssub_vv_i16m2(
+            __riscv_vsmul_vv_i16m2(vGr_re, vtwd_re, __RISCV_VXRM_RNU, vl),
+            __riscv_vsmul_vv_i16m2(vGr_im, vtwd_im, __RISCV_VXRM_RNU, vl), vl);
+        vint16m2_t vout_im = __riscv_vsadd_vv_i16m2(
+            __riscv_vsmul_vv_i16m2(vGr_im, vtwd_re, __RISCV_VXRM_RNU, vl),
+            __riscv_vsmul_vv_i16m2(vGr_re, vtwd_im, __RISCV_VXRM_RNU, vl), vl);
+
+        vout_re = __riscv_vadd_vv_i16m2(vFr_re, vout_re, vl);
+        vout_im = __riscv_vadd_vv_i16m2(vFr_im, vout_im, vl);
+
+        __riscv_vse16_v_i16m2(pout_re, vout_re, vl);
+        __riscv_vsse16_v_i16m2(pout_im, bstride, vout_im, vl);
+        pout_re += vl;
+        pout_im -= vl;
+    }
+}
+
+const uint16_t cfft_bridx_len128_q15[] = {
+    0,   128, 64,  192, 32,  160, 96,  224, 16,  144, 80,  208, 48,  176, 112,
+    240, 8,   136, 72,  200, 40,  168, 104, 232, 24,  152, 88,  216, 56,  184,
+    120, 248, 4,   132, 68,  196, 36,  164, 100, 228, 20,  148, 84,  212, 52,
+    180, 116, 244, 12,  140, 76,  204, 44,  172, 108, 236, 28,  156, 92,  220,
+    60,  188, 124, 252, 256, 384, 320, 448, 288, 416, 352, 480, 272, 400, 336,
+    464, 304, 432, 368, 496, 264, 392, 328, 456, 296, 424, 360, 488, 280, 408,
+    344, 472, 312, 440, 376, 504, 260, 388, 324, 452, 292, 420, 356, 484, 276,
+    404, 340, 468, 308, 436, 372, 500, 268, 396, 332, 460, 300, 428, 364, 492,
+    284, 412, 348, 476, 316, 444, 380, 508};
+
+const int16_t rfft_twd_len256_re_q15[] = {
+    32767,  32758,  32728,  32679,  32610,  32521,  32413,  32285,  32138,
+    31971,  31785,  31581,  31357,  31114,  30852,  30572,  30273,  29956,
+    29621,  29269,  28898,  28511,  28106,  27684,  27245,  26790,  26319,
+    25832,  25330,  24812,  24279,  23732,  23170,  22594,  22005,  21403,
+    20787,  20159,  19519,  18868,  18204,  17530,  16846,  16151,  15446,
+    14732,  14010,  13278,  12539,  11793,  11039,  10278,  9512,   8739,
+    7961,   7179,   6392,   5602,   4808,   4011,   3211,   2410,   1607,
+    804,    0,      -804,   -1607,  -2410,  -3211,  -4011,  -4808,  -5602,
+    -6392,  -7179,  -7961,  -8739,  -9512,  -10278, -11039, -11793, -12539,
+    -13278, -14010, -14732, -15446, -16151, -16846, -17530, -18204, -18868,
+    -19519, -20159, -20787, -21403, -22005, -22594, -23170, -23732, -24279,
+    -24812, -25330, -25832, -26319, -26790, -27245, -27684, -28106, -28511,
+    -28898, -29269, -29621, -29956, -30273, -30572, -30852, -31114, -31357,
+    -31581, -31785, -31971, -32138, -32285, -32413, -32521, -32610, -32679,
+    -32728, -32758};
+
+const int16_t rfft_twd_len256_im_q15[] = {
+    0,      -804,   -1607,  -2410,  -3211,  -4011,  -4808,  -5602,  -6392,
+    -7179,  -7961,  -8739,  -9512,  -10278, -11039, -11793, -12539, -13278,
+    -14010, -14732, -15446, -16151, -16846, -17530, -18204, -18868, -19519,
+    -20159, -20787, -21403, -22005, -22594, -23170, -23732, -24279, -24812,
+    -25330, -25832, -26319, -26790, -27245, -27684, -28106, -28511, -28898,
+    -29269, -29621, -29956, -30273, -30572, -30852, -31114, -31357, -31581,
+    -31785, -31971, -32138, -32285, -32413, -32521, -32610, -32679, -32728,
+    -32758, -32768, -32758, -32728, -32679, -32610, -32521, -32413, -32285,
+    -32138, -31971, -31785, -31581, -31357, -31114, -30852, -30572, -30273,
+    -29956, -29621, -29269, -28898, -28511, -28106, -27684, -27245, -26790,
+    -26319, -25832, -25330, -24812, -24279, -23732, -23170, -22594, -22005,
+    -21403, -20787, -20159, -19519, -18868, -18204, -17530, -16846, -16151,
+    -15446, -14732, -14010, -13278, -12539, -11793, -11039, -10278, -9512,
+    -8739,  -7961,  -7179,  -6392,  -5602,  -4808,  -4011,  -3211,  -2410,
+    -1607,  -804};
+
+const int16_t cfft_twd_len128_re_q15[] = {
+    32767,  32728,  32610,  32413,  32138,  31785,  31357,  30852,  30273,
+    29621,  28898,  28106,  27245,  26319,  25330,  24279,  23170,  22005,
+    20787,  19519,  18204,  16846,  15446,  14010,  12539,  11039,  9512,
+    7961,   6392,   4808,   3211,   1607,   0,      -1607,  -3211,  -4808,
+    -6392,  -7961,  -9512,  -11039, -12539, -14010, -15446, -16846, -18204,
+    -19519, -20787, -22005, -23170, -24279, -25330, -26319, -27245, -28106,
+    -28898, -29621, -30273, -30852, -31357, -31785, -32138, -32413, -32610,
+    -32728, 32767,  32767,  32610,  32610,  32138,  32138,  31357,  31357,
+    30273,  30273,  28898,  28898,  27245,  27245,  25330,  25330,  23170,
+    23170,  20787,  20787,  18204,  18204,  15446,  15446,  12539,  12539,
+    9512,   9512,   6392,   6392,   3211,   3211,   0,      0,      -3211,
+    -3211,  -6392,  -6392,  -9512,  -9512,  -12539, -12539, -15446, -15446,
+    -18204, -18204, -20787, -20787, -23170, -23170, -25330, -25330, -27245,
+    -27245, -28898, -28898, -30273, -30273, -31357, -31357, -32138, -32138,
+    -32610, -32610, 32767,  32767,  32767,  32767,  32138,  32138,  32138,
+    32138,  30273,  30273,  30273,  30273,  27245,  27245,  27245,  27245,
+    23170,  23170,  23170,  23170,  18204,  18204,  18204,  18204,  12539,
+    12539,  12539,  12539,  6392,   6392,   6392,   6392,   0,      0,
+    0,      0,      -6392,  -6392,  -6392,  -6392,  -12539, -12539, -12539,
+    -12539, -18204, -18204, -18204, -18204, -23170, -23170, -23170, -23170,
+    -27245, -27245, -27245, -27245, -30273, -30273, -30273, -30273, -32138,
+    -32138, -32138, -32138, 32767,  32767,  32767,  32767,  32767,  32767,
+    32767,  32767,  30273,  30273,  30273,  30273,  30273,  30273,  30273,
+    30273,  23170,  23170,  23170,  23170,  23170,  23170,  23170,  23170,
+    12539,  12539,  12539,  12539,  12539,  12539,  12539,  12539,  0,
+    0,      0,      0,      0,      0,      0,      0,      -12539, -12539,
+    -12539, -12539, -12539, -12539, -12539, -12539, -23170, -23170, -23170,
+    -23170, -23170, -23170, -23170, -23170, -30273, -30273, -30273, -30273,
+    -30273, -30273, -30273, -30273, 32767,  32767,  32767,  32767,  32767,
+    32767,  32767,  32767,  32767,  32767,  32767,  32767,  32767,  32767,
+    32767,  32767,  23170,  23170,  23170,  23170,  23170,  23170,  23170,
+    23170,  23170,  23170,  23170,  23170,  23170,  23170,  23170,  23170,
+    0,      0,      0,      0,      0,      0,      0,      0,      0,
+    0,      0,      0,      0,      0,      0,      0,      -23170, -23170,
+    -23170, -23170, -23170, -23170, -23170, -23170, -23170, -23170, -23170,
+    -23170, -23170, -23170, -23170, -23170, 32767,  32767,  32767,  32767,
+    32767,  32767,  32767,  32767,  32767,  32767,  32767,  32767,  32767,
+    32767,  32767,  32767,  32767,  32767,  32767,  32767,  32767,  32767,
+    32767,  32767,  32767,  32767,  32767,  32767,  32767,  32767,  32767,
+    32767,  0,      0,      0,      0,      0,      0,      0,      0,
+    0,      0,      0,      0,      0,      0,      0,      0,      0,
+    0,      0,      0,      0,      0,      0,      0,      0,      0,
+    0,      0,      0,      0,      0,      0};
+
+const int16_t cfft_twd_len128_im_q15[] = {
+    0,      -1607,  -3211,  -4808,  -6392,  -7961,  -9512,  -11039, -12539,
+    -14010, -15446, -16846, -18204, -19519, -20787, -22005, -23170, -24279,
+    -25330, -26319, -27245, -28106, -28898, -29621, -30273, -30852, -31357,
+    -31785, -32138, -32413, -32610, -32728, -32768, -32728, -32610, -32413,
+    -32138, -31785, -31357, -30852, -30273, -29621, -28898, -28106, -27245,
+    -26319, -25330, -24279, -23170, -22005, -20787, -19519, -18204, -16846,
+    -15446, -14010, -12539, -11039, -9512,  -7961,  -6392,  -4808,  -3211,
+    -1607,  0,      0,      -3211,  -3211,  -6392,  -6392,  -9512,  -9512,
+    -12539, -12539, -15446, -15446, -18204, -18204, -20787, -20787, -23170,
+    -23170, -25330, -25330, -27245, -27245, -28898, -28898, -30273, -30273,
+    -31357, -31357, -32138, -32138, -32610, -32610, -32768, -32768, -32610,
+    -32610, -32138, -32138, -31357, -31357, -30273, -30273, -28898, -28898,
+    -27245, -27245, -25330, -25330, -23170, -23170, -20787, -20787, -18204,
+    -18204, -15446, -15446, -12539, -12539, -9512,  -9512,  -6392,  -6392,
+    -3211,  -3211,  0,      0,      0,      0,      -6392,  -6392,  -6392,
+    -6392,  -12539, -12539, -12539, -12539, -18204, -18204, -18204, -18204,
+    -23170, -23170, -23170, -23170, -27245, -27245, -27245, -27245, -30273,
+    -30273, -30273, -30273, -32138, -32138, -32138, -32138, -32768, -32768,
+    -32768, -32768, -32138, -32138, -32138, -32138, -30273, -30273, -30273,
+    -30273, -27245, -27245, -27245, -27245, -23170, -23170, -23170, -23170,
+    -18204, -18204, -18204, -18204, -12539, -12539, -12539, -12539, -6392,
+    -6392,  -6392,  -6392,  0,      0,      0,      0,      0,      0,
+    0,      0,      -12539, -12539, -12539, -12539, -12539, -12539, -12539,
+    -12539, -23170, -23170, -23170, -23170, -23170, -23170, -23170, -23170,
+    -30273, -30273, -30273, -30273, -30273, -30273, -30273, -30273, -32768,
+    -32768, -32768, -32768, -32768, -32768, -32768, -32768, -30273, -30273,
+    -30273, -30273, -30273, -30273, -30273, -30273, -23170, -23170, -23170,
+    -23170, -23170, -23170, -23170, -23170, -12539, -12539, -12539, -12539,
+    -12539, -12539, -12539, -12539, 0,      0,      0,      0,      0,
+    0,      0,      0,      0,      0,      0,      0,      0,      0,
+    0,      0,      -23170, -23170, -23170, -23170, -23170, -23170, -23170,
+    -23170, -23170, -23170, -23170, -23170, -23170, -23170, -23170, -23170,
+    -32768, -32768, -32768, -32768, -32768, -32768, -32768, -32768, -32768,
+    -32768, -32768, -32768, -32768, -32768, -32768, -32768, -23170, -23170,
+    -23170, -23170, -23170, -23170, -23170, -23170, -23170, -23170, -23170,
+    -23170, -23170, -23170, -23170, -23170, 0,      0,      0,      0,
+    0,      0,      0,      0,      0,      0,      0,      0,      0,
+    0,      0,      0,      0,      0,      0,      0,      0,      0,
+    0,      0,      0,      0,      0,      0,      0,      0,      0,
+    0,      -32768, -32768, -32768, -32768, -32768, -32768, -32768, -32768,
+    -32768, -32768, -32768, -32768, -32768, -32768, -32768, -32768, -32768,
+    -32768, -32768, -32768, -32768, -32768, -32768, -32768, -32768, -32768,
+    -32768, -32768, -32768, -32768, -32768, -32768};
+
+#endif

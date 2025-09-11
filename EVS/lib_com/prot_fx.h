@@ -4315,6 +4315,10 @@ void r_fft_fx_lc(
     const Word16 isign        /* i  : 1=fft, otherwize it's ifft                                                      */
 );
 
+#if defined(SUPPORT_VEC_32X)
+void r_fft_fx_lc_256(const Word16 *in_ptr, Word16 *out_ptr);
+#endif
+
 void hf_synth_fx(
     const Word32  core_brate,       /* i  : core bitrate                   */
     const Word16 output_frame,      /* i  : output frame length            */

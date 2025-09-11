@@ -100,7 +100,11 @@ void analy_sp(
         Scale_fac2 = shl(Scale_fac[i_subfr], 1);
         Scale_sig(fft_temp, L_FRAME_12k8, Scale_fac[i_subfr]);
 
+#if defined(SUPPORT_VEC_32X)
+        r_fft_fx_lc_256(fft_temp, pt_fft);
+#else
         r_fft_fx_lc(FFT_W128, SIZE_256, SIZE2_256, NUM_STAGE_256, fft_temp, pt_fft, 1);
+#endif
 
         /* find energy per critical band */
         find_enr( pt_fft, pt_bands, lf_E + i_subfr*VOIC_BINS, &LEtot, min_band, max_band,
