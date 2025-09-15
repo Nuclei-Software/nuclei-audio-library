@@ -7,6 +7,7 @@
 #include "rom_com_fx.h"    /* tables definition                    */
 #include "stl.h"
 
+#include "macro.h"
 
 Word32 Interpol_lc_fx(        /* o  : interpolated value             Qx+16 */
     const Word16 *x,       /* i  : input vector                     Q0  */
@@ -23,6 +24,32 @@ Word32 Interpol_lc_fx(        /* o  : interpolated value             Qx+16 */
     x2 = &x[1];
     c1 = &win[frac];
     c2 = &win[sub(up_samp,frac)];
+#if defined(SUPPORT_VEC_64X)
+    size_t vl, avl = nb_coef;
+    ptrdiff_t stride = up_samp * sizeof(int16_t);
+    vint64m1_t vsum_i64 = __riscv_vmv_s_x_i64m1(0, 1);
+    for (; (vl = __riscv_vsetvl_e16m1(avl)) > 0; avl -= vl) {
+        vuint16m1_t vl_index = __riscv_vid_v_u16m1(vl);
+        vl_index = __riscv_vrsub_vx_u16m1(vl_index, vl - 1, vl);
+        vint16m1_t vx_i16 = __riscv_vle16_v_i16m1(x - vl + 1, vl);
+        vx_i16 = __riscv_vrgather_vv_i16m1(vx_i16, vl_index, vl);
+        vint16m1_t vc_i16 = __riscv_vlse16_v_i16m1(c1, stride, vl);
+        vint32m2_t vwmul_i32 = __riscv_vwmul_vv_i32m2(vx_i16, vc_i16, vl);
+        vsum_i64 = __riscv_vwredsum_vs_i32m2_i64m1(vwmul_i32, vsum_i64, vl);
+        vx_i16 = __riscv_vle16_v_i16m1(x2, vl);
+        vc_i16 = __riscv_vlse16_v_i16m1(c2, stride, vl);
+        vwmul_i32 = __riscv_vwmul_vv_i32m2(vx_i16, vc_i16, vl);
+        vsum_i64 = __riscv_vwredsum_vs_i32m2_i64m1(vwmul_i32, vsum_i64, vl);
+        x -= vl;
+        x2 += vl;
+        c2 += up_samp * vl;
+        c1 += up_samp * vl;
+    }
+    int64_t L_sum64 = __riscv_vmv_x_s_i64m1_i64(vsum_i64);
+    L_sum = (L_sum64 > INT32_MAX)   ? INT32_MAX
+            : (L_sum64 < INT32_MIN) ? INT32_MIN
+                                    : (Word32)L_sum64;
+#else
     L_sum = L_mult0(*x--, *c1);
     L_sum = L_mac0(L_sum, *x2++, *c2);
     FOR (i=1; i<nb_coef; i++)
@@ -41,6 +68,7 @@ Word32 Interpol_lc_fx(        /* o  : interpolated value             Qx+16 */
         }
         ++x2;
     }
+#endif
     L_sum = L_shl(L_sum,1);
 
     return L_sum;
