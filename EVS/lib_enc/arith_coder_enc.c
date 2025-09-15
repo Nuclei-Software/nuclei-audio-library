@@ -687,6 +687,27 @@ void tcx_arith_encode_envelope(
         env
     );
 
+#if defined(SUPPORT_VEC_32X)
+    size_t vl, avl = L_spec;
+    Word32 *spectrum_ptr = spectrum;
+    Word16 *signs_ptr = signs;
+    for (; (vl = __riscv_vsetvl_e32m2(avl)) > 0; avl -= vl) {
+        size_t vl = __riscv_vsetvl_e32m2(avl);
+        vint32m2_t vs1_i32 = __riscv_vle32_v_i32m2(spectrum_ptr, vl);
+        vuint32m2_t vs2_u32 = __riscv_vreinterpret_v_i32m2_u32m2(vs1_i32);
+        vuint16m1_t vs2_u16 = __riscv_vnsrl_wx_u16m1(vs2_u32, 31, vl);
+        vint16m1_t vs2_i16 = __riscv_vreinterpret_v_u16m1_i16m1(vs2_u16);
+        __riscv_vse16_v_i16m1(signs_ptr, vs2_i16, vl);
+        vbool16_t vmsk = __riscv_vmseq_vx_i32m2_b16(vs1_i32, MIN_32, vl);
+        vbool16_t vmsk2 = __riscv_vmsne_vx_i32m2_b16(vs1_i32, MIN_32, vl);
+        vs1_i32 = __riscv_vmerge_vxm_i32m2(vs1_i32, MAX_32, vmsk, vl);
+        vint32m2_t vneg_i32 = __riscv_vneg_v_i32m2(vs1_i32, vl);
+        vs1_i32 = __riscv_vmax_vv_i32m2_m(vmsk2, vs1_i32, vneg_i32, vl);
+        __riscv_vse32_v_i32m2(spectrum_ptr, vs1_i32, vl);
+        spectrum_ptr += vl;
+        signs_ptr += vl;
+    }
+#else
     FOR (k = 0; k < L_spec; k++)
     {
         signs[k] = extract_l(L_lshr(spectrum[k], 31));
@@ -696,6 +717,7 @@ void tcx_arith_encode_envelope(
             move32();
         }
     }
+#endif
 
     IF (use_hm != 0)
     {
@@ -775,11 +797,37 @@ void tcx_arith_encode_envelope(
 
     L_tmp = L_mult(deadzone, 1); /* Q16 */
     tmp = add(sub(*spectrum_e, 15), scale_e);
+#if defined(SUPPORT_VEC_64X)
+    avl = kMax;
+    spectrum_ptr = spectrum;
+    int16_t *q_spectrum_ptr = q_spectrum;
+    int16_t tmp_sclip32 = tmp > 31 ? 32 : (tmp < -31 ? -32 : tmp);
+    for (; (vl = __riscv_vsetvl_e32m2(avl)) > 0; avl -= vl) {
+        size_t vl = __riscv_vsetvl_e32m2(avl);
+        vint32m2_t vs1_i32 = __riscv_vle32_v_i32m2(spectrum_ptr, vl);
+        vint64m4_t vs1_i64 =
+            __riscv_vwmul_vx_i64m4(vs1_i32, (int32_t)scale, vl);
+        vs1_i32 = __riscv_vnclip_wx_i32m2(vs1_i64, 15, __RISCV_VXRM_RDN, vl);
+        if (tmp_sclip32 > 0) {
+            vs1_i64 = __riscv_vwcvt_x_x_v_i64m4(vs1_i32, vl);
+            vs1_i64 = __riscv_vsll_vx_i64m4(vs1_i64, tmp_sclip32, vl);
+            vs1_i32 = __riscv_vnclip_wx_i32m2(vs1_i64, 0, __RISCV_VXRM_RDN, vl);
+        } else {
+            vs1_i32 = __riscv_vsra_vx_i32m2(vs1_i32, -tmp_sclip32, vl);
+        }
+        vs1_i32 = __riscv_vsadd_vx_i32m2(vs1_i32, L_tmp, vl);
+        vint16m1_t vs1_i16 = __riscv_vnsra_wx_i16m1(vs1_i32, 16, vl);
+        __riscv_vse16_v_i16m1(q_spectrum_ptr, vs1_i16, vl);
+        spectrum_ptr += vl;
+        q_spectrum_ptr += vl;
+    }
+#else
     FOR (k = 0; k <= kMax; k++)
     {
         /* quantise using dead-zone */
         q_spectrum[k] = extract_h(L_add(L_shl(Mpy_32_16_1(spectrum[k], scale), tmp), L_tmp));
     }
+#endif
 
     /* Final encoding */
     *arith_bits = tcx_arith_encode(
