@@ -394,12 +394,38 @@ void tcx_arith_scale_envelope(
     a = L_shl(1265000, sub(15, *s_env_e));
     BASOP_SATURATE_WARNING_ON;
 
+#if defined(SUPPORT_VEC_64X)
+    size_t vl, avl = L_frame;
+    int32_t *env_ptr = env;
+    int16_t *s_env_ptr = s_env;
+    int16_t tmp_sclip32 = tmp > 31 ? 31 : (tmp < -32 ? -32 : tmp);
+    for (; (vl = __riscv_vsetvl_e32m2(avl)) > 0; avl -= vl) {
+        vint32m2_t vs1_i32 = __riscv_vle32_v_i32m2(env_ptr, vl);
+        if (tmp_sclip32 > 0) {
+            vint64m4_t vs1_i64 = __riscv_vwcvt_x_x_v_i64m4(vs1_i32, vl);
+            vs1_i64 = __riscv_vsll_vx_i64m4(vs1_i64, tmp_sclip32, vl);
+            vs1_i32 = __riscv_vnclip_wx_i32m2(vs1_i64, 0, __RISCV_VXRM_RDN, vl);
+        } else {
+            vs1_i32 = __riscv_vsra_vx_i32m2(vs1_i32, -tmp_sclip32, vl);
+        }
+        vint64m4_t vs1_i64 =
+            __riscv_vwmul_vx_i64m4(vs1_i32, (int32_t)iscale, vl);
+        vs1_i32 = __riscv_vnclip_wx_i32m2(vs1_i64, 15, __RISCV_VXRM_RDN, vl);
+        vs1_i32 = __riscv_vmin_vx_i32m2(vs1_i32, a, vl);
+        vs1_i32 = __riscv_vsadd_vx_i32m2(vs1_i32, (int32_t)0x00008000L, vl);
+        vint16m1_t vs1_i16 = __riscv_vnsra_wx_i16m1(vs1_i32, 16, vl);
+        __riscv_vse16_v_i16m1(s_env_ptr, vs1_i16, vl);
+        env_ptr += vl;
+        s_env_ptr += vl;
+    }
+#else
     FOR (k = 0; k < L_frame; k++)
     {
         L_tmp = Mpy_32_16_1(L_shl(env[k], tmp), iscale);
         L_tmp = L_min(L_tmp, a);
         s_env[k] = round_fx(L_tmp);
     }
+#endif
 
 }
 
