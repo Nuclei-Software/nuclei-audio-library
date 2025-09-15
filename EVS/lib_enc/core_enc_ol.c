@@ -583,12 +583,37 @@ void core_encode_openloop(
             /* first stage VQ, 8 bits; reuse TCX high rate codebook */
             st->rf_indx_lsf[0][0] = vlpc_1st_cod(lsf_uq_rf, lsf_q_1st_rf, w_rf, st->rf_mode);
             /*v_sub(lsf_uq_rf, lsf_q_1st_rf, lsf_q_d_rf, M);*/
+#if defined(SUPPORT_VEC_32X)
+            size_t vl, avl = M;
+            int16_t *lsf_uq_rf_ptr = lsf_uq_rf;
+            int16_t *lsf_q_1st_rf_ptr = lsf_q_1st_rf;
+            int16_t *lsf_q_d_rf_ptr = lsf_q_d_rf;
+            for (; (vl = __riscv_vsetvl_e16m1(avl)) > 0; avl -= vl) {
+                size_t vl = __riscv_vsetvl_e16m1(avl);
+                vint16m1_t vs1_i16 = __riscv_vle16_v_i16m1(lsf_uq_rf_ptr, vl);
+                vint16m1_t vs2_i16 =
+                    __riscv_vle16_v_i16m1(lsf_q_1st_rf_ptr, vl);
+                vint16m1_t vssub_i16 =
+                    __riscv_vssub_vv_i16m1(vs1_i16, vs2_i16, vl);
+                vint16m1_t vres_i16 = __riscv_vsmul_vx_i16m1(
+                    vssub_i16, 25600, __RISCV_VXRM_RNU, vl);
+                vint32m2_t vw_i32 = __riscv_vwcvt_x_x_v_i32m2(vres_i16, vl);
+                vw_i32 = __riscv_vsll_vx_i32m2(vw_i32, 5, vl);
+                vres_i16 =
+                    __riscv_vnclip_wx_i16m1(vw_i32, 0, __RISCV_VXRM_RDN, vl);
+                __riscv_vse16_v_i16m1(lsf_q_d_rf_ptr, vres_i16, vl);
+                lsf_uq_rf_ptr += vl;
+                lsf_q_1st_rf_ptr += vl;
+                lsf_q_d_rf_ptr += vl;
+            }
+#else
             FOR (i=0; i<M; i++)
             {
                 lsf_q_d_rf[i] = shl(mult_r(sub(lsf_uq_rf[i],lsf_q_1st_rf[i]), 25600),5);
                 /*input value is in Qx2.56, convert to Q6 to match table, quantizer table kept at Q6 to avoid losing precision */
                 /*Assume this difference data max range can be represented by Q6*/
             }
+#endif
             /*o: lsf_q_1st_rf in Qx2.56*/
             /*o: lsf_q_d_rf   in Q6*/
 
@@ -599,12 +624,35 @@ void core_encode_openloop(
 
             /* quantized lsf from two stages  */
             /*v_add(lsf_q_1st_rf, lsf_q_diff_cb_8b_rf + M * st->rf_indx_lsf[0][1], lsf_q_rf, M);*/
+#if defined(SUPPORT_VEC_32X)
+            avl = M;
+            int16_t *lsf_q_diff_cb_8b_rf_offset_ptr =
+                (int16_t *)lsf_q_diff_cb_8b_rf + M * st->rf_indx_lsf[0][1];
+            lsf_q_1st_rf_ptr = lsf_q_1st_rf;
+            int16_t *lsf_q_rf_ptr = lsf_q_rf;
+            for (; (vl = __riscv_vsetvl_e16m1(avl)) > 0; avl -= vl) {
+                size_t vl = __riscv_vsetvl_e16m1(avl);
+                vint16m1_t vs1_i16 =
+                    __riscv_vle16_v_i16m1(lsf_q_diff_cb_8b_rf_offset_ptr, vl);
+                vint16m1_t vs2_i16 =
+                    __riscv_vle16_v_i16m1(lsf_q_1st_rf_ptr, vl);
+                vint16m1_t vres_i16 = __riscv_vsmul_vx_i16m1(
+                    vs1_i16, 20972, __RISCV_VXRM_RNU, vl);
+                vres_i16 = __riscv_vsra_vx_i16m1(vres_i16, 4, vl);
+                vres_i16 = __riscv_vsadd_vv_i16m1(vres_i16, vs2_i16, vl);
+                __riscv_vse16_v_i16m1(lsf_q_rf_ptr, vres_i16, vl);
+                lsf_q_diff_cb_8b_rf_offset_ptr += vl;
+                lsf_q_1st_rf_ptr += vl;
+                lsf_q_rf_ptr += vl;
+            }
+#else
             FOR (i=0; i<M; i++)
             {
                 tmp = lsf_q_diff_cb_8b_rf[i+ M*st->rf_indx_lsf[0][1]]; /*tmp = quantized lsf_q_d_rf in Q6*/
                 tmp = shr(mult_r(tmp,20972),4); /* bring lsf_q_d_rf to Qx2.56 for addition */
                 lsf_q_rf[i] = add(lsf_q_1st_rf[i], tmp);
             }
+#endif
 
             v_sort( lsf_q_rf, 0, M-1 );
             reorder_lsf_fx( lsf_q_rf, LSF_GAP_FX, M, st->sr_core );
