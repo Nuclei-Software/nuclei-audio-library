@@ -16,12 +16,26 @@ static Word32 dot(const Word16 *X, const Word16 *Y, Word16 n)
     Word16 i;
 
 
+#if defined(SUPPORT_VEC_64X)
+    size_t vl, avl = n;
+    vint32m1_t vsum = __riscv_vmv_s_x_i32m1(0, 1);
+    for (; (vl = __riscv_vsetvl_e16m1(avl)) > 0; avl -= vl) {
+        vint16m1_t vs1_i16 = __riscv_vle16_v_i16m1(X, vl);
+        vint16m1_t vs2_i16 = __riscv_vle16_v_i16m1(Y, vl);
+        vint32m2_t vwmul_i32 = __riscv_vwmul_vv_i32m2(vs1_i16, vs2_i16, vl);
+        vsum = __riscv_vredsum_vs_i32m2_i32m1(vwmul_i32, vsum, vl);
+        X += vl;
+        Y += vl;
+    }
+    acc = __riscv_vmv_x_s_i32m1_i32(vsum);
+#else
     acc = L_deposit_l(0);
 
     FOR (i = 0; i < n; i++)
     {
         acc = L_mac0(acc, X[i], Y[i]);
     }
+#endif
 
 
     return acc;
@@ -118,11 +132,32 @@ void tcx_ltp_pitch_search(
     assert(len+t_max <= L_FRAME_PLUS+PIT_MAX_MAX+L_INTERPOL1);
     s_wsp = getScaleFactor16(wsp - t_max, add(len, t_max));
     s_wsp = sub(s_wsp, 4);
+#if defined(SUPPORT_VEC_32X)
+    t = negate(t_max);
+    size_t vl, avl = len - t;
+    int16_t *wsp_offset_ptr = wsp + t;
+    int16_t *wsp2_offset_ptr = wsp2 + t + t_max;
+    int16_t s_wsp_sclip16 = s_wsp > 15 ? 15 : (s_wsp < -16 ? -16 : s_wsp);
+    for (; (vl = __riscv_vsetvl_e16m1(avl)) > 0; avl -= vl) {
+        vint16m1_t vs1_i16 = __riscv_vle16_v_i16m1(wsp_offset_ptr, vl);
+        if (s_wsp_sclip16 > 0) {
+            vint32m2_t vs1_i32 = __riscv_vwcvt_x_x_v_i32m2(vs1_i16, vl);
+            vs1_i32 = __riscv_vsll_vx_i32m2(vs1_i32, s_wsp_sclip16, vl);
+            vs1_i16 = __riscv_vnclip_wx_i16m1(vs1_i32, 0, __RISCV_VXRM_RDN, vl);
+        } else {
+            vs1_i16 = __riscv_vsra_vx_i16m1(vs1_i16, -s_wsp_sclip16, vl);
+        }
+        __riscv_vse16_v_i16m1(wsp2_offset_ptr, vs1_i16, vl);
+        wsp_offset_ptr += vl;
+        wsp2_offset_ptr += vl;
+    }
+#else
     FOR (t = negate(t_max); t < len; t++)
     {
         wsp2[t+t_max] = shl(wsp[t], s_wsp);
         move16();
     }
+#endif
     wsp = wsp2 + t_max;
 
     pt_cor = cor;
