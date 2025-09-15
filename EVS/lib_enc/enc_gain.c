@@ -88,6 +88,14 @@ void E_GAIN_norm_corr(Word16 exc[], Word16 xn[], Word16 h[],
         /* update the filtered excitation excf[] for the next iteration */
         k = sub(k,1);
 
+#if defined(SUPPORT_VEC_32X) && defined(SUPPORT_VL256)
+        size_t vl = __riscv_vsetvl_e16m8(L_subfr - 1);
+        vint16m8_t vs1_i16 = __riscv_vle16_v_i16m8(h + 1, vl);
+        vint16m8_t vs2_i16 = __riscv_vle16_v_i16m8(excf, vl);
+        vs1_i16 = __riscv_vsmul_vx_i16m8(vs1_i16, exc[k], __RISCV_VXRM_RNU, vl);
+        vs1_i16 = __riscv_vsadd_vv_i16m8(vs1_i16, vs2_i16, vl);
+        __riscv_vse16_v_i16m8(excf + 1, vs1_i16, vl);
+#else
         FOR(j = L_subfr - 1; j > 0; j--)
         {
             /*excf[j] = excf[j - 1] + exc[k] * h[j];                           MAC(1); STORE(1);*/
@@ -96,6 +104,7 @@ void E_GAIN_norm_corr(Word16 exc[], Word16 xn[], Word16 h[],
             move16();
 
         }
+#endif
         excf[0] = mult_r(exc[k],h[0]);
         move16();
     }
