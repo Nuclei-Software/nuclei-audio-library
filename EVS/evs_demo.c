@@ -9,6 +9,7 @@
 #include "data/enc_192.h"
 #include "data/dec_raw.h"
 
+#include "evalsoc.h"
 #include "nmsis_bench.h"
 #include "prot_fx.h"
 #include "stat_enc_fx.h"
@@ -541,6 +542,14 @@ int decode() {
 }
 
 int main(int argc, char *argv[]) {
+    // enable prefetch
+    unsigned long iinfo_base = CpuIRegionBase + IREGION_IINFO_OFS;
+    uint32_t *pfl1dctrl1 = (uint32_t *) (iinfo_base + 0x100);
+    uint32_t *pfl1dctrl4 = (uint32_t *) (iinfo_base + 0x124);
+    uint32_t old = *pfl1dctrl1;
+    *pfl1dctrl1 = (old & ~0x000000FF) | 0x0000003F;
+    *pfl1dctrl4 = 1;
+
     printf("Start Encoding...\r\n");
     if (encode() != EXIT_SUCCESS) {
         printf("FAIL\r\n");
