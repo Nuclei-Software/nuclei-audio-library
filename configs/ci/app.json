@@ -16,7 +16,6 @@
     "build_config": {
         "SOC": "evalsoc"
     },
-    "parallel" : "-j",
     "checks": {
         "PASS": ["PASS"],
         "FAIL": ["MEPC", "FAIL"]
