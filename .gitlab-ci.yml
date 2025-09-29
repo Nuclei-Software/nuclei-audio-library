@@ -26,6 +26,10 @@ stages:
 
 ## Job template
 .build_job_template: &build_job_template_default
+  tags: 
+    - env::docker
+    - net::outside
+    - host::whss5
   image: $IMAGE:$IMAGE_TAG
   interruptible: true
   #when: manual
@@ -34,6 +38,8 @@ stages:
     - free -g
     - uname -a
     - lscpu
+    # use the latest qemu
+    - export PATH=/home/share/devtools/qemu/linux64/latest/bin:$PATH
     # prepare for docker ssh environment
     ## https://docs.gitlab.com/ee/ci/ssh_keys/#ssh-keys-when-using-the-docker-executor
     - apt update
@@ -73,11 +79,13 @@ stages:
 
 run_qemu:
   <<: *build_job_template_default
-  variables:
-    LOGDIR: logs/qemu
+  parallel:
+    matrix:
+      - LOGDIR: "logs/qemu"
+        AUDIO_APP: ["amrnb", "amrwb", "evs"]
   script:
     # start to run on qemu
-    - ./configs/ci/run_qemu.sh $LOGDIR
+    - ./configs/ci/run_qemu.sh $AUDIO_APP $LOGDIR
 
 run_hw:
   interruptible: true

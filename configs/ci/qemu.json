@@ -31,19 +31,5 @@
         "rv64imacbp_zve32x_vl256" : {"CORE": "nx900", "ARCH_EXT": "_zve32x_zvl256b_zba_zbb_zbc_zbs_xxldspn1x"},
         "rv64imacbp_zve64x" : {"CORE": "nx900", "ARCH_EXT": "_zve64x_zba_zbb_zbc_zbs_xxldspn1x"},
         "rv64imacbp_zve64x_vl256" : {"CORE": "nx900", "ARCH_EXT": "_zve64x_zvl256b_zba_zbb_zbc_zbs_xxldspn1x"}
-    },
-    "expecteds" : {
-        "EVS": {
-            "rv32imacbp": {"build": true, "run": false },
-            "rv32imacbp_zve32x": {"build": true, "run": false },
-            "rv32imacbp_zve64x": {"build": true, "run": false },
-            "rv32imacbp_zve32x_vl256": {"build": true, "run": false },
-            "rv32imacbp_zve64x_vl256": {"build": true, "run": false },
-            "rv64imacbp": {"build": true, "run": false },
-            "rv64imacbp_zve32x": {"build": true, "run": false },
-            "rv64imacbp_zve64x": {"build": true, "run": false },
-            "rv64imacbp_zve32x_vl256": {"build": true, "run": false },
-            "rv64imacbp_zve64x_vl256": {"build": true, "run": false }
-        }
     }
 }

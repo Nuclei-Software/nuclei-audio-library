@@ -1,0 +1,40 @@
+{
+    "run_config": {
+        "target" : "qemu",
+        "parsescript": "configs/ci/parse.py",
+        "hardware" : {
+            "baudrate": 115200,
+            "timeout": 60
+        },
+        "qemu": {
+            "qemu32": "qemu-system-riscv32",
+            "qemu64": "qemu-system-riscv64",
+            "timeout": 60
+        }
+    },
+    "build_target": "clean all",
+    "build_config": {
+        "SOC": "evalsoc"
+    },
+    "checks": {
+        "PASS": ["PASS"],
+        "FAIL": ["MEPC", "FAIL"]
+    },
+    "appdirs": [
+        "AMR-NB"
+    ],
+    "matrix": {
+        "4750": {"REGEN_DATA": 1, "BITRATE": 4750},
+        "5150": {"REGEN_DATA": 1, "BITRATE": 5150},
+        "5900": {"REGEN_DATA": 1, "BITRATE": 5900},
+        "6700": {"REGEN_DATA": 1, "BITRATE": 6700},
+        "7400": {"REGEN_DATA": 1, "BITRATE": 7400},
+        "7950": {"REGEN_DATA": 1, "BITRATE": 7950},
+        "10200": {"REGEN_DATA": 1, "BITRATE": 10200},
+        "12200": {"REGEN_DATA": 1, "BITRATE": 12200}
+    },
+    "appdirs_ignore": [
+    ],
+    "appconfig": {
+    }
+}

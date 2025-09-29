@@ -21,11 +21,13 @@
         "FAIL": ["MEPC", "FAIL"]
     },
     "appdirs": [
-        "AMR-NB",
-        "AMR-WB/amrwb_dec",
-        "AMR-WB/amrwb_enc",
         "EVS"
     ],
+    "matrix": {
+        "5900": {"REGEN_DATA": 1, "PATTERN": 1},
+        "13200": {"REGEN_DATA": 1, "PATTERN": 2},
+        "24400": {"REGEN_DATA": 1, "PATTERN": 3}
+    },
     "appdirs_ignore": [
     ],
     "appconfig": {

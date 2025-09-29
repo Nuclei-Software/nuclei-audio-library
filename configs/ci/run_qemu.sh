@@ -4,7 +4,8 @@
 # assume directory structure as below:
 # - nuclei-audio-library
 # - nuclei-sdk
-LOGDIR=${1:-logs}
+AUDIO_APP=${1:-amrnb}
+LOGDIR=${2:-logs}/${AUDIO_APP}
 
 if [ "x${NUCLEI_SDK_ROOT}" == "x" ] ; then
     NUCLEI_SDK_ROOT=$(readlink -f ../nuclei-sdk)
@@ -17,7 +18,7 @@ if [ ! -f ${NSDK_BENCH_CLI} ] ; then
     exit 1
 fi
 
-if [ ! -f configs/ci/app.json ] ; then
+if [ ! -f configs/ci/${AUDIO_APP}.json ] ; then
     echo "ERROR: Please run script in case folder, not in the ci folder or other places!"
     echo "INFO: eg. ./configs/ci/run_qemu.sh"
     exit 1
@@ -30,14 +31,8 @@ if [ -d $LOGDIR ] ; then
     echo "INFO: $LOGDIR removed!"
 fi
 
-if [ -f /home/share/devtools/env.sh ] ; then
-    echo "INFO: setup run environment for you!"
-    source /home/share/devtools/env.sh
-    activate_swdev
-fi
-
 echo "INFO: Start to run case examples on qemu for rv32 and rv64 cores!"
-runcmd="python3 ${NSDK_BENCH_CLI} --appcfg configs/ci/app.json --hwcfg configs/ci/qemu.json --logdir ${LOGDIR} --run_target qemu --run --parallel=-j"
+runcmd="python3 ${NSDK_BENCH_CLI} --appcfg configs/ci/${AUDIO_APP}.json --hwcfg configs/ci/qemu.json --logdir ${LOGDIR} --run_target qemu --run --parallel=-j"
 echo "INFO: run command: $runcmd"
 $runcmd
 ret=$?
