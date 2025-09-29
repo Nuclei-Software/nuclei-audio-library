@@ -1,4 +1,14 @@
-TARGET = amrwb_dec
+REGEN_DATA ?= 0
+BITRATE ?= 6600
+
+ifeq ($(REGEN_DATA), 1)
+$(info Regenerating data...)
+TARGET := $(shell ./../bin/gendata.sh $(BITRATE) >/dev/null 2>&1 && echo amrwb_dec)
+$(info Generate data done)
+else
+$(info Using pre-generated data...)
+TARGET := amrwb_dec
+endif
 
 NUCLEI_SDK_ROOT ?= ../../../..
 
