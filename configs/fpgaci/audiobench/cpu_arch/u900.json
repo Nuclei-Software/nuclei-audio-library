@@ -7,10 +7,6 @@
         "rv32imacb": {"CORE":"u900", "ARCH_EXT":"_zba_zbb_zbc_zbs"},
         "rv32imacb_zicond": {"CORE":"u900", "ARCH_EXT":"_zba_zbb_zbc_zbs_zicond"},
         "rv32imacbp": {"CORE":"u900", "ARCH_EXT":"_zba_zbb_zbc_zbs_xxldspn1x"},
-        "rv32imacbp_zicond": {"CORE":"u900", "ARCH_EXT":"_zba_zbb_zbc_zbs_zicond_xxldspn1x"},
-        "rv32imacbpv": {"CORE":"n900", "ARCH_EXT":"_zve64x_zba_zbb_zbc_zbs_xxldspn1x"},
-        "rv32imacbpv_zicond": {"CORE":"n900", "ARCH_EXT":"_zve64x_zba_zbb_zbc_zbs_zicond_xxldspn1x"},
-        "rv32imafdc": {"CORE":"u900fd", "ARCH_EXT":"", "FIXED_POINT": 0},
-        "rv32imafdcb": {"CORE":"u900fd", "ARCH_EXT":"_zba_zbb_zbc_zbs", "FIXED_POINT": 0}
+        "rv32imacbp_zicond": {"CORE":"u900", "ARCH_EXT":"_zba_zbb_zbc_zbs_zicond_xxldspn1x"}
     }
 }

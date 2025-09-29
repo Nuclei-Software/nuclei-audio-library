@@ -1,6 +1,7 @@
 {
     "run_config": {
         "target" : "hardware",
+        "parsescript": "configs/ci/parse.py",
         "hardware" : {
             "baudrate": 115200,
             "timeout": 60
@@ -24,20 +25,12 @@
         "FAIL": ["MEPC", "FAIL"]
     },
     "appdirs": [
-        "ADPCM/IMA",
         "AMR-NB",
         "AMR-WB/amrwb_dec",
         "AMR-WB/amrwb_enc",
-        "EVS",
-        "LC3plus",
-        "MP3/Helix",
-        "Opus",
-        "SBC",
-        "SpeexDSP"
+        "EVS"
     ],
     "appdirs_ignore": [
-        "Opus/reference",
-        "SpeexDSP/reference"
     ],
     "appconfig": {
     }
