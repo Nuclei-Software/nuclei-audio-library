@@ -25,6 +25,7 @@
 # 
 # Options:
 #   -h, --help      Show this help message and exit.
+#   -p, --pattern   Use test pattern from pattern.txt 
 # 
 # Examples:
 #   # Generate data with a specific bitrate and file
@@ -55,15 +56,33 @@ cmd_to_argv() {
     echo "    NULL};" >> "$file"
 }
 
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+PATTERNFILE="${SCRIPT_DIR}/pattern.txt"
+DATA_DIR=$(realpath "$SCRIPT_DIR/..")
+
 if [[ "$1" == "-h" || "$1" == "--help" ]]; then
     show_help
     exit
+elif [[ "$1" == "-p" || "$1"  == "--pattern" ]]; then
+    line=${2:-1}
+    shift 2
+    # check pattern file is exist
+    if [ ! -e $PATTERNFILE ]; then
+        echo "$PATTERNFILE not exist"
+        exit 1
+    fi
+    # get pattern from pattern file
+    pattern=$(sed -n "${line}p" $PATTERNFILE)
+    echo "pattern: $pattern"
+    if [[ -z "$pattern" || "$pattern" =~ "^#" ]]; then
+        echo "Invalid pattern line: $line"
+        exit 1
+    fi
+    # rerun script with args from pattern file
+    exec $SCRIPT_DIR/gendata.sh $pattern
 fi
 
-SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-DATA_DIR=$(realpath "$SCRIPT_DIR/..")
 echo "DATA_DIR=$DATA_DIR"
-
 pushd $DATA_DIR > /dev/null
 
 bitrate=${1:-5900}

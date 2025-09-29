@@ -1,0 +1,3 @@
+5900 48 audio/stv48n2_1s.raw 8
+13200 16 audio/stv16n2_2s.raw 8 HI,3
+24400 16 audio/stv16n2_2s.raw 8
