@@ -85,7 +85,7 @@ run_qemu:
         AUDIO_APP: ["amrnb", "amrwb", "evs"]
   script:
     # start to run on qemu
-    - ./configs/ci/run_qemu.sh $AUDIO_APP $LOGDIR
+    - ./Scripts/Configs/ci/run_qemu.sh $AUDIO_APP $LOGDIR
 
 run_hw:
   interruptible: true
@@ -117,7 +117,7 @@ run_hw:
     - echo "nuclei sdk $SDK_BRANCH branch, shortlog $(git -C ${NUCLEI_SDK_ROOT} log --oneline -1)"
     - echo "Show fpga and cycle model version used in this job!"
     - show_cycm_ver
-    - TMOUT=$TMOUT CONFIG=$CONFIG LOGDIR=$LOGDIR ./configs/ci/run_onfpga.sh
+    - TMOUT=$TMOUT CONFIG=$CONFIG LOGDIR=$LOGDIR ./Scripts/Configs/ci/run_onfpga.sh
 
 show_proc:
   stage: build

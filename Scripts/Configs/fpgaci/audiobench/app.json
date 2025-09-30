@@ -1,7 +1,7 @@
 {
     "run_config": {
         "target" : "hardware",
-        "parsescript": "configs/ci/parse.py",
+        "parsescript": "Scripts/parse.py",
         "hardware" : {
             "baudrate": 115200,
             "timeout": 60
@@ -33,5 +33,8 @@
     "appdirs_ignore": [
     ],
     "appconfig": {
+        "EVS": {
+            "build_config": { "DOWNLOAD": "ddr" }
+        }
     }
 }
