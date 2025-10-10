@@ -1,0 +1,11 @@
+{
+    "build_config": {
+        "CPU_SERIES": "900"
+    },
+    "build_configs": {
+        "rv64imac": {"CORE":"nx900"},
+        "rv64imacb": {"CORE":"nx900", "ARCH_EXT":"_zba_zbb_zbc_zbs"},
+        "rv64imacp": {"CORE":"nx900", "ARCH_EXT":"_xxldsp"},
+        "rv64imacbp": {"CORE":"nx900", "ARCH_EXT":"_zba_zbb_zbc_zbs_xxldsp"}
+    }
+}

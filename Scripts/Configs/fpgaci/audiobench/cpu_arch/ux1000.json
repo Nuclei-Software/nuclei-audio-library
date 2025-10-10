@@ -1,0 +1,11 @@
+{
+    "build_config": {
+        "CPU_SERIES": "1000"
+    },
+    "build_configs": {
+        "rv64imac": {"CORE":"ux1000", "ARCH_EXT":""},
+        "rv64imac_zicond": {"CORE":"ux1000", "ARCH_EXT":"_zicond", "NMSIS_LIB_ARCH": "rv64imac"},
+        "rv64imacb": {"CORE":"ux1000", "ARCH_EXT":"_zba_zbb_zbc_zbs"},
+        "rv64imacb_zicond": {"CORE":"ux1000", "ARCH_EXT":"_zba_zbb_zbc_zbs_zicond", "NMSIS_LIB_ARCH": "rv64imac_zba_zbb_zbc_zbs"}
+    }
+}
