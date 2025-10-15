@@ -11,7 +11,7 @@ workflow:
   rules:
     - if: $CI_COMMIT_MESSAGE =~ /draft|wip|stash/i
       when: never
-    - if: $CI_COMMIT_BRANCH =~ /master|develop/
+    - if: $CI_COMMIT_BRANCH =~ /master|develop/ && $CI_PIPELINE_SOURCE == "push" && $CI_OPEN_MERGE_REQUESTS == "null"
     - if: $CI_MERGE_REQUEST_TARGET_BRANCH_NAME =~ /master|develop/ && $CI_PIPELINE_SOURCE == "merge_request_event"
 
 default:
