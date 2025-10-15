@@ -1,0 +1,65 @@
+## Package Base Information
+name: app-speexdsp
+owner: nuclei
+version: 0.1.0
+description: SpeexDSP Demo
+type: app
+keywords:
+  - speexdsp
+category: audio application
+license: BSD
+homepage: https://github.com/Nuclei-Software/nuclei-audio-library/tree/master/SpeexDSP
+
+## Package Dependency
+dependencies:
+  - name: sdk-nuclei_sdk
+    version:
+
+# Package Configurations
+configuration:
+
+setconfig:
+  - config: stdclib
+    value: newlib_small
+  - config: download_mode
+    value: ddr
+
+## Source Code Management
+codemanage:
+  copyfiles:
+    - path:
+      - "*.c"
+      - "src"
+      - "inc"
+      - "data/*.c"
+      - "data/*.h"
+      - "data/fixed/*.h"
+  incdirs:
+    - path:
+      - "./"
+      - "data"
+      - "data/fixed"
+      - "inc"
+  libdirs:
+  ldlibs:
+    - libs: [m]
+
+# Build Configuration
+buildconfig:
+  - type: common
+    cdefines:
+      - defines: HAVE_CONFIG_H
+      - defines: USE_FIXED_POINT
+      - defines: RISCV_ASM
+    common_flags: # flags need to be combined together across all packages
+      - flags: -O3
+    ldflags:
+    cflags:
+    asmflags:
+    cxxflags:
+    prebuild_steps: # could be override by app/bsp type
+      command:
+      description:
+    postbuild_steps: # could be override by app/bsp type
+      command:
+      description:

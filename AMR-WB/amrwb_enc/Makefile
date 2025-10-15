@@ -16,7 +16,7 @@ SRCDIRS = . src
 
 INCDIRS = . inc ../data
 
-STDCLIB ?= newlib_full
+STDCLIB ?= newlib_small
 
 COMMON_FLAGS := -O3
 

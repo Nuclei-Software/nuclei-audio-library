@@ -1,0 +1,60 @@
+## Package Base Information
+name: app-sbc
+owner: nuclei
+version: 0.1.0
+description: SBC Codec
+type: app
+keywords:
+  - sbc
+  - codec
+category: audio application
+license: Apache-2.0
+homepage: https://github.com/Nuclei-Software/nuclei-audio-library/tree/master/SBC
+
+## Package Dependency
+dependencies:
+  - name: sdk-nuclei_sdk
+    version:
+
+# Package Configurations
+configuration:
+
+setconfig:
+  - config: stdclib
+    value: newlib_small
+  - config: download_mode
+    value: ddr
+
+## Source Code Management
+codemanage:
+  copyfiles:
+    - path:
+      - "*.c"
+      - "src"
+      - "data/*.c"
+      - "data/*.h"
+      - "include"
+  incdirs:
+    - path:
+      - "./"
+      - "src"
+      - "data"
+      - "include"
+  libdirs:
+  ldlibs:
+
+# Build Configuration
+buildconfig:
+  - type: common
+    common_flags: # flags need to be combined together across all packages
+      - flags: -O3
+    ldflags:
+    cflags:
+    asmflags:
+    cxxflags:
+    prebuild_steps: # could be override by app/bsp type
+      command:
+      description:
+    postbuild_steps: # could be override by app/bsp type
+      command:
+      description:

@@ -1,0 +1,73 @@
+## Package Base Information
+name: app-opus
+owner: nuclei
+version: 0.1.0
+description: Opus Codec
+type: app
+keywords:
+  - opus
+  - codec
+category: audio application
+license: BSD
+homepage: https://github.com/Nuclei-Software/nuclei-audio-library/tree/master/Opus
+
+## Package Dependency
+dependencies:
+  - name: sdk-nuclei_sdk
+    version:
+
+# Package Configurations
+configuration:
+
+setconfig:
+  - config: stdclib
+    value: newlib_small
+  - config: download_mode
+    value: ddr
+
+## Source Code Management
+codemanage:
+  copyfiles:
+    - path:
+      - "*.c"
+      - "*.h"
+      - "src"
+      - "celt"
+      - "silk/*.c"
+      - "silk/*.h"
+      - "silk/fixed"
+      - "data/*.c"
+      - "data/*.h"
+      - "include"
+  incdirs:
+    - path:
+      - "./"
+      - "src"
+      - "celt"
+      - "include"
+      - "silk"
+      - "data"
+      - "silk/fixed"
+  libdirs:
+  ldlibs:
+    - libs: [m]
+
+# Build Configuration
+buildconfig:
+  - type: common
+    cdefines:
+      - defines: HAVE_CONFIG_H
+      - defines: USE_FIXED_POINT
+      - defines: RISCV_ASM
+    common_flags: # flags need to be combined together across all packages
+      - flags: -O3 -fno-tree-vectorize
+    ldflags:
+    cflags:
+    asmflags:
+    cxxflags:
+    prebuild_steps: # could be override by app/bsp type
+      command:
+      description:
+    postbuild_steps: # could be override by app/bsp type
+      command:
+      description:

@@ -19,6 +19,4 @@ STDCLIB ?= newlib_small
 
 COMMON_FLAGS := -O3
 
-CXXFLAGS += -std=c++11
-
 include $(NUCLEI_SDK_ROOT)/Build/Makefile.base

@@ -1,0 +1,68 @@
+## Package Base Information
+name: app-amrnb
+owner: nuclei
+version: 0.1.0
+description: AMR-NB Codec
+type: app
+keywords:
+  - amr-nb
+  - codec
+category: audio application
+license: Apache-2.0
+homepage: https://github.com/Nuclei-Software/nuclei-audio-library/tree/master/AMR-NB
+
+## Package Dependency
+dependencies:
+  - name: sdk-nuclei_sdk
+    version:
+
+# Package Configurations
+configuration:
+
+setconfig:
+  - config: stdclib
+    value: newlib_small
+  - config: download_mode
+    value: ddr
+
+## Source Code Management
+codemanage:
+  copyfiles:
+    - path:
+      - "*.c"
+      - "*.h"
+      - "*.cpp"
+      - "common"
+      - "data/.c"
+      - "data/.h"
+      - "dec"
+      - "enc"
+      - "oscl"
+  incdirs:
+    - path:
+      - "./"
+      - "enc/src"
+      - "dec/src"
+      - "data"
+      - "enc/include"
+      - "dec/include"
+      - "common/include"
+      - "oscl"
+  libdirs:
+  ldlibs:
+
+# Build Configuration
+buildconfig:
+  - type: common
+    common_flags: # flags need to be combined together across all packages
+      - flags: -O3
+    ldflags:
+    cflags:
+    asmflags:
+    cxxflags:
+    prebuild_steps: # could be override by app/bsp type
+      command:
+      description:
+    postbuild_steps: # could be override by app/bsp type
+      command:
+      description:

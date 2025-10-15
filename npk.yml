@@ -1,0 +1,15 @@
+## Package Base Information
+name: nuclei-audio-library
+owner: nuclei
+version: 0.1.0
+description: Nuclei Audio Library
+type: bdp
+keywords:
+  - application
+  - risc-v
+  - audio
+license: Apache-2.0
+homepage: https://github.com/Nuclei-Software/nuclei-audio-library
+contributors:
+  - Jiandong Qiu, qiujiandong@nucleisys.com
+  - Huaqi Fang, 578567190@qq.com

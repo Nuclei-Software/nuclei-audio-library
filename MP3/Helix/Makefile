@@ -4,7 +4,7 @@ NUCLEI_SDK_ROOT ?= ../../../..
 
 SRCDIRS = . src data src/libhelix src/libhelix/real 
 
-INCDIRS = . inc src data src/libhelix/real src/libhelix/pub
+INCDIRS = . src data src/libhelix/real src/libhelix/pub
 
 STDCLIB ?= newlib_small
 

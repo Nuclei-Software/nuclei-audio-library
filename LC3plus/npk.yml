@@ -1,0 +1,67 @@
+## Package Base Information
+name: app-lc3plus
+owner: nuclei
+version: 0.1.0
+description: LC3plus Codec
+type: app
+keywords:
+  - lc3plus
+  - codec
+category: audio application
+license:
+homepage: https://github.com/Nuclei-Software/nuclei-audio-library/tree/master/LC3plus
+
+## Package Dependency
+dependencies:
+  - name: sdk-nuclei_sdk
+    version:
+
+# Package Configurations
+configuration:
+
+setconfig:
+  - config: stdclib
+    value: newlib_small
+  - config: download_mode
+    value: ddr
+
+## Source Code Management
+codemanage:
+  copyfiles:
+    - path:
+      - "*.c"
+      - "data/*.c"
+      - "data/*.h"
+      - "data/fixed/*.h"
+      - "fixed_point"
+  incdirs:
+    - path:
+      - "./"
+      - "data"
+      - "data/fixed"
+      - "fixed_point"
+      - "fixed_point/basic_op"
+  libdirs:
+  ldlibs:
+    - libs: [m]
+
+# Build Configuration
+buildconfig:
+  - type: common
+    cdefines:
+      - defines: DISABLE_HR_MODE
+      - defines: WMOPS=0
+      - defines: DONT_COUNT_MEM
+      - defines: FIXED_POINT
+    common_flags: # flags need to be combined together across all packages
+      - flags: -O3
+    ldflags:
+    cflags:
+    asmflags:
+    cxxflags:
+    prebuild_steps: # could be override by app/bsp type
+      command:
+      description:
+    postbuild_steps: # could be override by app/bsp type
+      command:
+      description:
