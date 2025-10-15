@@ -1,4 +1,4 @@
-# AMR-WB Codec
+# EVS Codec
 
 This project provides the **EVS(Enhanced Voice Services) codec** optimized for **Nuclei CPUs**.
 
