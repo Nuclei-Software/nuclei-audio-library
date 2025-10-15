@@ -11,7 +11,7 @@ audio processing.
 ## Core Components
 
 - AMR-NB: [Adaptive Multi-Rate Narrowband Codec](./AMR-NB/).
-- AMR-WB: Adaptive Multi-Rate Wideband Codec. [Encoder](./AMR-WB/amrwb_enc/)
+- AMR-WB: [Adaptive Multi-Rate Wideband Codec](./AMR-WB). [Encoder](./AMR-WB/amrwb_enc/)
   & [Decoder](./AMR-WB/amrwb_dec/)
 - EVS: [Enhanced Voice Services Codec](./EVS/)
 - ADPCM: Adaptive Differential Pulse-Code Modulation. [IMA-ADPCM codec](./ADPCM/IMA/)
