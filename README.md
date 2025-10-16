@@ -41,6 +41,19 @@ To build and use this library, the Nuclei bare-metal development environment is 
 > A **Linux x86_64** host is recommended, as some prebuilt binaries for test data
 > generation are provided for this environment.
 
+## Run on Nuclei Studio IDE
+
+The Nuclei Audio Library can be imported into the Nuclei Studio IDE as an `npk` package.
+You can quickly create demo projects in the IDE by following these steps:
+
+1. Open the **Nuclei Package Manager** in Nuclei Studio IDE.
+2. Download the `nuclei-audio-library` package or import the ZIP file of this repository
+    ![pkgmgr](./doc/images/pkgmgr.png)
+3. Create a new **Nuclei RISC-V C/C++ project** and select an example filtered
+by the `audio application` category
+    ![app](./doc/images/app.png)
+4. Then you can run or debug the project as usual.
+
 ## License
 
 Nuclei Audio Library is licensed under Apache-2.0.
