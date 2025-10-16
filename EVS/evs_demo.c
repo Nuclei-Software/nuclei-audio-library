@@ -547,7 +547,7 @@ int main(int argc, char *argv[]) {
     uint32_t *pfl1dctrl1 = (uint32_t *) (iinfo_base + 0x100);
     uint32_t *pfl1dctrl4 = (uint32_t *) (iinfo_base + 0x124);
     uint32_t old = *pfl1dctrl1;
-    *pfl1dctrl1 = (old & ~0x000000FF) | 0x0000003F;
+    *pfl1dctrl1 = (old & ~0x0000003F) | 0x0000003F;
     *pfl1dctrl4 = 1;
 
     printf("Start Encoding...\r\n");

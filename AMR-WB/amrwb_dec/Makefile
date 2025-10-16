@@ -16,8 +16,8 @@ SRCDIRS = . src
 
 INCDIRS = . inc src ../data
 
-STDCLIB ?= newlib_full
+STDCLIB ?= newlib_small
 
-COMMON_FLAGS := -O3
+COMMON_FLAGS := -O3 -Wno-register
 
 include $(NUCLEI_SDK_ROOT)/Build/Makefile.base
