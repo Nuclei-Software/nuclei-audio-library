@@ -79,6 +79,7 @@ stages:
 
 run_qemu:
   <<: *build_job_template_default
+  timeout: 2h
   parallel:
     matrix:
       - LOGDIR: "logs/qemu"
