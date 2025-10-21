@@ -18,6 +18,8 @@ INCDIRS = . enc/src dec/src enc/include dec/include data common/include oscl
 
 STDCLIB ?= newlib_small
 
-COMMON_FLAGS := -O3 -Wno-register
+COMMON_FLAGS := -O3
+
+CXXFLAGS += -std=c++11
 
 include $(NUCLEI_SDK_ROOT)/Build/Makefile.base

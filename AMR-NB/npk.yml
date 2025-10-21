@@ -33,8 +33,8 @@ codemanage:
       - "*.h"
       - "*.cpp"
       - "common"
-      - "data/.c"
-      - "data/.h"
+      - "data/*.c"
+      - "data/*.h"
       - "dec"
       - "enc"
       - "oscl"
@@ -60,6 +60,7 @@ buildconfig:
     cflags:
     asmflags:
     cxxflags:
+      - flags: -std=c++11
     prebuild_steps: # could be override by app/bsp type
       command:
       description:

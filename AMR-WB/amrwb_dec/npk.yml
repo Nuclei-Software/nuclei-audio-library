@@ -1,5 +1,5 @@
 ## Package Base Information
-name: app-amrwb-decoder
+name: app-amrwbdec
 owner: nuclei
 version: 0.1.0
 description: AMR-WB Decoder
@@ -53,6 +53,7 @@ buildconfig:
     cflags:
     asmflags:
     cxxflags:
+      - flags: -std=c++11
     prebuild_steps: # could be override by app/bsp type
       command:
       description:
