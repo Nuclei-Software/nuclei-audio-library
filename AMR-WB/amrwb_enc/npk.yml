@@ -1,8 +1,8 @@
 ## Package Base Information
-name: app-amrwb-encoder
+name: app-nuclei_audio-amrwbenc
 owner: nuclei
 version: 0.1.0
-description: AMR-WB Encoder
+description: AMR-WB (Adaptive Multi-Rate Wideband) Encoder
 type: app
 keywords:
   - amr-wb

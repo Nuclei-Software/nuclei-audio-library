@@ -1,8 +1,8 @@
 ## Package Base Information
-name: app-speexdsp
+name: app-nuclei_audio-speexdsp
 owner: nuclei
 version: 0.1.0
-description: SpeexDSP Demo
+description: SpeexDSP Demo including NR, AEC, AGC, etc.
 type: app
 keywords:
   - speexdsp

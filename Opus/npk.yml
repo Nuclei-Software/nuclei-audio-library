@@ -1,8 +1,8 @@
 ## Package Base Information
-name: app-opus
+name: app-nuclei_audio-opus
 owner: nuclei
 version: 0.1.0
-description: Opus Codec
+description: Opus Interactive Audio Codec
 type: app
 keywords:
   - opus

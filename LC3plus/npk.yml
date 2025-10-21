@@ -1,8 +1,8 @@
 ## Package Base Information
-name: app-lc3plus
+name: app-nuclei_audio-lc3plus
 owner: nuclei
 version: 0.1.0
-description: LC3plus Codec
+description: LC3plus (Low Complexity Communication Codec)
 type: app
 keywords:
   - lc3plus

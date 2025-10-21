@@ -1,8 +1,8 @@
 ## Package Base Information
-name: app-evs
+name: app-nuclei_audio-evs
 owner: nuclei
 version: 0.1.0
-description: EVS Codec
+description: EVS (Enhanced Voice Services) Codec
 type: app
 keywords:
   - evs

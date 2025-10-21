@@ -1,8 +1,8 @@
 ## Package Base Information
-name: app-ima-adpcm
+name: app-nuclei_audio-imaadpcm
 owner: nuclei
 version: 0.1.0
-description: IMA-ADPCM Codec
+description: IMA-ADPCM (Adaptive Differential Pulse Code Modulation) Codec
 type: app
 keywords:
   - adpcm

@@ -1,8 +1,8 @@
 ## Package Base Information
-name: app-amrnb
+name: app-nuclei_audio-amrnb
 owner: nuclei
 version: 0.1.0
-description: AMR-NB Codec
+description: AMR-NB (Adaptive Multi-Rate Narrowband) Codec
 type: app
 keywords:
   - amr-nb

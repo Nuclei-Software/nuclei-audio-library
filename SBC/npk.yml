@@ -1,8 +1,8 @@
 ## Package Base Information
-name: app-sbc
+name: app-nuclei_audio-sbc
 owner: nuclei
 version: 0.1.0
-description: SBC Codec
+description: Sub-Band Codec
 type: app
 keywords:
   - sbc

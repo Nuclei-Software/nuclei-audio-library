@@ -1,8 +1,8 @@
 ## Package Base Information
-name: app-amrwbdec
+name: app-nuclei_audio-amrwbdec
 owner: nuclei
 version: 0.1.0
-description: AMR-WB Decoder
+description: AMR-WB (Adaptive Multi-Rate Wideband) Decoder
 type: app
 keywords:
   - amr-wb
