@@ -17,6 +17,15 @@ dependencies:
 
 # Package Configurations
 configuration:
+  data_type:
+    default_value: fixed
+    type: choice
+    description: Data Type
+    choices:
+      - name: float
+        description: Floating Point
+      - name: fixed
+        description: Fixed Point
 
 setconfig:
   - config: stdclib
@@ -28,18 +37,24 @@ setconfig:
 codemanage:
   copyfiles:
     - path:
-      - "*.c"
-      - "src"
-      - "inc"
-      - "data/*.c"
-      - "data/*.h"
-      - "data/fixed/*.h"
+        - "*.c"
+        - "src"
+        - "inc"
+        - "data/*.c"
+        - "data/*.h"
+    - path: ["data/fixed/*.h"]
+      condition: $(contains(${data_type}, "fixed"))
+    - path: ["data/float/*.h"]
+      condition: $(contains(${data_type}, "float"))
   incdirs:
     - path:
-      - "./"
-      - "data"
-      - "data/fixed"
-      - "inc"
+        - "./"
+        - "data"
+        - "inc"
+    - path: ["data/fixed"]
+      condition: $(contains(${data_type}, "fixed"))
+    - path: ["data/float"]
+      condition: $(contains(${data_type}, "float"))
   libdirs:
   ldlibs:
     - libs: [m]
@@ -50,7 +65,9 @@ buildconfig:
     cdefines:
       - defines: HAVE_CONFIG_H
       - defines: USE_FIXED_POINT
+        condition: $(contains(${data_type}, "fixed"))
       - defines: RISCV_ASM
+        condition: $(contains(${data_type}, "fixed"))
     common_flags: # flags need to be combined together across all packages
       - flags: -O3
     ldflags:
