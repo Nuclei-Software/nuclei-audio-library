@@ -9,9 +9,9 @@
                                                                                
 
 #include "functions.h"
-#include "fft/iis_fft.c"
-#include "fft/iisfft.c"
-#include "fft/cfft.c"
+#include "fft/iis_fft_c.h"
+#include "fft/iisfft_c.h"
+#include "fft/cfft_c.h"
 
 void fft_init(Fft* fft, int length)
 {

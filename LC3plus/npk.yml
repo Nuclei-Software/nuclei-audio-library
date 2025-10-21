@@ -18,6 +18,15 @@ dependencies:
 
 # Package Configurations
 configuration:
+  data_type:
+    default_value: fixed
+    type: choice
+    description: Data Type
+    choices:
+      - name: float
+        description: Floating Point
+      - name: fixed
+        description: Fixed Point
 
 setconfig:
   - config: stdclib
@@ -29,18 +38,31 @@ setconfig:
 codemanage:
   copyfiles:
     - path:
-      - "*.c"
-      - "data/*.c"
-      - "data/*.h"
-      - "data/fixed/*.h"
-      - "fixed_point"
+        - "*.c"
+        - "data/*.c"
+        - "data/*.h"
+    - path:
+        - "data/fixed/*.h"
+        - "fixed_point"
+      condition: $(contains(${data_type}, "fixed"))
+    - path:
+        - "data/float/*.h"
+        - "floating_point"
+      condition: $(contains(${data_type}, "float"))
   incdirs:
     - path:
-      - "./"
-      - "data"
-      - "data/fixed"
-      - "fixed_point"
-      - "fixed_point/basic_op"
+        - "./"
+        - "data"
+    - path:
+        - "data/fixed"
+        - "fixed_point"
+        - "fixed_point/basic_op"
+      condition: $(contains(${data_type}, "fixed"))
+    - path:
+        - "data/float"
+        - "floating_point"
+        - "floating_point/fft"
+      condition: $(contains(${data_type}, "float"))
   libdirs:
   ldlibs:
     - libs: [m]
@@ -50,9 +72,13 @@ buildconfig:
   - type: common
     cdefines:
       - defines: DISABLE_HR_MODE
+        condition: $(contains(${data_type}, "fixed"))
       - defines: WMOPS=0
+        condition: $(contains(${data_type}, "fixed"))
       - defines: DONT_COUNT_MEM
+        condition: $(contains(${data_type}, "fixed"))
       - defines: FIXED_POINT
+        condition: $(contains(${data_type}, "fixed"))
     common_flags: # flags need to be combined together across all packages
       - flags: -O3
     ldflags:
