@@ -111,7 +111,7 @@ fi
 
 if [ -n "$rf" ]; then
     oldIFS=$IFS
-    IFS=, read -r ind ofs <<< "$str"
+    IFS=, read -r ind ofs <<< "$rf"
     IFS=$oldIFS
     rf="-rf $ind $ofs"
 fi
