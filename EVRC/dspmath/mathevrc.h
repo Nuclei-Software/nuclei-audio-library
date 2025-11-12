@@ -94,7 +94,14 @@ such commitments.
 #ifndef __MATHHALF
 #define __MATHHALF
 
+#include "macro.h"
 #include "typedefs.h"
+
+#if defined(SUPPORT_DSP_STD)
+#define STATIC_INLINE static inline
+#else
+#define STATIC_INLINE
+#endif
 
 /*_________________________________________________________________________
  |                                                                         |
@@ -105,62 +112,62 @@ such commitments.
 /* addition */
 /************/
 
-Shortword add(Shortword var1, Shortword var2);  /* 1 ops */
-Shortword sub(Shortword var1, Shortword var2);  /* 1 ops */
-Longword L_add(Longword L_var1, Longword L_var2);       /* 2 ops */
-Longword L_sub(Longword L_var1, Longword L_var2);       /* 2 ops */
+STATIC_INLINE Shortword add(Shortword var1, Shortword var2);  /* 1 ops */
+STATIC_INLINE Shortword sub(Shortword var1, Shortword var2);  /* 1 ops */
+STATIC_INLINE Longword L_add(Longword L_var1, Longword L_var2);       /* 2 ops */
+STATIC_INLINE Longword L_sub(Longword L_var1, Longword L_var2);       /* 2 ops */
 
 /* multiplication */
 /******************/
 
-Shortword mult(Shortword var1, Shortword var2); /* 1 ops */
-Longword L_mult(Shortword var1, Shortword var2);        /* 1 ops */
-Shortword mult_r(Shortword var1, Shortword var2);       /* 2 ops */
+STATIC_INLINE Shortword mult(Shortword var1, Shortword var2); /* 1 ops */
+STATIC_INLINE Longword L_mult(Shortword var1, Shortword var2);        /* 1 ops */
+STATIC_INLINE Shortword mult_r(Shortword var1, Shortword var2);       /* 2 ops */
 
 
 /* arithmetic shifts */
 /*********************/
 
-Shortword shr(Shortword var1, Shortword var2);  /* 1 ops */
-Shortword shl(Shortword var1, Shortword var2);  /* 1 ops */
-Longword L_shr(Longword L_var1, Shortword var2);        /* 2 ops */
-Longword L_shl(Longword L_var1, Shortword var2);        /* 2 ops */
+STATIC_INLINE Shortword shr(Shortword var1, Shortword var2);  /* 1 ops */
+STATIC_INLINE Shortword shl(Shortword var1, Shortword var2);  /* 1 ops */
+STATIC_INLINE Longword L_shr(Longword L_var1, Shortword var2);        /* 2 ops */
+STATIC_INLINE Longword L_shl(Longword L_var1, Shortword var2);        /* 2 ops */
 Shortword shift_r(Shortword var, Shortword var2);       /* 2 ops */
 Longword L_shift_r(Longword L_var, Shortword var2);     /* 3 ops */
 
 /* absolute value  */
 /*******************/
 
-Shortword abs_s(Shortword var1);       /* 1 ops */
-Longword L_abs(Longword var1);         /* 3 ops */
+STATIC_INLINE Shortword abs_s(Shortword var1);       /* 1 ops */
+STATIC_INLINE Longword L_abs(Longword var1);         /* 3 ops */
 
 
 /* multiply accumulate  */
 /************************/
 
-Longword L_mac(Longword L_var3,
+STATIC_INLINE Longword L_mac(Longword L_var3,
                       Shortword var1, Shortword var2);  /* 1 op */
-Shortword mac_r(Longword L_var3,
+STATIC_INLINE Shortword mac_r(Longword L_var3,
                        Shortword var1, Shortword var2); /* 2 op */
-Longword L_msu(Longword L_var3,
+STATIC_INLINE Longword L_msu(Longword L_var3,
                       Shortword var1, Shortword var2);  /* 1 op */
-Shortword msu_r(Longword L_var3,
+STATIC_INLINE Shortword msu_r(Longword L_var3,
                        Shortword var1, Shortword var2); /* 2 op */
 
 /* negation  */
 /*************/
 
-Shortword negate(Shortword var1);      /* 1 ops */
-Longword L_negate(Longword L_var1);    /* 2 ops */
+// static inline Shortword negate(Shortword var1);      /* 1 ops */
+// static inline Longword L_negate(Longword L_var1);    /* 2 ops */
 
 
 /* Accumulator manipulation */
 /****************************/
 
-Longword L_deposit_l(Shortword var1);  /* 1 ops */
-Longword L_deposit_h(Shortword var1);  /* 1 ops */
-Shortword extract_l(Longword L_var1);  /* 1 ops */
-Shortword extract_h(Longword L_var1);  /* 1 ops */
+// static inline Longword L_deposit_l(Shortword var1);  /* 1 ops */
+// static inline Longword L_deposit_h(Shortword var1);  /* 1 ops */
+// static inline Shortword extract_l(Longword L_var1);  /* 1 ops */
+// static inline Shortword extract_h(Longword L_var1);  /* 1 ops */
 
 /* Round */
 /*********/
@@ -170,8 +177,8 @@ Shortword round32(Longword L_var1);      /* 1 ops */
 /* Normalization */
 /*****************/
 
-Shortword norm_l(Longword L_var1);     /* 30 ops */
-Shortword norm_s(Shortword var1);      /* 15 ops */
+STATIC_INLINE Shortword norm_l(Longword L_var1);     /* 30 ops */
+STATIC_INLINE Shortword norm_s(Shortword var1);      /* 15 ops */
 
 /* Division */
 /************/
@@ -206,5 +213,209 @@ extern Longword op_counter;     /* Operation counter LT 6/96 */
 //#define OP_COUNT(x) op_counter+=x
 #define OP_COUNT(x) 
 #define OP_RESET    op_counter=0
+
+static inline Word16 negate(Word16 var1) {
+    Word16 var_out;
+    var_out = (var1 == INT16_MIN) ? INT16_MAX : -var1;
+    OP_COUNT(1);
+    return (var_out);
+}
+
+static inline Word32 L_negate(Word32 L_var1) {
+    Word32 L_var_out = (L_var1 == INT32_MIN) ? INT32_MAX : -L_var1;
+    OP_COUNT(2);
+    return L_var_out;
+}
+
+static inline Word32 L_deposit_h(Word16 var1) {
+    Word32 L_var_out;
+    L_var_out = (Word32)var1 << 16;
+    OP_COUNT(1);
+    return (L_var_out);
+}
+
+static inline Word32 L_deposit_l(Word16 var1) {
+    Word32 L_var_out;
+    L_var_out = (Word32)var1;
+    OP_COUNT(1);
+    return (L_var_out);
+}
+
+static inline Word16 extract_h(Word32 L_var1) {
+    Word16 var_out;
+    var_out = (Word16) ((uint32_t)L_var1 >> 16);
+    OP_COUNT(1);
+    return (var_out);
+}
+
+static inline Word16 extract_l(Word32 L_var1) {
+    Word16 var_out;
+    var_out = (Word16)L_var1;
+    OP_COUNT(1);
+    return (var_out);
+}
+
+#if defined(SUPPORT_DSP_STD)
+
+#define __DSP_PRESENT 1
+#include "nmsis_core.h"
+
+static inline Word16 saturate(Word32 L_var1) {
+    Word16 var_out = __RV_SCLIP32((L_var1), 15);
+    return (var_out);
+}
+
+STATIC_INLINE Word16 add(Word16 var1, Word16 var2) {
+    Word16 var_out;
+    var_out = __RV_KADD16(var1, var2);
+    OP_COUNT(1);
+    return (var_out);
+}
+
+STATIC_INLINE Word16 sub(Word16 var1, Word16 var2) {
+    Word16 var_out;
+    var_out = __RV_KSUB16(var1, var2);
+    OP_COUNT(1);
+    return (var_out);
+}
+
+STATIC_INLINE Word32 L_add(Word32 L_var1, Word32 L_var2) {
+    Word32 L_var_out;
+    L_var_out = __RV_KADDW(L_var1, L_var2);
+    OP_COUNT(2);
+    return (L_var_out);
+}
+
+STATIC_INLINE Word32 L_sub(Word32 L_var1, Word32 L_var2) {
+    Word32 L_var_out;
+    L_var_out = __RV_KSUBW(L_var1, L_var2);
+    OP_COUNT(2);
+    return (L_var_out);
+}
+
+STATIC_INLINE Word16 mult(Word16 var1, Word16 var2) {
+    Word16 var_out;
+    var_out = __RV_KHM16(var1, var2);
+    OP_COUNT(1);
+    return (var_out);
+}
+
+STATIC_INLINE Word32 L_mult(Word16 var1, Word16 var2) {
+    Word32 L_var_out;
+    L_var_out = __RV_KDMBB(var1, var2);
+    OP_COUNT(1);
+    return (L_var_out);
+}
+
+STATIC_INLINE Word16 mult_r(Word16 var1, Word16 var2) {
+    // KHMBB shift right without rouding, so not capable to replace
+    Word16 var_out;
+    Word32 a = (Word32)var1 * (Word32)var2;
+    Word32 result = __RV_SRA_U(a, 15);
+    var_out = saturate(result);
+    OP_COUNT(2);
+    return (var_out);
+}
+
+STATIC_INLINE Word16 shr(Word16 var1, Word16 var2) {
+    Word16 var_out;
+    var2 = __RV_SCLIP32(-var2, 4);
+    var_out = __RV_KSLRA16(var1, var2);
+    OP_COUNT(1);
+    return (var_out);
+}
+
+STATIC_INLINE Word16 shl(Word16 var1, Word16 var2) {
+    Word16 var_out;
+    var2 = __RV_SCLIP32(var2, 4);
+    var_out = __RV_KSLRA16(var1, var2);
+    OP_COUNT(1);
+    return (var_out);
+}
+
+STATIC_INLINE Word32 L_shr(Word32 L_var1, Word16 var2) {
+    Word32 L_var_out;
+    var2 = __RV_SCLIP32(-var2, 5);
+    L_var_out = __RV_KSLRAW(L_var1, var2);
+    OP_COUNT(2);
+    return (L_var_out);
+}
+
+STATIC_INLINE Word32 L_shl(Word32 L_var1, Word16 var2) {
+    long shift = __RV_SCLIP32(var2, 5);
+    Word32 L_var_out = __RV_KSLRAW(L_var1, shift);
+    OP_COUNT(2);
+    return (L_var_out);
+}
+
+STATIC_INLINE Word16 abs_s(Word16 var1) {
+    Word16 var_out;
+    var_out = __RV_KABS16(var1);
+    OP_COUNT(1);
+    return (var_out);
+}
+
+STATIC_INLINE Word32 L_abs(Word32 L_var1) {
+    Word32 L_var_out;
+    L_var_out = __RV_KABSW(L_var1);
+    OP_COUNT(3);
+    return L_var_out;
+}
+
+STATIC_INLINE Word32 L_mac(Word32 L_var3, Word16 var1, Word16 var2) {
+    Word32 L_var_out;
+    L_var_out = __RV_KDMABB(L_var3, var1, var2);
+    OP_COUNT(1);
+    return (L_var_out);
+}
+
+STATIC_INLINE Word16 mac_r(Word32 L_var3, Word16 var1, Word16 var2) {
+    Word16 var_out;
+    L_var3 = __RV_KDMABB(L_var3, var1, var2);
+    long result = __RV_SRA_U(L_var3, 16);
+    var_out = (Word16)result;
+    return (var_out);
+}
+
+STATIC_INLINE Word32 L_msu(Word32 L_var3, Word16 var1, Word16 var2) {
+    Word32 L_var_out;
+    Word32 L_product;
+    L_product = L_mult (var1, var2);
+    L_var_out = L_sub (L_var3, L_product);
+    OP_COUNT(1);
+    return (L_var_out);
+}
+
+STATIC_INLINE Word16 msu_r(Word32 L_var3, Word16 var1, Word16 var2) {
+    Word16 var_out;
+    L_var3 = L_msu(L_var3, var1, var2);
+    long result = __RV_SRA_U(L_var3, 16);
+    var_out = (Word16)result;
+    return (var_out);
+}
+
+STATIC_INLINE Word16 norm_l(Word32 L_var1) {
+    Word16 var_out;
+    if (L_var1 == 0) {
+        var_out = 0;
+    } else {
+        var_out = __RV_CLRS32(L_var1);
+    }
+    OP_COUNT(30);
+    return (var_out);
+}
+
+STATIC_INLINE Word16 norm_s(Word16 var1) {
+    Word16 var_out;
+    if (var1 == 0) {
+        var_out = 0;
+    } else {
+        var_out = __RV_CLRS16(var1);
+    }
+    OP_COUNT(15);
+    return (var_out);
+}
+
+#endif /* #if defined(SUPPORT_DSP_STD) */
 
 #endif

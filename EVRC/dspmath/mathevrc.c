@@ -162,6 +162,7 @@ such commitments.
  *
  *************************************************************************/
 
+#if !defined(SUPPORT_DSP_STD)
 static Shortword saturate(Longword L_var1)
 {
 	Shortword swOut;
@@ -180,6 +181,7 @@ static Shortword saturate(Longword L_var1)
 		swOut = (Shortword) L_var1;		/* automatic type conversion */
 	return (swOut);
 }
+#endif
 
 /***************************************************************************
  *
@@ -268,6 +270,7 @@ Longword L_saturate(double dVar1)
  *
  *************************************************************************/
 
+#if !defined(SUPPORT_DSP_STD)
 Shortword abs_s(Shortword var1)
 {
 	Shortword swOut;
@@ -288,6 +291,7 @@ Shortword abs_s(Shortword var1)
 	}
 	return (swOut);
 }
+#endif
 
 /***************************************************************************
  *
@@ -333,6 +337,7 @@ Shortword abs_s(Shortword var1)
  *
  *************************************************************************/
 
+#if !defined(SUPPORT_DSP_STD)
 Shortword add(Shortword var1, Shortword var2)
 {
 	Longword L_sum;
@@ -344,6 +349,7 @@ Shortword add(Shortword var1, Shortword var2)
 	swOut = saturate(L_sum);
 	return (swOut);
 }
+#endif
 
 /****************************************************************************
  *
@@ -477,6 +483,7 @@ Shortword divide_s(Shortword var1, Shortword var2)
  *
  *************************************************************************/
 
+#if 0 // move this code to the header file and static inline
 Shortword extract_h(Longword L_var1)
 {
 	Shortword var2;
@@ -486,6 +493,7 @@ Shortword extract_h(Longword L_var1)
 	var2 = (Shortword) (0x0000ffffL & (L_var1 >> 16));
 	return (var2);
 }
+#endif
 
 /***************************************************************************
  *
@@ -520,6 +528,7 @@ Shortword extract_h(Longword L_var1)
  *
  *************************************************************************/
 
+#if 0 // move this code to the header file and static inline
 Shortword extract_l(Longword L_var1)
 {
 	Shortword var2;
@@ -529,6 +538,7 @@ Shortword extract_l(Longword L_var1)
 	var2 = (Shortword) (0x0000ffffL & L_var1);
 	return (var2);
 }
+#endif
 
 /****************************************************************************
  *
@@ -590,6 +600,7 @@ int isOverflow(void)
  *   KEYWORDS: absolute value, abs
  *
  *************************************************************************/
+#if !defined(SUPPORT_DSP_STD)
 Longword L_abs(Longword L_var1)
 {
 	Longword L_Out;
@@ -610,6 +621,7 @@ Longword L_abs(Longword L_var1)
 	}
 	return (L_Out);
 }
+#endif
 
 /***************************************************************************
  *
@@ -657,6 +669,7 @@ Longword L_abs(Longword L_var1)
  *
  *************************************************************************/
 
+#if !defined(SUPPORT_DSP_STD)
 Longword L_add(Longword L_var1, Longword L_var2)
 {
 	Longword L_Sum;
@@ -675,6 +688,7 @@ Longword L_add(Longword L_var1, Longword L_var2)
 
 	return (L_Sum);
 }
+#endif
 
 /***************************************************************************
  *
@@ -707,6 +721,7 @@ Longword L_add(Longword L_var1, Longword L_var2)
  *
  *************************************************************************/
 
+#if 0 // move this code to the header file and static inline
 Longword L_deposit_h(Shortword var1)
 {
 	Longword L_var2;
@@ -716,6 +731,7 @@ Longword L_deposit_h(Shortword var1)
     L_var2 = (Longword) var1 << 16;
 	return (L_var2);
 }
+#endif
 
 /***************************************************************************
  *
@@ -747,6 +763,7 @@ Longword L_deposit_h(Shortword var1)
  *
  *************************************************************************/
 
+#if 0 // move this code to the header file and static inline
 Longword L_deposit_l(Shortword var1)
 {
 	Longword L_Out;
@@ -756,6 +773,7 @@ Longword L_deposit_l(Shortword var1)
     L_Out = var1;
 	return (L_Out);
 }
+#endif
 
 /***************************************************************************
  *
@@ -810,6 +828,7 @@ Longword L_deposit_l(Shortword var1)
  *
  *************************************************************************/
 
+#if !defined(SUPPORT_DSP_STD)
 Longword L_mac(Longword L_var3, Shortword var1, Shortword var2)
 {
 	Longword L_product;
@@ -832,6 +851,7 @@ Longword L_mac(Longword L_var3, Shortword var1, Shortword var2)
 	}
 	return (L_product);
 }
+#endif
 
 /***************************************************************************
  *
@@ -886,6 +906,7 @@ Longword L_mac(Longword L_var3, Shortword var1, Shortword var2)
  *
  *************************************************************************/
 
+#if !defined(SUPPORT_DSP_STD)
 Longword L_msu(Longword L_var3, Shortword var1, Shortword var2)
 {
 	Longword L_product;
@@ -908,6 +929,7 @@ Longword L_msu(Longword L_var3, Shortword var1, Shortword var2)
 	}
 	return (L_product);
 }
+#endif
 
 /***************************************************************************
  *
@@ -950,6 +972,7 @@ Longword L_msu(Longword L_var3, Shortword var1, Shortword var2)
  *
  *************************************************************************/
 
+#if !defined(SUPPORT_DSP_STD)
 Longword L_mult(Shortword var1, Shortword var2)
 {
 	Longword L_product;
@@ -969,6 +992,7 @@ Longword L_mult(Shortword var1, Shortword var2)
 	}
 	return (L_product);
 }
+#endif
 
 /***************************************************************************
  *
@@ -1001,6 +1025,7 @@ Longword L_mult(Shortword var1, Shortword var2)
  *
  *************************************************************************/
 
+#if 0 // move this code to the header file and static inline
 Longword L_negate(Longword L_var1)
 {
 	Longword L_Out;
@@ -1016,6 +1041,7 @@ Longword L_negate(Longword L_var1)
 		L_Out = -L_var1;
 	return (L_Out);
 }
+#endif
 
 /***************************************************************************
  *
@@ -1145,6 +1171,7 @@ Longword L_shift_r(Longword L_var1, Shortword var2)
  *
  *************************************************************************/
 
+#if !defined(SUPPORT_DSP_STD)
 Longword L_shl(Longword L_var1, Shortword var2)
 {
 
@@ -1209,6 +1236,7 @@ Longword L_shl(Longword L_var1, Shortword var2)
 
 	return (L_Out);
 }
+#endif
 
 /***************************************************************************
  *
@@ -1259,6 +1287,7 @@ Longword L_shl(Longword L_var1, Shortword var2)
  *
  *************************************************************************/
 
+#if !defined(SUPPORT_DSP_STD)
 Longword L_shr(Longword L_var1, Shortword var2)
 {
 
@@ -1317,6 +1346,7 @@ Longword L_shr(Longword L_var1, Shortword var2)
 	}
 	return (L_Out);
 }
+#endif
 
 /***************************************************************************
  *
@@ -1363,6 +1393,7 @@ Longword L_shr(Longword L_var1, Shortword var2)
  *   KEYWORDS: sub, subtraction
  *
  *************************************************************************/
+#if !defined(SUPPORT_DSP_STD)
 Longword L_sub(Longword L_var1, Longword L_var2)
 {
     Longword L_Sum;
@@ -1382,6 +1413,7 @@ Longword L_sub(Longword L_var1, Longword L_var2)
 
 	return (L_Sum);
 }
+#endif
 
 /***************************************************************************
  *
@@ -1441,10 +1473,12 @@ Longword L_sub(Longword L_var1, Longword L_var2)
  *
  *************************************************************************/
 
+#if !defined(SUPPORT_DSP_STD)
 Shortword mac_r(Longword L_var3, Shortword var1, Shortword var2)
 {
     return (round32(L_mac(L_var3, var1, var2)));
 }
+#endif
 
 /***************************************************************************
  *
@@ -1504,10 +1538,12 @@ Shortword mac_r(Longword L_var3, Shortword var1, Shortword var2)
  *
  *************************************************************************/
 
+#if !defined(SUPPORT_DSP_STD)
 Shortword msu_r(Longword L_var3, Shortword var1, Shortword var2)
 {
     return (round32(L_msu(L_var3, var1, var2)));
 }
+#endif
 
 /***************************************************************************
  *
@@ -1549,6 +1585,7 @@ Shortword msu_r(Longword L_var3, Shortword var1, Shortword var2)
  *
  *************************************************************************/
 
+#if !defined(SUPPORT_DSP_STD)
 Shortword mult(Shortword var1, Shortword var2)
 {
 	Longword L_product;
@@ -1560,6 +1597,7 @@ Shortword mult(Shortword var1, Shortword var2)
     swOut = extract_h(L_product);   OP_COUNT(-1);
 	return (swOut);
 }
+#endif
 
 /***************************************************************************
  *
@@ -1606,6 +1644,7 @@ Shortword mult(Shortword var1, Shortword var2)
  *
  *************************************************************************/
 
+#if !defined(SUPPORT_DSP_STD)
 Shortword mult_r(Shortword var1, Shortword var2)
 {
 	Shortword swOut;
@@ -1616,6 +1655,7 @@ Shortword mult_r(Shortword var1, Shortword var2)
     OP_COUNT(-2);        /* Complexity Count -- LT 6/96 */
     return (swOut);
 }
+#endif
 
 /***************************************************************************
  *
@@ -1646,6 +1686,7 @@ Shortword mult_r(Shortword var1, Shortword var2)
  *
  *************************************************************************/
 
+#if 0 // move this code to the header file and static inline
 Shortword negate(Shortword var1)
 {
 	Shortword swOut;
@@ -1661,6 +1702,7 @@ Shortword negate(Shortword var1)
 		swOut = -var1;
 	return (swOut);
 }
+#endif
 
 /***************************************************************************
  *
@@ -1720,6 +1762,7 @@ Shortword negate(Shortword var1)
  *
  *************************************************************************/
 
+#if !defined(SUPPORT_DSP_STD)
 Shortword norm_l(Longword L_var1)
 {
 	Shortword swShiftCnt;
@@ -1764,6 +1807,7 @@ Shortword norm_l(Longword L_var1)
 //	printf("norm_l end\n");
 	return (swShiftCnt);
 }
+#endif
 
 /***************************************************************************
  *
@@ -1821,6 +1865,7 @@ Shortword norm_l(Longword L_var1)
  *
  *************************************************************************/
 
+#if !defined(SUPPORT_DSP_STD)
 Shortword norm_s(Shortword var1)
 {
 	short swShiftCnt;
@@ -1832,6 +1877,7 @@ Shortword norm_s(Shortword var1)
     swShiftCnt = norm_l(L_var1);    OP_COUNT(-30);
 	return (swShiftCnt);
 }
+#endif
 
 /****************************************************************************
  *
@@ -2079,6 +2125,7 @@ Shortword shift_r(Shortword var1, Shortword var2)
  *
  *************************************************************************/
 
+#if !defined(SUPPORT_DSP_STD)
 Shortword shl(Shortword var1, Shortword var2)
 {
 	Shortword swOut;
@@ -2137,6 +2184,7 @@ Shortword shl(Shortword var1, Shortword var2)
 	}
 	return (swOut);
 }
+#endif
 
 /***************************************************************************
  *
@@ -2184,6 +2232,7 @@ Shortword shl(Shortword var1, Shortword var2)
  *
  *************************************************************************/
 
+#if !defined(SUPPORT_DSP_STD)
 Shortword shr(Shortword var1, Shortword var2)
 {
 	Shortword swMask, swOut;
@@ -2240,6 +2289,7 @@ Shortword shr(Shortword var1, Shortword var2)
 	}
 	return (swOut);
 }
+#endif
 
 /***************************************************************************
  *
@@ -2285,6 +2335,7 @@ Shortword shr(Shortword var1, Shortword var2)
  *
  *************************************************************************/
 
+#if !defined(SUPPORT_DSP_STD)
 Shortword sub(Shortword var1, Shortword var2)
 {
 	Longword L_diff;
@@ -2297,4 +2348,5 @@ Shortword sub(Shortword var1, Shortword var2)
 
 	return (swOut);
 }
+#endif
 

@@ -140,4 +140,22 @@ such commitments.
 #define BLFREQ       29491 /*0.9*/  /* Cut-off filter frequency         */
 #define EXTRA         10    /* Extra samples calc. in exc.      */
 
+#if defined(__riscv_dsp)
+#if defined(__riscv_xxldspn3x)
+#define SUPPORT_DSP_N3X
+#define SUPPORT_DSP_N2X
+#define SUPPORT_DSP_N1X
+#define SUPPORT_DSP_STD
+#elif defined(__riscv_xxldspn2x)
+#define SUPPORT_DSP_N2X
+#define SUPPORT_DSP_N1X
+#define SUPPORT_DSP_STD
+#elif defined(__riscv_xxldspn1x)
+#define SUPPORT_DSP_N1X
+#define SUPPORT_DSP_STD
+#elif defined(__riscv_xxldsp)
+#define SUPPORT_DSP_STD
+#endif // defined(__riscv_xxldspn3x)
+#endif
+
 #endif
