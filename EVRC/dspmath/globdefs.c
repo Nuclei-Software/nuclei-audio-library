@@ -84,11 +84,11 @@ such commitments.
  * to reference (declaration) these you must include "typeDefs.h"
  */
 
-int giFrmCnt;					/* Frame count: 0,1,2,3,4,... */
-int giSfrmCnt = 0;				/* Subframe count: 0,1,2,3 */
+INT32 giFrmCnt;					/* Frame count: 0,1,2,3,4,... */
+INT32 giSfrmCnt = 0;				/* Subframe count: 0,1,2,3 */
 
-int giOverflow;					/* latching overflow bit:
+INT32 giOverflow;					/* latching overflow bit:
 								 * has saturation occurred? 0=no, 1=yes */
-int giOldOverflow;
+INT32 giOldOverflow;
 
 Longword op_counter = 0;        /* Operation counter LT 6/96 */

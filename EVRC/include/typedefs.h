@@ -109,11 +109,11 @@ struct NormSw
 /* global variables */
 /********************/
 
-extern int giFrmCnt;                   /* 0,1,2,3,4..... */
-extern int giSfrmCnt;                  /* 0,1,2,3 */
+extern INT32 giFrmCnt;                   /* 0,1,2,3,4..... */
+extern INT32 giSfrmCnt;                  /* 0,1,2,3 */
 
-extern int giDTXon;                    /* DTX Mode on/off */
+extern INT32 giDTXon;                    /* DTX Mode on/off */
 
-extern int giOverflow;
-extern int giOldOverflow;
+extern INT32 giOverflow;
+extern INT32 giOldOverflow;
 #endif

@@ -1,145 +1,93 @@
-#include <iostream>
-#include <fstream>
-#include <string>
-#include <vector>
+#include <cstdint>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
-#include <time.h>
-#ifdef WIN32
-#   include <windows.h>
-#else
-#   include <sys/time.h>
-#endif
-#ifdef WIN32
-static int gettimeofday(struct timeval *tp, void *tzp)
-{
-    time_t clock;
-    struct tm tm;
-    SYSTEMTIME wtm;
-    GetLocalTime(&wtm);
-    tm.tm_year     = wtm.wYear - 1900;
-    tm.tm_mon     = wtm.wMonth - 1;
-    tm.tm_mday     = wtm.wDay;
-    tm.tm_hour     = wtm.wHour;
-    tm.tm_min     = wtm.wMinute;
-    tm.tm_sec     = wtm.wSecond;
-    tm. tm_isdst    = -1;
-    clock = mktime(&tm);
-    tp->tv_sec = clock;
-    tp->tv_usec = wtm.wMilliseconds * 1000;
-    return (0);
-}
-#endif
+#include "data/dec_raw.h"
+#include "data/enc_evrc.h"
+#include "data/input.h"
+
+#define INPUT_LEN (sizeof(input))
+#define ENC_EVRC_LEN (sizeof(enc_evrc))
+#define DEC_RAW_LEN (sizeof(dec_raw))
+
+uint8_t enc_result[ENC_EVRC_LEN] = {0};
+uint8_t dec_result[DEC_RAW_LEN] = {0};
+
+constexpr int sample_rate = 8000;
+constexpr double total_sec = INPUT_LEN * 1.0 / sizeof(short) / sample_rate;
 
 #include "evrcc.h"
+#include "nmsis_bench.h"
+
+BENCH_DECLARE_VAR();
 
 using namespace std;
 
-int encodefile(const std::string& infile,const std::string& outfile) {
-	ifstream ifs;
-	ifs.open(infile.c_str(),ios::in | ios::binary);
-
-	if( ifs.fail() ) {
-		cout << "can not open file " << infile << endl;
-		return -1;
-	}
-
-	ofstream ofs;
-	ofs.open(outfile.c_str(),ios::out | ios::binary);
-	if( ofs.fail() ) {
-		cout << "can not create file " << outfile << endl;
-		return -1;
-	}
-	
-	unsigned char* evrc = new unsigned char[1024*100];
-
-	std::vector<unsigned char> pcm;
-	typedef std::istreambuf_iterator<char> FsIt;
-	std::copy(FsIt(ifs),FsIt(),std::back_inserter(pcm));
-
-	size_t nFrame = pcm.size()/320;
-
-	void* ct = evrc_encoder_init(4,4,1);
-	struct timeval start;
-	gettimeofday(&start,NULL);
-	int r = evrc_encoder_encode_to_stream(ct,(short*)&(pcm[0]),pcm.size()/sizeof(short),evrc,1024*100);
-	struct timeval end;
-	gettimeofday(&end,NULL);
-	long msUse = ( (end.tv_sec - start.tv_sec) * 1000 + (end.tv_usec - start.tv_usec)/1000 );
-	cout << "encode " << nFrame << " frames for " << nFrame * 20 << "ms, use " << msUse << "ms" <<
-	   " average " << (float)msUse/nFrame << "ms/frame" <<	endl;
-
-	if( r > 0 ) {
-		ofs.write((char*)evrc,r);
-	} else {
-		cout << "no data output at frame " << nFrame << endl;
-	}
-	evrc_encoder_uninit(ct);
-	ifs.close();
-	ofs.close();
-	return 0;
+int verify_result(const uint8_t *ref, const uint8_t *res, int len,
+                  int threshold) {
+    for (int i = 0; i < len; i++) {
+        if (abs(ref[i] - res[i]) > threshold) {
+            printf(
+                "Result mismatch at byte %d!, expected 0x%02x, got 0x%02x\r\n",
+                i, ref[i], res[i]);
+            return EXIT_FAILURE;
+        }
+    }
+    printf("Result matches!\r\n");
+    return EXIT_SUCCESS;
 }
 
-int decodefile(const std::string& infile,const std::string& outfile) {
-	ifstream ifs;
-	ifs.open(infile.c_str(),ios::in | ios::binary);
+int encodefile() {
+    size_t nFrame = INPUT_LEN / 320;
+    int16_t *pcm = (int16_t *)input;
 
-	if( ifs.fail() ) {
-		cout << "can not open file " << infile << endl;
-		return -1;
-	}
+    void *ct = evrc_encoder_init(4, 4, 1);
+    BENCH_START(evrc_encode);
+    int r = evrc_encoder_encode_to_stream(ct, (short *)&(pcm[0]),
+                                          INPUT_LEN / sizeof(short), enc_result,
+                                          1024 * 100);
+    BENCH_SAMPLE(evrc_encode);
+    /* NOTE: There is an overflow risk */
+    unsigned long used_cycle = BENCH_GET_USECYC();
 
-	ofstream ofs;
-	ofs.open(outfile.c_str(),ios::out | ios::binary);
-	if( ofs.fail() ) {
-		cout << "can not create file " << outfile << endl;
-		return -1;
-	}
-	
-	std::vector<unsigned char> bits;
-	typedef std::istreambuf_iterator<char> FsIt;
-	std::copy(FsIt(ifs),FsIt(),std::back_inserter(bits));
-	if( !bits.empty() ) {
-		void* ct = evrc_decoder_init();
-		const int words = evrc_decoder_stream_max_sample(&(bits[0]),bits.size());
-		short* pcm_buf = new short[words];
-
-		int bytes = evrc_decoder_decode_from_stream(ct,&(bits[0]),bits.size(),pcm_buf,words);
-		if( bytes > 0 ) {
-			cout << "decode " << bytes / 320 << " frames" << endl;
-			ofs.write((char*)pcm_buf,bytes);
-		}
-		delete [] pcm_buf;
-		evrc_decoder_uninit(ct);
-	}
-	
-	ifs.close();
-	ofs.close();
-	return 0;
+    double mcps = used_cycle * 1.0 / 1000000 / total_sec;
+    printf("encode %d frames for %d ms, use %lu cycles\r\n", nFrame,
+           nFrame * 20, used_cycle);
+    printf("CSV, evrc_encode, %.02f\r\n", mcps);
+    evrc_encoder_uninit(ct);
+    return 0;
 }
 
-
-int main(int argc,char* argv[]) {
-	/*
-     *cout << "Usage: " << argv[0] << " e speechfile bitstreamfile" << endl;
-	 *cout << "or   : " << argv[0] << " d bitstreamfile speechfile" << endl;
-	 *encodefile("/sdcard/pcm.raw","/sdcard/evrc.raw");
-	 *return 0;
-	 */
-
-	if( argc < 4 ) {
-		cout << "Usage: " << argv[0] << " e speechfile bitstreamfile" << endl;
-				cout << "or   : " << argv[0] << " d bitstreamfile speechfile" << endl;
-
-		return 0;
-	}
-
-	if( 'd' == argv[1][0] ) {
-		decodefile(argv[2],argv[3]);
-	} else if( 'e' == argv[1][0] ) {
-		encodefile(argv[2],argv[3]);
-	} else {
-		std::cout << "unknown opt" << std::endl;
-	}
-	return 0;
+int decodefile() {
+    void *ct = evrc_decoder_init();
+    const int words = evrc_decoder_stream_max_sample(enc_evrc, ENC_EVRC_LEN);
+    short *pcm_buf = (short *)dec_result;
+    BENCH_START(evrc_decode);
+    int bytes = evrc_decoder_decode_from_stream(ct, enc_evrc, ENC_EVRC_LEN,
+                                                pcm_buf, words);
+    BENCH_SAMPLE(evrc_decode);
+    unsigned long used_cycle = BENCH_GET_USECYC();
+    if (bytes > 0) {
+        double mcps = used_cycle * 1.0 / 1000000 / total_sec;
+        printf("decode %d frames\r\n", bytes / 320);
+        printf("CSV, evrc_decode, %.02f\r\n", mcps);
+    }
+    evrc_decoder_uninit(ct);
+    return 0;
 }
 
+int main(int argc, char *argv[]) {
+    encodefile();
+    if (verify_result(enc_evrc, enc_result, ENC_EVRC_LEN, 0) != EXIT_SUCCESS) {
+        printf("FAIL\r\n");
+        return EXIT_FAILURE;
+    }
+    decodefile();
+    if (verify_result(dec_raw, dec_result, DEC_RAW_LEN, 0) != EXIT_SUCCESS) {
+        printf("FAIL\r\n");
+        return EXIT_FAILURE;
+    }
+    printf("PASS\r\n");
+    return EXIT_SUCCESS;
+}

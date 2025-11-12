@@ -250,6 +250,19 @@ typedef unsigned short  UINT16;
 typedef int    FLAG;
 typedef double FLOAT64;
 typedef float  FLOAT32;
+#elif defined(__riscv)
+#include <stdint.h>
+typedef int64_t INT64;
+typedef int32_t INT32;
+typedef int16_t INT16;
+
+typedef uint64_t UINT64;
+typedef uint32_t UINT32;
+typedef uint16_t UINT16;
+
+typedef int    FLAG;
+typedef double FLOAT64;
+typedef float  FLOAT32;
 #elif defined(__unix__) || defined(__unix)
 typedef long long  INT64;
 typedef int    INT32;
