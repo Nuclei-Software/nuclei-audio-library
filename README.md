@@ -14,6 +14,7 @@ audio processing.
 - AMR-WB: [Adaptive Multi-Rate Wideband Codec](./AMR-WB). [Encoder](./AMR-WB/amrwb_enc/)
   & [Decoder](./AMR-WB/amrwb_dec/)
 - EVS: [Enhanced Voice Services Codec](./EVS/)
+- EVRC: [Enhanced Variable Rate Codec](./EVRC/)
 - ADPCM: Adaptive Differential Pulse-Code Modulation. [IMA-ADPCM codec](./ADPCM/IMA/)
 - MP3: [Helix MP3 Decoder](./MP3/Helix/)
 - SBC: [Sub-Band Codec](./SBC/)
