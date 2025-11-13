@@ -30,7 +30,7 @@ To build and use this library, the Nuclei bare-metal development environment is 
 1. Required Tools:
 
     - [Nuclei SDK version 0.8.1](https://github.com/Nuclei-Software/nuclei-sdk/releases/tag/0.8.1)
-    - [Nuclei Studio IDE: 2025.02](https://download.nucleisys.com/upload/files/nucleistudio/NucleiStudio_IDE_202502-lin64.tgz)
+    - [Nuclei Studio IDE: 2025.10](https://download.nucleisys.com/upload/files/nucleistudio/NucleiStudio_IDE_202510-lin64.tgz)
     (Linux recommended)
 
 2. How to Use:
