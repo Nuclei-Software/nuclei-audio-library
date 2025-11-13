@@ -5,6 +5,13 @@ It is only support **8k sampling rate**.
 
 The origin source code comes from [maolin-cdzl/evrcc commit:3171eb](https://github.com/maolin-cdzl/evrcc/commit/3171eb34ca87b4b21299f365825c547fa94ab053)
 
+Here we provide an alternative implementation of double-precision
+multiplication using fixed-point arithmetic. From now on, **only this
+fixed-point** version will be maintained in this repository. Since the
+two implementations cannot share the same reference results, if you
+need the original double-precision version, please check out the
+following tag: [evrc_flt](https://github.com/Nuclei-Software/nuclei-audio-library/tree/evrc_flt)
+
 ## File Structure
 
 | Directory | Description |
@@ -25,20 +32,16 @@ Switch to the directory containing the `Makefile`.
 Below are build examples for the **Nuclei N300 CPU**.
 
 ```shell
-make CORE=n300fd ARCH_EXT= all
+make CORE=n300 ARCH_EXT= all
 ```
 
 Build with extra B and P extension:
 
 ```shell
-make CORE=n300fd ARCH_EXT=_zba_zbb_zbc_zbs_xxldspn3x all
+make CORE=n300 ARCH_EXT=_zba_zbb_zbc_zbs_xxldspn3x all
 ```
 
 For details about Nuclei CPU architecture extensions, see the [ARCH_EXT section](https://doc.nucleisys.com/nuclei_sdk/develop/buildsystem.html#arch-ext)
-
-> [!NOTE]
-> The 'd'(double float) extension is necessary for EVRC codec,
-or it will perform poorly.
 
 ## Performance Test
 
@@ -65,16 +68,17 @@ To view usage details:
 A typical output looks like this:
 
 ```txt
-Nuclei SDK Build Time: Nov 13 2025, 14:57:32
+Nuclei SDK Build Time: Nov 13 2025, 20:10:27
 Download Mode: ILM
 CPU Frequency 15999631 Hz
 CPU HartID: 0
-encode 100 frames for 2000 ms, use 215544227 cycles
-CSV, evrc_encode, 107.77
+encode 100 frames for 2000 ms, use 169800325 cycles
+CSV, evrc_encode, 84.90
 Result matches!
 decode 100 frames
-CSV, evrc_decode, 8.32
+CSV, evrc_decode, 6.50
 Result matches!
+PASS
 ```
 
 The key results are prefixed with `CSV`, making them easy to parse in scripts

@@ -101,6 +101,7 @@ such commitments.
 #include "dsp_math.h"
 #include "typedefs.h"
 
+#define USE_ALT_DP31
 #ifndef USE_ALT_DP31
 /****************************************************************************
  *
