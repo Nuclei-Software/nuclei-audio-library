@@ -1,0 +1,63 @@
+## Package Base Information
+name: app-nuclei_audio-evrc
+owner: nuclei
+version: 0.1.0
+description: EVRC (Adaptive Multi-Rate Narrowband) Codec
+type: app
+keywords:
+  - evrc
+  - codec
+category: audio application
+license: Apache-2.0
+homepage: https://github.com/Nuclei-Software/nuclei-audio-library/tree/master/EVRC
+
+## Package Dependency
+dependencies:
+  - name: sdk-nuclei_sdk
+    version:
+
+# Package Configurations
+configuration:
+
+setconfig:
+  - config: stdclib
+    value: newlib_small
+  - config: download_mode
+    value: ddr
+
+## Source Code Management
+codemanage:
+  copyfiles:
+    - path:
+      - "*.c"
+      - "*.h"
+      - "*.cpp"
+      - "code"
+      - "dspmath"
+      - "include"
+      - "data/*.c"
+      - "data/*.h"
+  incdirs:
+    - path:
+      - "./"
+      - "include"
+      - "dspmath"
+  libdirs:
+  ldlibs:
+    - libs: [m]
+
+# Build Configuration
+buildconfig:
+  - type: common
+    common_flags: # flags need to be combined together across all packages
+      - flags: -O3
+    ldflags:
+    cflags:
+    asmflags:
+    cxxflags:
+    prebuild_steps: # could be override by app/bsp type
+      command:
+      description:
+    postbuild_steps: # could be override by app/bsp type
+      command:
+      description:
