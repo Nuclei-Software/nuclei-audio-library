@@ -83,7 +83,7 @@ run_qemu:
   parallel:
     matrix:
       - LOGDIR: "logs/qemu"
-        AUDIO_APP: ["amrnb", "amrwb", "evs"]
+        AUDIO_APP: ["amrnb", "amrwb", "evs", "misc"]
   script:
     # start to run on qemu
     - ./Scripts/Configs/ci/run_qemu.sh $AUDIO_APP $LOGDIR

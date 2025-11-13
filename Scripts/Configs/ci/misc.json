@@ -1,6 +1,6 @@
 {
     "run_config": {
-        "target" : "hardware",
+        "target" : "qemu",
         "parsescript": "Scripts/parse.py",
         "hardware" : {
             "baudrate": 115200,
@@ -10,32 +10,21 @@
             "qemu32": "qemu-system-riscv32",
             "qemu64": "qemu-system-riscv64",
             "timeout": 60
-        },
-        "ncycm": {
-            "timeout": 1200
         }
     },
-    "copy_objects": true,
     "build_target": "clean all",
     "build_config": {
+        "SOC": "evalsoc"
     },
-    "parallel" : "-j",
     "checks": {
         "PASS": ["PASS"],
         "FAIL": ["MEPC", "FAIL"]
     },
     "appdirs": [
-        "AMR-NB",
-        "AMR-WB/amrwb_dec",
-        "AMR-WB/amrwb_enc",
-        "EVS",
         "EVRC"
     ],
     "appdirs_ignore": [
     ],
     "appconfig": {
-        "EVS": {
-            "build_config": { "DOWNLOAD": "ddr" }
-        }
     }
 }
