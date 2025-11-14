@@ -26,6 +26,7 @@
 
 #include "unicode_support.h"
 #include "mp4read.h"
+#include "memfop.h"
 
 enum ATOM_TYPE
 {
@@ -44,7 +45,7 @@ typedef struct
 
 mp4config_t mp4config = { 0 };
 
-static FILE *g_fin = NULL;
+static MemoryFile *g_fin = NULL;
 
 static inline uint32_t bswap32(const uint32_t u32)
 {
@@ -76,7 +77,7 @@ enum {ERR_OK = 0, ERR_FAIL = -1, ERR_UNSUPPORTED = -2};
 
 static int datain(void *data, int size)
 {
-    if (fread(data, 1, size, g_fin) != size)
+    if (memfread(data, 1, size, g_fin) != size)
         return ERR_FAIL;
     return size;
 }
@@ -86,7 +87,7 @@ static int stringin(char *txt, int sizemax)
     int size;
     for (size = 0; size < sizemax; size++)
     {
-        if (fread(txt + size, 1, 1, g_fin) != 1)
+        if (memfread(txt + size, 1, 1, g_fin) != 1)
             return ERR_FAIL;
         if (!txt[size])
             break;
@@ -701,7 +702,7 @@ static creator_t *g_atom = 0;
 static int parse(uint32_t *sizemax)
 {
     long apos = 0;
-    long aposmax = ftell(g_fin) + *sizemax;
+    long aposmax = memftell(g_fin) + *sizemax;
     uint32_t size;
 
     if (g_atom->opcode != ATOM_NAME)
@@ -717,7 +718,7 @@ static int parse(uint32_t *sizemax)
         char name[4];
         uint32_t tmp;
 
-        apos = ftell(g_fin);
+        apos = memftell(g_fin);
         if (apos >= (aposmax - 8))
         {
             fprintf(stderr, "parse error: atom '%s' not found\n", (char *)g_atom->data);
@@ -725,7 +726,7 @@ static int parse(uint32_t *sizemax)
         }
         if ((tmp = u32in()) < 8)
         {
-            fprintf(stderr, "invalid atom size %x @%lx\n", tmp, ftell(g_fin));
+            fprintf(stderr, "invalid atom size %x @%lx\n", tmp, memftell(g_fin));
             return ERR_FAIL;
         }
 
@@ -733,7 +734,7 @@ static int parse(uint32_t *sizemax)
         if (datain(name, 4) != 4)
         {
             // EOF
-            fprintf(stderr, "can't read atom name @%lx\n", ftell(g_fin));
+            fprintf(stderr, "can't read atom name @%lx\n", memftell(g_fin));
             return ERR_FAIL;
         }
 
@@ -746,7 +747,7 @@ static int parse(uint32_t *sizemax)
         }
         //fprintf(stderr, "\n");
 
-        fseek(g_fin, apos + size, SEEK_SET);
+        memfseek(g_fin, apos + size, SEEK_SET);
     }
     *sizemax = size;
     g_atom++;
@@ -755,14 +756,14 @@ static int parse(uint32_t *sizemax)
         int err = ((int (*)(int)) g_atom->data)(size - 8);
         if (err < ERR_OK)
         {
-            fseek(g_fin, apos + size, SEEK_SET);
+            memfseek(g_fin, apos + size, SEEK_SET);
             return err;
         }
         g_atom++;
     }
     if (g_atom->opcode == ATOM_DESCENT)
     {
-        long apos = ftell(g_fin);;
+        long apos = memftell(g_fin);;
 
         //fprintf(stderr, "descent\n");
         g_atom++;
@@ -775,14 +776,14 @@ static int parse(uint32_t *sizemax)
                 g_atom++;
                 break;
             }
-            fseek(g_fin, apos, SEEK_SET);
+            memfseek(g_fin, apos, SEEK_SET);
             if ((ret = parse(&subsize)) < 0)
                 return ret;
         }
         //fprintf(stderr, "ascent\n");
     }
 
-    fseek(g_fin, apos + size, SEEK_SET);
+    memfseek(g_fin, apos + size, SEEK_SET);
 
     return ERR_OK;
 }
@@ -791,7 +792,7 @@ static int parse(uint32_t *sizemax)
 
 static int moovin(int sizemax)
 {
-    long apos = ftell(g_fin);
+    long apos = memftell(g_fin);
     uint32_t atomsize;
     int err;
 
@@ -836,16 +837,16 @@ static int moovin(int sizemax)
     };
 
     g_atom = mvhd;
-    atomsize = sizemax + apos - ftell(g_fin);
+    atomsize = sizemax + apos - memftell(g_fin);
     if (parse(&atomsize) < 0)
         return ERR_FAIL;
-    fseek(g_fin, apos, SEEK_SET);
+    memfseek(g_fin, apos, SEEK_SET);
 
     while (1)
     {
         //fprintf(stderr, "TRAK\n");
         g_atom = trak;
-        atomsize = sizemax + apos - ftell(g_fin);
+        atomsize = sizemax + apos - memftell(g_fin);
         if (atomsize < 8)
             break;
         //fprintf(stderr, "PARSE(%x)\n", atomsize);
@@ -911,7 +912,7 @@ int mp4read_frame(void)
     mp4config.bitbuf.size = mp4config.frame.data[mp4config.frame.current + 1]
         - mp4config.frame.data[mp4config.frame.current];
 
-    if (fread(mp4config.bitbuf.data, 1, mp4config.bitbuf.size, g_fin)
+    if (memfread(mp4config.bitbuf.data, 1, mp4config.bitbuf.size, g_fin)
         != mp4config.bitbuf.size)
     {
         fprintf(stderr, "can't read frame data(frame %d@0x%x)\n",
@@ -930,7 +931,7 @@ int mp4read_seek(int framenum)
 {
     if (framenum > mp4config.frame.ents)
         return ERR_FAIL;
-    if (fseek(g_fin, mp4config.mdatofs + mp4config.frame.data[framenum], SEEK_SET))
+    if (memfseek(g_fin, mp4config.mdatofs + mp4config.frame.data[framenum], SEEK_SET))
         return ERR_FAIL;
 
     mp4config.frame.current = framenum;
@@ -964,6 +965,8 @@ int mp4read_close(void)
     return ERR_OK;
 }
 
+extern size_t input_len;
+extern uint8_t input[];
 int mp4read_open(char *name)
 {
     uint32_t atomsize;
@@ -971,7 +974,7 @@ int mp4read_open(char *name)
 
     mp4read_close();
 
-    g_fin = faad_fopen(name, "rb");
+    g_fin = memfopen(input, input_len);
     if (!g_fin)
         return ERR_FAIL;
 
@@ -983,7 +986,7 @@ int mp4read_open(char *name)
         goto err;
     g_atom = g_moov;
     atomsize = INT_MAX;
-    rewind(g_fin);
+    memrewind(g_fin);
     if ((ret = parse(&atomsize)) < 0)
     {
         fprintf(stderr, "parse:%d\n", ret);
@@ -1002,13 +1005,13 @@ int mp4read_open(char *name)
 
     if (mp4config.verbose.tags)
     {
-        rewind(g_fin);
+        memrewind(g_fin);
         g_atom = g_meta1;
         atomsize = INT_MAX;
         ret = parse(&atomsize);
         if (ret < 0)
         {
-            rewind(g_fin);
+            memrewind(g_fin);
             g_atom = g_meta2;
             atomsize = INT_MAX;
             ret = parse(&atomsize);

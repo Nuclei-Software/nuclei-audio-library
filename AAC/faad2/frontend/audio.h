@@ -35,6 +35,8 @@
 extern "C" {
 #endif
 
+#include "memfop.h"
+
 #define MAXWAVESIZE     4294967040LU
 
 #define OUTPUT_WAV 1
@@ -44,7 +46,7 @@ typedef struct
 {
     int toStdio;
     int outputFormat;
-    FILE *sndfile;
+    MemoryFile *sndfile;
     unsigned int fileType;
     unsigned long samplerate;
     unsigned int bits_per_sample;
