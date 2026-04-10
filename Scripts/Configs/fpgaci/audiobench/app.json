@@ -35,7 +35,19 @@
     ],
     "appconfig": {
         "EVS": {
-            "build_config": { "DOWNLOAD": "ddr" }
+            "build_config": { "DOWNLOAD": "ddr" },
+            "run_config": {
+                "hardware": {
+                    "timeout": 360
+                }
+            }
+        },
+        "EVRC": {
+            "run_config": {
+                "hardware": {
+                    "timeout": 360
+                }
+            }
         }
     }
 }
