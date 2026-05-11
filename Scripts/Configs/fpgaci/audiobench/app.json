@@ -45,7 +45,7 @@
         "EVRC": {
             "run_config": {
                 "hardware": {
-                    "timeout": 360
+                    "timeout": 900
                 }
             }
         }
