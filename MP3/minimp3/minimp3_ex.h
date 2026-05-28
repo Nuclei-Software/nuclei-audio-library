@@ -9,6 +9,10 @@
 #include <stddef.h>
 #include "minimp3.h"
 
+#include "data/memfop.h"
+extern unsigned char bit_input[];
+extern size_t g_input_len;
+
 /* flags for mp3dec_ex_open_* functions */
 #define MP3D_SEEK_TO_BYTE   0      /* mp3dec_ex_seek seeks to byte in stream */
 #define MP3D_SEEK_TO_SAMPLE 1      /* mp3dec_ex_seek precisely seeks to sample using index (created during duration calculation scan or when mp3dec_ex_seek called) */
@@ -1268,7 +1272,7 @@ static int mp3dec_open_file(const char *file_name, mp3dec_map_info_t *map_info)
     if (!file_name)
         return MP3D_E_PARAM;
     memset(map_info, 0, sizeof(*map_info));
-    FILE *file = fopen(file_name, "rb");
+    FILE *file = memfopen(bit_input, g_input_len);
     if (!file)
         return MP3D_E_IOERROR;
     int res = MP3D_E_IOERROR;
