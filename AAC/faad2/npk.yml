@@ -1,0 +1,66 @@
+## Package Base Information
+name: app-nuclei_audio-faad2
+owner: nuclei
+version: 0.1.0
+description: FAAD2 AAC Decoder
+type: app
+keywords:
+  - aac
+  - faad2
+  - decoder
+category: audio application
+license: GPL-2.0-or-later
+homepage: https://github.com/Nuclei-Software/nuclei-audio-library/tree/master/AAC/faad2
+
+## Package Dependency
+dependencies:
+  - name: sdk-nuclei_sdk
+    version:
+
+# Package Configurations
+configuration:
+
+setconfig:
+  - config: stdclib
+    value: newlib_small
+  - config: download_mode
+    value: ddr
+
+## Source Code Management
+codemanage:
+  copyfiles:
+    - path:
+      - "*.c"
+      - "*.h"
+      - "frontend"
+      - "include"
+      - "libfaad"
+      - "../data"
+  incdirs:
+    - path:
+      - "./"
+      - "frontend"
+      - "include"
+      - "libfaad"
+      - "data"
+  libdirs:
+  ldlibs:
+    - libs: [m]
+
+# Build Configuration
+buildconfig:
+  - type: common
+    cdefines:
+      - defines: HAVE_CONFIG_H
+    common_flags: # flags need to be combined together across all packages
+      - flags: -O3
+    ldflags:
+    cflags:
+    asmflags:
+    cxxflags:
+    prebuild_steps: # could be override by app/bsp type
+      command:
+      description:
+    postbuild_steps: # could be override by app/bsp type
+      command:
+      description:

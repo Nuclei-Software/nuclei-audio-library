@@ -1,0 +1,58 @@
+## Package Base Information
+name: app-nuclei_audio-minimp3
+owner: nuclei
+version: 0.1.0
+description: minimp3 MP1/MP2/MP3 Decoder
+type: app
+keywords:
+  - mp3
+  - minimp3
+  - decoder
+category: audio application
+license: CC0-1.0
+homepage: https://github.com/Nuclei-Software/nuclei-audio-library/tree/master/MP3/minimp3
+
+## Package Dependency
+dependencies:
+  - name: sdk-nuclei_sdk
+    version:
+
+# Package Configurations
+configuration:
+
+setconfig:
+  - config: stdclib
+    value: newlib_small
+  - config: download_mode
+    value: ddr
+
+## Source Code Management
+codemanage:
+  copyfiles:
+    - path:
+      - "*.c"
+      - "*.h"
+      - "data/*.c"
+      - "data/*.h"
+  incdirs:
+    - path:
+      - "./"
+  libdirs:
+  ldlibs:
+    - libs: [m]
+
+# Build Configuration
+buildconfig:
+  - type: common
+    common_flags: # flags need to be combined together across all packages
+      - flags: -O3
+    ldflags:
+    cflags:
+    asmflags:
+    cxxflags:
+    prebuild_steps: # could be override by app/bsp type
+      command:
+      description:
+    postbuild_steps: # could be override by app/bsp type
+      command:
+      description:
