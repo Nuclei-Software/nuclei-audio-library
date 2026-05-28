@@ -29,7 +29,7 @@ stages:
   tags: 
     - env::docker
     - net::outside
-    - host::whss5
+    - env::nfs
   image: $IMAGE:$IMAGE_TAG
   interruptible: true
   #when: manual
