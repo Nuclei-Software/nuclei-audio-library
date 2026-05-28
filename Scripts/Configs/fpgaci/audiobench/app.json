@@ -30,7 +30,8 @@
         "AMR-WB/amrwb_enc",
         "EVS",
         "EVRC",
-        "MP3/minimp3"
+        "MP3/minimp3",
+        "AAC/faad2"
     ],
     "appdirs_ignore": [
     ],

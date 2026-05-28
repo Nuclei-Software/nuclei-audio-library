@@ -1,0 +1,35 @@
+{
+    "run_config": {
+        "target" : "qemu",
+        "hardware" : {
+            "baudrate": 115200,
+            "timeout": 60
+        },
+        "qemu": {
+            "qemu32": "qemu-system-riscv32",
+            "qemu64": "qemu-system-riscv64",
+            "timeout": 60
+        }
+    },
+    "build_target": "clean all",
+    "build_config": {
+        "SOC": "evalsoc"
+    },
+    "checks": {
+        "PASS": ["PASS"],
+        "FAIL": ["MEPC", "FAIL"]
+    },
+    "appdirs": [
+        "AAC/faad2"
+    ],
+    "matrix": {
+        "PATTERN1": {"PATTERN": 1},
+        "PATTERN2": {"PATTERN": 2},
+        "PATTERN3": {"PATTERN": 3}
+    },
+    "appdirs_ignore": [
+    ],
+    "appconfig": {
+    }
+}
+

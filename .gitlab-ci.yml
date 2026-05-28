@@ -83,7 +83,7 @@ run_qemu:
   parallel:
     matrix:
       - LOGDIR: "logs/qemu"
-        AUDIO_APP: ["amrnb", "amrwb", "evs", "minimp3", "misc"]
+        AUDIO_APP: ["amrnb", "amrwb", "evs", "minimp3", "aac", "misc"]
   script:
     # start to run on qemu
     - if [ "$AUDIO_APP" = "evs" ]; then bash EVS/scripts/download_and_patch.sh /home/share/devtools/algo/evs_test_seq; fi
