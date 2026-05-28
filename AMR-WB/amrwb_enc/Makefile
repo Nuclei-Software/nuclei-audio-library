@@ -1,13 +1,14 @@
-REGEN_DATA ?= 0
-BITRATE ?= 6600
+TARGET := amrwb_enc
 
-ifeq ($(REGEN_DATA), 1)
-$(info Regenerating data...)
-TARGET := $(shell ./../bin/gendata.sh $(BITRATE) >/dev/null 2>&1 && echo amrwb_enc)
-$(info Generate data done)
+# The default bitrate is 6600
+# available bitrate: 6600, 8850, 12650, 14250, 15850, 18250, 19850, 23050, 23850
+# BITRATE=0 means not regenerate test data
+BITRATE ?= 0
+ifneq ($(BITRATE), 0)
+$(info Using data generated with bitrate $(BITRATE))
+$(shell ./../bin/gendata.sh $(BITRATE) >/dev/null 2>&1)
 else
 $(info Using pre-generated data...)
-TARGET := amrwb_enc
 endif
 
 NUCLEI_SDK_ROOT ?= ../../../..

@@ -1,15 +1,16 @@
+TARGET := evs_demo
+
+NUCLEI_SDK_ROOT ?= ../../../..
+
 # The default test pattern is pattern 1
 # 0 means not regenerate test pattern
 PATTERN ?= 0
 ifneq ($(PATTERN),0)
-TARGET := $(shell ./data/bin/gendata.sh -p $(PATTERN) >/dev/null 2>&1 && echo evs_demo)
 $(info Using data generated from pattern $(PATTERN))
+$(shell ./data/bin/gendata.sh -p $(PATTERN) >/dev/null 2>&1)
 else
-TARGET := evs_demo
 $(info Using pre-generated data...)
 endif
-
-NUCLEI_SDK_ROOT ?= ../../../..
 
 ifeq ($(wildcard src),)
 $(info src directory not found, running scripts/download_and_patch.sh...)

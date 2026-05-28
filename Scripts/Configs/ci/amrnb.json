@@ -24,14 +24,14 @@
         "AMR-NB"
     ],
     "matrix": {
-        "4750": {"REGEN_DATA": 1, "BITRATE": 4750},
-        "5150": {"REGEN_DATA": 1, "BITRATE": 5150},
-        "5900": {"REGEN_DATA": 1, "BITRATE": 5900},
-        "6700": {"REGEN_DATA": 1, "BITRATE": 6700},
-        "7400": {"REGEN_DATA": 1, "BITRATE": 7400},
-        "7950": {"REGEN_DATA": 1, "BITRATE": 7950},
-        "10200": {"REGEN_DATA": 1, "BITRATE": 10200},
-        "12200": {"REGEN_DATA": 1, "BITRATE": 12200}
+        "4750": {"BITRATE": 4750},
+        "5150": {"BITRATE": 5150},
+        "5900": {"BITRATE": 5900},
+        "6700": {"BITRATE": 6700},
+        "7400": {"BITRATE": 7400},
+        "7950": {"BITRATE": 7950},
+        "10200": {"BITRATE": 10200},
+        "12200": {"BITRATE": 12200}
     },
     "appdirs_ignore": [
     ],

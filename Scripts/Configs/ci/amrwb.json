@@ -25,15 +25,15 @@
         "AMR-WB/amrwb_dec"
     ],
     "matrix": {
-        "6600": {"REGEN_DATA": 1, "BITRATE": 6600},
-        "8850": {"REGEN_DATA": 1, "BITRATE": 8850},
-        "12650": {"REGEN_DATA": 1, "BITRATE": 12650},
-        "14250": {"REGEN_DATA": 1, "BITRATE": 14250},
-        "15850": {"REGEN_DATA": 1, "BITRATE": 15850},
-        "18250": {"REGEN_DATA": 1, "BITRATE": 18250},
-        "19850": {"REGEN_DATA": 1, "BITRATE": 19850},
-        "23050": {"REGEN_DATA": 1, "BITRATE": 23050},
-        "23850": {"REGEN_DATA": 1, "BITRATE": 23850}
+        "6600": {"BITRATE": 6600},
+        "8850": {"BITRATE": 8850},
+        "12650": {"BITRATE": 12650},
+        "14250": {"BITRATE": 14250},
+        "15850": {"BITRATE": 15850},
+        "18250": {"BITRATE": 18250},
+        "19850": {"BITRATE": 19850},
+        "23050": {"BITRATE": 23050},
+        "23850": {"BITRATE": 23850}
     },
     "appdirs_ignore": [
     ],
