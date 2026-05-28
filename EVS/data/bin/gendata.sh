@@ -137,24 +137,26 @@ decode_cmd="./bin/EVS_dec $samplerate enc.192 dec.raw"
 eval $encode_cmd || exit 1
 eval $decode_cmd || exit 1
 
-# generate data file
-xxd -i $audio $DATA_DIR/input.h
-#  delete unused line
-sed -i "/int/d" $DATA_DIR/input.h
-# change variable name to 'input'
-sed -i "s/char [a-zA-Z0-9_]*/char input/g" $DATA_DIR/input.h
-# add bitrate
-echo "#include <string.h>" >> $DATA_DIR/input.h
-cmd_to_argv $DATA_DIR/input.h enc_argv $encode_cmd
-cmd_to_argv $DATA_DIR/input.h dec_argv $decode_cmd
+# generate encode data
+xxd -i $audio $DATA_DIR/enc_input.h
+# change variable name to 'enc_input'
+sed -i "s/char [a-zA-Z0-9_]*/char enc_input/g" $DATA_DIR/enc_input.h
+# define input and output length
+sed -i -E 's/^.* = ([0-9]+);/#define ENC_INPUT_LEN \1/' $DATA_DIR/enc_input.h
+xxd -i $DATA_DIR/enc.192 | grep int | sed -E 's/^.* = ([0-9]+);/#define ENC_OUTPUT_LEN \1/' >> $DATA_DIR/enc_input.h
 
-xxd -i $DATA_DIR/enc.192 $DATA_DIR/enc_192.h
-sed -i "/int/d" $DATA_DIR/enc_192.h
-sed -i "s/char [a-zA-Z0-9_]*/char enc_192/g" $DATA_DIR/enc_192.h
+# generate decode data
+xxd -i $DATA_DIR/enc.192 $DATA_DIR/dec_input.h
+# change variable name to 'dec_input'
+sed -i "s/char [a-zA-Z0-9_]*/char dec_input/g" $DATA_DIR/dec_input.h
+# define input and output length
+sed -i -E 's/^.* = ([0-9]+);/#define DEC_INPUT_LEN \1/' $DATA_DIR/dec_input.h
+xxd -i $DATA_DIR/dec.raw | grep int | sed -E 's/^.* = ([0-9]+);/#define DEC_OUTPUT_LEN \1/' >> $DATA_DIR/dec_input.h
 
-xxd -i $DATA_DIR/dec.raw $DATA_DIR/dec_raw.h
-sed -i "/int/d" $DATA_DIR/dec_raw.h
-sed -i "s/char [a-zA-Z0-9_]*/char dec_raw/g" $DATA_DIR/dec_raw.h
+# add encode and decode command
+echo "#include <string.h>" > $DATA_DIR/args.h
+cmd_to_argv $DATA_DIR/args.h enc_argv $encode_cmd
+cmd_to_argv $DATA_DIR/args.h dec_argv $decode_cmd
 
 # cleanup temp files
 rm $DATA_DIR/enc.192
@@ -164,7 +166,6 @@ popd > /dev/null
 
 echo "audio file: $DATA_DIR/$audio"
 echo "bitrate: $bitrate"
-echo "input file: $DATA_DIR/input.h"
-echo "enc_amr file: $DATA_DIR/enc_192.h"
-echo "dec_wav file: $DATA_DIR/dec_raw.h"
+echo "enc_input: $DATA_DIR/enc_input.h"
+echo "dec_input: $DATA_DIR/dec_input.h"
 echo "Test data generated successfully!"

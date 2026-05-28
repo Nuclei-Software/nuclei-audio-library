@@ -24,9 +24,9 @@
         "EVS"
     ],
     "matrix": {
-        "5900": {"REGEN_DATA": 1, "PATTERN": 1},
-        "13200": {"REGEN_DATA": 1, "PATTERN": 2},
-        "24400": {"REGEN_DATA": 1, "PATTERN": 3}
+        "5900": {"PATTERN": 1},
+        "13200": {"PATTERN": 2},
+        "24400": {"PATTERN": 3}
     },
     "appdirs_ignore": [
     ],

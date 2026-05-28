@@ -15,37 +15,38 @@ homepage: https://github.com/Nuclei-Software/nuclei-audio-library/tree/master/EV
 dependencies:
   - name: sdk-nuclei_sdk
     version:
-
 ## Package Configurations
 configuration:
-
 setconfig:
   - config: stdclib
     value: newlib_small
   - config: download_mode
     value: ddr
-
+  - config: nuclei_core
+    value: n900
+  - config: nuclei_archext
+    value: _zba_zbb_zbc_zbs_zicond_zilsd_xxldspn3x
 ## Source Code Management
 codemanage:
   copyfiles:
     - path:
-      - "*.c"
-      - "*.h"
-      - "basic_math"
-      - "basic_op"
-      - "data/*.c"
-      - "data/*.h"
-      - "lib_com"
-      - "lib_dec"
-      - "lib_enc"
+        - "*.c"
+        - "*.h"
+        - "src/c-code/basic_math"
+        - "src/c-code/basic_op"
+        - "src/c-code/lib_com"
+        - "src/c-code/lib_dec"
+        - "src/c-code/lib_enc"
+        - "data/*.c"
+        - "data/*.h"
   incdirs:
-    - path: 
-      - "./"
-      - "basic_math"
-      - "basic_op"
-      - "lib_com"
-      - "lib_dec"
-      - "lib_enc"
+    - path:
+        - "./"
+        - "src/c-code/basic_math"
+        - "src/c-code/basic_op"
+        - "src/c-code/lib_com"
+        - "src/c-code/lib_dec"
+        - "src/c-code/lib_enc"
   libdirs:
   ldlibs:
 
@@ -53,8 +54,9 @@ codemanage:
 buildconfig:
   - type: common
     common_flags: # flags need to be combined together across all packages
-      - flags: -O3
-    ldflags:
+      - flags: -Ofast -flto=auto -ffast-math -funroll-loops
+    ldflags: 
+      - flags: -flto-partition=none
     cflags:
     asmflags:
     cxxflags:
