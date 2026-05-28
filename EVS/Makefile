@@ -11,6 +11,14 @@ endif
 
 NUCLEI_SDK_ROOT ?= ../../../..
 
+ifeq ($(wildcard src),)
+$(info src directory not found, running scripts/download_and_patch.sh...)
+$(shell bash scripts/download_and_patch.sh >/dev/null 2>&1)
+ifeq ($(wildcard src),)
+$(error Failed to auto-generate src directory. Try running scripts/download_and_patch.sh manually)
+endif
+endif
+
 SRCDIRS = . data \
 		  src/c-code/basic_math \
 		  src/c-code/basic_op \

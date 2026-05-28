@@ -86,6 +86,7 @@ run_qemu:
         AUDIO_APP: ["amrnb", "amrwb", "evs", "misc"]
   script:
     # start to run on qemu
+    - if [ "$AUDIO_APP" = "evs" ]; then bash EVS/scripts/download_and_patch.sh /home/share/devtools/algo/evs_test_seq; fi
     - ./Scripts/Configs/ci/run_qemu.sh $AUDIO_APP $LOGDIR
 
 run_hw:

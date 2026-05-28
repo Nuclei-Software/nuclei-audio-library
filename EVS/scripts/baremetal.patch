@@ -1,0 +1,864 @@
+diff --color -urN src/c-code/lib_com/disclaimer.h src_new/c-code/lib_com/disclaimer.h
+--- src/c-code/lib_com/disclaimer.h	2026-03-12 15:11:38.343224825 +0800
++++ src_new/c-code/lib_com/disclaimer.h	2026-03-12 11:29:34.162957114 +0800
+@@ -5,6 +5,10 @@
+ #ifndef __INCLUDED_DISCLAIMER_H
+ #define __INCLUDED_DISCLAIMER_H
+ 
++#ifdef FILE
++#undef FILE
++#endif
++
+ #include <stdio.h>
+ 
+ int print_disclaimer(FILE *fPtr);
+diff --color -urN src/c-code/lib_com/g192.c src_new/c-code/lib_com/g192.c
+--- src/c-code/lib_com/g192.c	2026-03-12 15:11:38.335224311 +0800
++++ src_new/c-code/lib_com/g192.c	2026-03-12 11:10:23.622995373 +0800
+@@ -7,8 +7,10 @@
+ #include <string.h>
+ #include <stdlib.h>
+ 
++#include "data/memfop.h"
++
+ #ifndef _WIN32
+-#include <netinet/in.h>
++// #include <netinet/in.h>
+ #include <stdint.h>
+ #else
+ #include <Winsock2.h>
+@@ -172,7 +174,7 @@
+         return G192_READ_ERROR;
+     }
+ 
+-    *rtpSequenceNumber = ntohs(*rtpSequenceNumber);
++    // *rtpSequenceNumber = ntohs(*rtpSequenceNumber);
+     /* RTP timestamp */
+     if(fread(rtpTimeStamp, sizeof(*rtpTimeStamp), 1, hG192->file) != 1)
+     {
+@@ -184,7 +186,7 @@
+         return G192_READ_ERROR;
+     }
+ 
+-    *rtpTimeStamp = ntohl(*rtpTimeStamp);
++    // *rtpTimeStamp = ntohl(*rtpTimeStamp);
+     /* RTP ssrc */
+     if(fread(&ssrc, sizeof(ssrc), 1, hG192->file) != 1)
+     {
+diff --color -urN src/c-code/lib_com/prot_fx.h src_new/c-code/lib_com/prot_fx.h
+--- src/c-code/lib_com/prot_fx.h	2026-03-12 15:11:38.335224311 +0800
++++ src_new/c-code/lib_com/prot_fx.h	2026-03-12 11:00:45.472812412 +0800
+@@ -14,6 +14,8 @@
+ #include "cnst_fx.h"
+ #include "basop_util.h"
+ 
++#include "data/memfop.h"
++
+ /*----------------------------------------------------------------------------------*
+  * Prototypes of global macros
+  *----------------------------------------------------------------------------------*/
+diff --color -urN src/c-code/lib_dec/decoder.c src_new/c-code/lib_dec/decoder.c
+--- src/c-code/lib_dec/decoder.c	2026-03-12 15:11:38.351225338 +0800
++++ src_new/c-code/lib_dec/decoder.c	1970-01-01 08:00:00.000000000 +0800
+@@ -1,258 +0,0 @@
+-/*====================================================================================
+-    EVS Codec 3GPP TS26.442 Nov 04, 2021. Version 12.15.0 / 13.10.0 / 14.6.0 / 15.4.0 / 16.4.0
+-  ====================================================================================*/
+-
+-#include <stdio.h>
+-#include <stdlib.h>
+-#include <string.h>
+-#include <time.h>
+-#include <assert.h>
+-#include "options.h"
+-#include "stl.h"
+-#include "stat_dec_fx.h"
+-#include "prot_fx.h"
+-#include "g192.h"
+-#include "disclaimer.h"
+-
+-#include "EvsRXlib.h"
+-
+-/*------------------------------------------------------------------------------------------*
+- * Global variables
+- *------------------------------------------------------------------------------------------*/
+-long frame = 0;                 /* Counter of frames */
+-
+-
+-int main(int argc, char *argv[])
+-{
+-    Decoder_State_fx  *st_fx;                             /* decoder state structure     */
+-    Word16            zero_pad, dec_delay,output_frame;
+-    FILE              *f_stream;                          /* input bitstream file        */
+-    FILE              *f_synth;                           /* output synthesis file       */
+-    UWord16           bit_stream[MAX_BITS_PER_FRAME+16];
+-    Word16            output[L_FRAME48k];                 /* buffer for output synthesis */
+-#ifdef SUPPORT_JBM_TRACEFILE
+-    char              *jbmTraceFileName = NULL;           /* VOIP tracefile name         */
+-#endif
+-    Word16            quietMode = 0;
+-    Word16            noDelayCmp = 0;
+-    char              *jbmFECoffsetFileName = NULL;       /* FEC offset file name */
+-
+-
+-    BASOP_init
+-
+-
+-
+-
+-    /*------------------------------------------------------------------------------------------*
+-     * Allocation of memory for static variables
+-     *   - I/O initializations
+-     *   - Decoder variables initialization
+-     *   - Find frame length
+-     *------------------------------------------------------------------------------------------*/
+-
+-    if ( (st_fx = (Decoder_State_fx *) calloc(1, sizeof(Decoder_State_fx) ) ) == NULL )
+-    {
+-    }
+-
+-    /*------------------------------------------------------------------------------------------*
+-     * I/O initializations
+-     * Decoder variables initialization
+-     *------------------------------------------------------------------------------------------*/
+-
+-    st_fx->bit_stream_fx = bit_stream;
+-
+-    io_ini_dec_fx( argc, argv, &f_stream, &f_synth,
+-                   &quietMode,
+-                   &noDelayCmp,
+-                   st_fx,
+-#ifdef SUPPORT_JBM_TRACEFILE
+-                   &jbmTraceFileName,
+-#endif
+-                   &jbmFECoffsetFileName
+-                 );
+-
+-    /*output_frame = (short)(st_fx->output_Fs / 50);*/
+-    st_fx->output_frame_fx = extract_l(Mult_32_16(st_fx->output_Fs_fx , 0x0290));
+-
+-    srand((unsigned int)time(0));
+-
+-    reset_indices_dec_fx(st_fx);
+-
+-    IF(st_fx->Opt_VOIP_fx)
+-    {
+-#ifdef SUPPORT_JBM_TRACEFILE
+-        IF( decodeVoip(st_fx, f_stream, f_synth, jbmTraceFileName, jbmFECoffsetFileName, quietMode ) != 0 )
+-#else
+-        IF( decodeVoip(st_fx, f_stream, f_synth, jbmFECoffsetFileName, quietMode ) != 0 )
+-#endif
+-        {
+-            free( st_fx );
+-            fclose( f_synth );
+-            fclose( f_stream );
+-            return -1;
+-        }
+-    }
+-    ELSE
+-    {
+-        /*------------------------------------------------------------------------------------------*
+-         * Regular EVS decoder with ITU-T G.192 bitstream
+-         *------------------------------------------------------------------------------------------*/
+-
+-        init_decoder_fx(st_fx);
+-
+-        /* output frame length */
+-        output_frame = st_fx->output_frame_fx;
+-
+-        if( noDelayCmp == 0)
+-        {
+-            /* calculate the compensation (decoded signal aligned with original signal) */
+-            /* the number of first output samples will be reduced by this amount */
+-            dec_delay = NS2SA_fx2(st_fx->output_Fs_fx, get_delay_fx(DEC, st_fx->output_Fs_fx));
+-        }
+-        else
+-        {
+-            dec_delay = 0;
+-        }
+-
+-        zero_pad = dec_delay;
+-
+-        /*------------------------------------------------------------------------------------------*
+-         * Loop for every packet (frame) of bitstream data
+-         * - Read the bitstream packet
+-         * - Run the decoder
+-         * - Write the synthesized signal into output file
+-         *------------------------------------------------------------------------------------------*/
+-        if (quietMode == 0)
+-        {
+-            fprintf( stdout, "\n------ Running the decoder ------\n\n" );
+-            fprintf( stdout, "Frames processed:       " );
+-        }
+-        else {
+-            fprintf( stdout, "\n-- Start the decoder (quiet mode) --\n\n" );
+-        }
+-        BASOP_end_noprint;
+-        BASOP_init;
+-#if (WMOPS)
+-        Init_WMOPS_counter();
+-        Reset_WMOPS_counter();
+-        setFrameRate(48000, 960);
+-#endif
+-
+-        /*----- loop: decode-a-frame -----*/
+-        WHILE( st_fx->bitstreamformat==G192 ? read_indices_fx( st_fx, f_stream, 0 ) : read_indices_mime( st_fx, f_stream, 0) )
+-        {
+-#if (WMOPS)
+-            fwc();
+-            Reset_WMOPS_counter();
+-#endif
+-
+-
+-            SUB_WMOPS_INIT("evs_dec");
+-
+-            /* run the main encoding routine */
+-            IF(sub(st_fx->codec_mode, MODE1) == 0)
+-            {
+-                IF ( st_fx->Opt_AMR_WB_fx )
+-                {
+-                    amr_wb_dec_fx( output,st_fx);
+-                }
+-                ELSE
+-                {
+-                    evs_dec_fx( st_fx, output, FRAMEMODE_NORMAL);
+-                }
+-            }
+-            ELSE
+-            {
+-                IF(st_fx->bfi_fx == 0)
+-                {
+-                    evs_dec_fx( st_fx, output, FRAMEMODE_NORMAL);
+-                }
+-                ELSE /* conceal */
+-                {
+-                    evs_dec_fx( st_fx, output, FRAMEMODE_MISSING);
+-                }
+-            }
+-
+-            END_SUB_WMOPS;
+-
+-
+-
+-            /* increase the counter of initialization frames */
+-
+-            if( sub(st_fx->ini_frame_fx,MAX_FRAME_COUNTER) < 0 )
+-            {
+-                st_fx->ini_frame_fx = add(st_fx->ini_frame_fx,1);
+-            }
+-
+-            /* write the synthesized signal into output file */
+-            /* do final delay compensation */
+-            IF ( dec_delay == 0 )
+-            {
+-                fwrite( output, sizeof(Word16), output_frame, f_synth );
+-            }
+-            ELSE
+-            {
+-                IF ( sub(dec_delay , output_frame) <= 0 )
+-                {
+-                    fwrite( output +dec_delay, sizeof(Word16), sub(output_frame , dec_delay), f_synth );
+-                    dec_delay = 0;
+-                    move16();
+-                }
+-                ELSE
+-                {
+-                    dec_delay = sub(dec_delay, output_frame);
+-                }
+-            }
+-
+-
+-            frame++;
+-            if (quietMode == 0)
+-            {
+-                fprintf( stdout, "%-8ld\b\b\b\b\b\b\b\b", frame);
+-            }
+-        }
+-
+-        /*----- decode-a-frame-loop end -----*/
+-
+-        fflush( stderr );
+-        if (quietMode == 0)
+-        {
+-            fprintf( stdout, "\n\n" );
+-            printf("Decoding finished\n\n");
+-        }
+-        else
+-        {
+-            printf("Decoding of %ld frames finished\n\n", frame);
+-        }
+-        fprintf( stdout, "\n\n" );
+-        fflush(stdout);
+-
+-
+-
+-        fflush(stdout);
+-        fflush(stderr);
+-
+-        /* end of WMOPS counting */
+-#if (WMOPS)
+-        fwc();
+-        printf("\nDecoder complexity\n");
+-        WMOPS_output(0);
+-        printf("\n");
+-#endif
+-
+-        /* add zeros at the end to have equal length of synthesized signals */
+-        set16_fx( output, 0, zero_pad );
+-        fwrite( output, sizeof(Word16), zero_pad, f_synth );
+-        BASOP_init
+-        destroy_decoder( st_fx );
+-        BASOP_end_noprint
+-    }
+-
+-    /* free memory etc. */
+-    free( st_fx );
+-    fclose( f_synth );
+-    fclose( f_stream );
+-
+-
+-    return 0;
+-}
+diff --color -urN src/c-code/lib_dec/evs_rtp_payload.h src_new/c-code/lib_dec/evs_rtp_payload.h
+--- src/c-code/lib_dec/evs_rtp_payload.h	2026-03-12 15:11:38.351225338 +0800
++++ src_new/c-code/lib_dec/evs_rtp_payload.h	2026-03-12 11:57:45.292810492 +0800
+@@ -8,6 +8,8 @@
+ #include <stdio.h>
+ #include "rtpdump.h"
+ 
++#include "data/memfop.h"
++
+ #ifdef __cplusplus
+ extern "C" {
+ #endif
+diff --color -urN src/c-code/lib_dec/EvsRXlib.c src_new/c-code/lib_dec/EvsRXlib.c
+--- src/c-code/lib_dec/EvsRXlib.c	2026-03-12 15:11:38.347225082 +0800
++++ src_new/c-code/lib_dec/EvsRXlib.c	2026-03-12 14:21:47.684442744 +0800
+@@ -17,6 +17,7 @@
+ #include "basop_util_jbm.h"
+ 
+ 
++#define fprintf memfprintf
+ 
+ struct EVS_RX
+ {
+@@ -149,7 +150,8 @@
+         fclose( hEvsRX->jbmTraceFile );
+     if( jbmTraceFileName != NULL )
+     {
+-        hEvsRX->jbmTraceFile = fopen( jbmTraceFileName, "w" );
++        hEvsRX->jbmTraceFile = fopen_notsupported( jbmTraceFileName, "w" );
++        hEvsRX->jbmTraceFile = NULL;
+         if( !hEvsRX->jbmTraceFile )
+         {
+             return EVS_RX_WRONG_PARAMS;
+diff --color -urN src/c-code/lib_dec/io_dec_fx.c src_new/c-code/lib_dec/io_dec_fx.c
+--- src/c-code/lib_dec/io_dec_fx.c	2026-03-12 15:11:38.351225338 +0800
++++ src_new/c-code/lib_dec/io_dec_fx.c	2026-03-12 14:18:25.029252737 +0800
+@@ -8,11 +8,19 @@
+ #include "options.h"     /* Compilation switches                   */
+ #include "stl.h"
+ #include "cnst_fx.h"       /* Common constants                       */
+-#include "prot_fx.h"       /* Function prototypes                    */
+ #include "disclaimer.h" /*for disclaimer*/
++#include "prot_fx.h"       /* Function prototypes                    */
+ #include "basop_util.h"
+ #include "mime.h"
+ #include <assert.h>
++
++#include "data/memfop.h"
++
++extern unsigned char dec_input[];
++extern size_t dec_input_len;
++extern uint8_t dec_output[];
++extern size_t dec_output_len;
++
+ /* WMC_TOOL_SKIP_FILE */
+ 
+ /*---------------------------------------------------------------------*
+@@ -215,7 +223,7 @@
+ 
+     if( i < argc - 1 )
+     {
+-        if ( (*f_stream = fopen(argv[i], "rb")) == NULL)
++        if ( (*f_stream = memfopen(dec_input, dec_input_len)) == NULL)
+         {
+             fprintf(stderr,"Error: input bitstream file %s cannot be opened\n\n", argv[i]);
+             usage_dec();
+@@ -316,7 +324,7 @@
+ 
+     if( i < argc )
+     {
+-        if ( (*f_synth = fopen(argv[i], "wb")) == NULL )
++        if ( (*f_synth = memfopen(dec_output, dec_output_len)) == NULL )
+         {
+             fprintf( stderr, "Error: ouput synthesis file %s cannot be opened\n\n", argv[i] );
+             usage_dec();
+diff --color -urN src/c-code/lib_dec/rtpdump.c src_new/c-code/lib_dec/rtpdump.c
+--- src/c-code/lib_dec/rtpdump.c	2026-03-12 15:11:38.347225082 +0800
++++ src_new/c-code/lib_dec/rtpdump.c	2026-03-12 12:00:10.530341923 +0800
+@@ -10,9 +10,9 @@
+ struct RTPDUMP
+ {
+   FILE * file;
+-  unsigned int startSeconds;
+-  unsigned int startMicroSeconds;
+-  unsigned int source;
++  uint32_t startSeconds;
++  uint32_t startMicroSeconds;
++  uint32_t source;
+   unsigned short port;
+ };
+ 
+@@ -45,7 +45,7 @@
+ }
+ 
+ /** function to read a 32-bit value from the file */
+-static int readLong( FILE * file, unsigned int * value )
++static int readLong( FILE * file, uint32_t * value )
+ {
+   char buffer[4] = {0};
+   if( fread( buffer, 4, 1, file ) != 1U )
+@@ -164,7 +164,7 @@
+ static int writeHeader(struct RTPDUMP * hRTPDUMP)
+ {
+   /* write rtpdump header */
+-  fprintf(hRTPDUMP->file, "#!rtpplay%s %s/%d\n", "1.0", "127.0.0.1", 5000);
++  memfprintf(hRTPDUMP->file, "#!rtpplay%s %s/%d\n", "1.0", "127.0.0.1", 5000);
+   if(!writeLong(hRTPDUMP->file, hRTPDUMP->startSeconds) &&
+      !writeLong(hRTPDUMP->file, hRTPDUMP->startMicroSeconds) &&
+      !writeLong(hRTPDUMP->file, hRTPDUMP->source) &&
+@@ -180,7 +180,7 @@
+ RTPDUMP_ERROR
+ RTPDUMP_OpenForReading(RTPDUMP_HANDLE* phRTPDUMP, const char * filename)
+ {
+-  return RTPDUMP_OpenWithFileToRead(phRTPDUMP, fopen( filename, "rb" ));
++  return RTPDUMP_OpenWithFileToRead(phRTPDUMP, fopen_notsupported( filename, "rb" ));
+ }
+ 
+ RTPDUMP_ERROR
+@@ -217,7 +217,7 @@
+   }
+ 
+   /* open file stream */
+-  (*phRTPDUMP)->file = fopen( filename, "wb" );
++  (*phRTPDUMP)->file = fopen_notsupported( filename, "wb" );
+   if( (*phRTPDUMP)->file == NULL )
+   {
+     return RTPDUMP_FILE_NOT_FOUND;
+diff --color -urN src/c-code/lib_dec/rtpdump.h src_new/c-code/lib_dec/rtpdump.h
+--- src/c-code/lib_dec/rtpdump.h	2026-03-12 15:11:38.347225082 +0800
++++ src_new/c-code/lib_dec/rtpdump.h	2026-03-12 11:59:06.714670126 +0800
+@@ -6,6 +6,8 @@
+ #include <stdint.h>
+ #include <stdio.h>
+ 
++#include "data/memfop.h"
++
+ #ifdef __cplusplus
+ extern "C" {
+ #endif
+diff --color -urN src/c-code/lib_dec/voip_client.c src_new/c-code/lib_dec/voip_client.c
+--- src/c-code/lib_dec/voip_client.c	2026-03-12 15:11:38.351225338 +0800
++++ src_new/c-code/lib_dec/voip_client.c	2026-03-12 12:01:09.872340299 +0800
+@@ -9,12 +9,12 @@
+ #include <assert.h>
+ #include "options.h"
+ #include "stl.h"
+-#include "prot_fx.h"
+ #include "cnst_fx.h"
+ #include "basop_util.h"
+ #include "EvsRXlib.h"
+-#include "g192.h"
+ #include "evs_rtp_payload.h"
++#include "prot_fx.h"
++#include "g192.h"
+ 
+ 
+ /*------------------------------------------------------------------------------------------*
+@@ -101,7 +101,7 @@
+ 
+     if(jbmFECoffsetFileName)
+     {
+-        f_offset =  fopen( jbmFECoffsetFileName, "w+" );
++        f_offset =  fopen_notsupported( jbmFECoffsetFileName, "w+" );
+         if(f_offset == NULL)
+         {
+             fprintf(stderr,"unable to open CA offset file: %s\n", jbmFECoffsetFileName);
+@@ -276,11 +276,11 @@
+         {
+             if ( FEC_hi == 1)
+             {
+-                fprintf( f_offset, "HI " );
++                memfprintf( f_offset, "HI " );
+             }
+             else
+             {
+-                fprintf( f_offset, "LO " );
++                memfprintf( f_offset, "LO " );
+             }
+ 
+             if ( optimum_offset == 1 || optimum_offset == 2 )
+@@ -300,7 +300,7 @@
+                 optimum_offset = 7;
+             }
+ 
+-            fprintf( f_offset, "%d\n", optimum_offset );
++            memfprintf( f_offset, "%d\n", optimum_offset );
+         }
+ 
+ 
+diff --color -urN src/c-code/lib_enc/encoder.c src_new/c-code/lib_enc/encoder.c
+--- src/c-code/lib_enc/encoder.c	2026-03-12 15:11:38.359225852 +0800
++++ src_new/c-code/lib_enc/encoder.c	1970-01-01 08:00:00.000000000 +0800
+@@ -1,282 +0,0 @@
+-/*====================================================================================
+-    EVS Codec 3GPP TS26.442 Nov 04, 2021. Version 12.15.0 / 13.10.0 / 14.6.0 / 15.4.0 / 16.4.0
+-  ====================================================================================*/
+-
+-
+-#include <stdlib.h>
+-#include <stdio.h>
+-#include <wchar.h>
+-#include <string.h>
+-#include <time.h>
+-#include <string.h>
+-#include <assert.h>
+-#include <sys/stat.h>
+-#include "options.h"
+-#include "stl.h"
+-#include "disclaimer.h"
+-#include "g192.h"
+-#include "stat_enc_fx.h"
+-#include "prot_fx.h"
+-
+-/*------------------------------------------------------------------------------------------*
+- * Global variables
+- *------------------------------------------------------------------------------------------*/
+-long frame = 0;                 /* Counter of frames */
+-
+-/*------------------------------------------------------------------------------------------*
+- * Local constants
+- *------------------------------------------------------------------------------------------*/
+-
+-
+-
+-
+-int main( int argc, char** argv )
+-{
+-    FILE             *f_stream = NULL;                    /* output bitstream file */
+-    Indice_fx ind_list[MAX_NUM_INDICES];                  /* list of indices */
+-    Encoder_State_fx *st_fx;                              /*Encoder state struct*/
+-    Word16           enc_delay;
+-    FILE *f_input;                                        /* input signal file */
+-    FILE *f_rate;                                         /* bitrate switching profile file */
+-    FILE *f_bwidth;                                       /* bandwidth switching profile file */
+-    FILE *f_rf = NULL;                                    /* Channel aware configuration file */
+-    Word16 input_frame;
+-    Word16 tmps;
+-    Word16 n_samples;
+-    Word16 data[L_FRAME48k];                              /* Input buffer */
+-    Word32 bwidth_profile_cnt = 0;                        /* counter of frames for bandwidth switching profile file */
+-    Word16 quietMode = 0;
+-    Word16 noDelayCmp = 0;
+-    Word16 Opt_RF_ON_loc, rf_fec_offset_loc;
+-
+-
+-    UWord8 pFrame[(MAX_BITS_PER_FRAME + 7) >> 3];
+-    Word16 pFrame_size = 0;
+-
+-
+-    /* start WMOPS counting */
+-    BASOP_init
+-
+-    /*Inits*/
+-    f_bwidth = f_rate = NULL;
+-
+-    /*------------------------------------------------------------------------------------------*
+-     * Allocate memory for static variables
+-     * Processing of command-line parameters
+-     * Encoder initialization
+-     *------------------------------------------------------------------------------------------*/
+-
+-    if ( (st_fx = (Encoder_State_fx *) calloc( 1, sizeof(Encoder_State_fx) ) ) == NULL )
+-    {
+-        fprintf(stderr, "Can not allocate memory for encoder state structure\n");
+-        exit(-1);
+-    }
+-
+-    io_ini_enc_fx( argc, argv, &f_input, &f_stream, &f_rate, &f_bwidth,
+-                   &f_rf,
+-                   &quietMode, &noDelayCmp, st_fx);
+-
+-    /*input_frame = (short)(st->input_Fs / 50);*/
+-    st_fx->input_frame_fx = extract_l(Mult_32_16(st_fx->input_Fs_fx , 0x0290));
+-    input_frame = st_fx->input_frame_fx;
+-
+-    Opt_RF_ON_loc = st_fx->Opt_RF_ON;
+-    rf_fec_offset_loc = st_fx->rf_fec_offset;
+-
+-    st_fx->ind_list_fx = ind_list;
+-    init_encoder_fx( st_fx );
+-
+-    /*------------------------------------------------------------------------------------------*
+-     * Compensate for encoder delay (bitstream aligned with input signal)
+-     * Compensate for the rest of codec delay (local synthesis aligned with decoded signal and original signal)
+-     *------------------------------------------------------------------------------------------*/
+-
+-    enc_delay = NS2SA(st_fx->input_Fs_fx, get_delay_fx(ENC, st_fx->input_Fs_fx));
+-
+-    if ( noDelayCmp == 0 )
+-    {
+-        /* read samples and throw them away */
+-        if( (tmps = (Word16)fread(data, sizeof(short), enc_delay, f_input)) != enc_delay )
+-        {
+-        }
+-
+-    }
+-
+-    /*------------------------------------------------------------------------------------------*
+-     * Loop for every frame of input data
+-     * - Read the input data
+-     * - Select the best operating mode
+-     * - Run the encoder
+-     * - Write the parameters into output bitstream file
+-     *------------------------------------------------------------------------------------------*/
+-    BASOP_end_noprint;
+-    BASOP_init;
+-
+-#if (WMOPS)
+-    Init_WMOPS_counter();
+-    Reset_WMOPS_counter();
+-    setFrameRate(48000, 960);
+-#endif
+-
+-
+-    if (quietMode == 0)
+-    {
+-        fprintf( stdout, "\n------ Running the encoder ------\n\n" );
+-        fprintf( stdout, "Frames processed:       " );
+-    }
+-    else
+-    {
+-        fprintf( stdout, "\n-- Start the encoder (quiet mode) --\n\n" );
+-    }
+-
+-
+-    /*Encode-a-frame loop start*/
+-    while( (n_samples = (short)fread(data, sizeof(short), input_frame, f_input)) > 0 )
+-    {
+-#if (WMOPS)
+-        Reset_WMOPS_counter();
+-#endif
+-        SUB_WMOPS_INIT("enc");
+-
+-        IF(f_rf != NULL)
+-        {
+-            read_next_rfparam_fx(
+-                &st_fx->rf_fec_offset, &st_fx->rf_fec_indicator, f_rf);
+-            rf_fec_offset_loc = st_fx->rf_fec_offset;
+-        }
+-
+-        IF(f_rate != NULL)
+-        {
+-            /* read next bitrate from profile file (only if invoked on the cmd line) */
+-            read_next_brate_fx( &st_fx->total_brate_fx, st_fx->last_total_brate_fx,
+-                                f_rate, st_fx->input_Fs_fx, &st_fx->Opt_AMR_WB_fx, &st_fx->Opt_SC_VBR_fx, &st_fx->codec_mode );
+-        }
+-
+-        IF (f_bwidth != NULL)
+-        {
+-            /* read next bandwidth from profile file (only if invoked on the cmd line) */
+-            read_next_bwidth_fx( &st_fx->max_bwidth_fx, f_bwidth, &bwidth_profile_cnt, st_fx->input_Fs_fx );
+-        }
+-
+-        IF( ( st_fx->Opt_RF_ON && ( L_sub( st_fx->total_brate_fx, ACELP_13k20 ) != 0 ||  L_sub( st_fx->input_Fs_fx, 8000 ) == 0 || st_fx->max_bwidth_fx == NB ) )
+-            || st_fx->rf_fec_offset == 0 )
+-        {
+-            IF( L_sub( st_fx->total_brate_fx, ACELP_13k20) == 0 )
+-            {
+-                st_fx->codec_mode = MODE1;
+-                reset_rf_indices(st_fx);
+-            }
+-            st_fx->Opt_RF_ON = 0;
+-            st_fx->rf_fec_offset = 0;
+-
+-        }
+-
+-        IF( Opt_RF_ON_loc && rf_fec_offset_loc != 0 && L_sub( st_fx->total_brate_fx, ACELP_13k20 ) == 0 && L_sub( st_fx->input_Fs_fx, 8000 ) != 0 && st_fx->max_bwidth_fx != NB )
+-        {
+-            st_fx->codec_mode = MODE2;
+-            IF(st_fx->Opt_RF_ON == 0)
+-            {
+-                reset_rf_indices(st_fx);
+-            }
+-            st_fx->Opt_RF_ON = 1;
+-            st_fx->rf_fec_offset = rf_fec_offset_loc;
+-        }
+-
+-        /* in case of 8kHz sampling rate or when in "max_band NB" mode, limit the total bitrate to 24.40 kbps */
+-        IF ( (L_sub( st_fx->input_Fs_fx, 8000 ) == 0 || (st_fx->max_bwidth_fx == NB)) && L_sub( st_fx->total_brate_fx, ACELP_24k40 ) > 0 )
+-        {
+-            st_fx->total_brate_fx = ACELP_24k40;
+-            st_fx->codec_mode = MODE2;
+-        }
+-
+-
+-        /* run the main encoding routine */
+-
+-
+-        IF ( st_fx->Opt_AMR_WB_fx )
+-        {
+-            SUB_WMOPS_INIT("amr_wb_enc");
+-            amr_wb_enc_fx( st_fx, data, n_samples);
+-            END_SUB_WMOPS;
+-        }
+-        ELSE
+-        {
+-            SUB_WMOPS_INIT("evs_enc");
+-            /* EVS encoder*/
+-            evs_enc_fx( st_fx, data, n_samples);
+-            END_SUB_WMOPS;
+-        }
+-        /* pack indices into serialized payload format */
+-        if( st_fx->bitstreamformat == MIME )
+-        {
+-            indices_to_serial(st_fx, pFrame, &pFrame_size);
+-        }
+-
+-        /* write indices into bitstream file */
+-        write_indices_fx( st_fx, f_stream, pFrame, pFrame_size );
+-
+-        END_SUB_WMOPS;
+-        /* update WMPOS counting (end of frame) */
+-
+-
+-        fflush(stderr);
+-
+-        frame++;
+-        if (quietMode == 0)
+-        {
+-            fprintf( stdout, "%-8ld\b\b\b\b\b\b\b\b", frame );
+-        }
+-
+-#if (WMOPS)
+-        fwc();
+-#endif
+-    }
+-    /* ----- Encode-a-frame loop end ----- */
+-
+-
+-    if (quietMode == 0)
+-    {
+-        fprintf( stdout, "\n\n" );
+-        fprintf(stderr, "Encoding finished\n\n");
+-    }
+-    else
+-    {
+-        fprintf(stderr, "Encoding of %ld frames finished\n\n", frame);
+-    }
+-
+-
+-
+-
+-#if (WMOPS)
+-    fwc();
+-    printf("\nEncoder complexity\n");
+-    WMOPS_output(0);
+-    printf("\n");
+-#endif
+-
+-    /* Close Encoder, Close files and free ressources */
+-    BASOP_init
+-
+-
+-    IF(st_fx != NULL)
+-    {
+-        /* common delete function */
+-        destroy_encoder_fx( st_fx );
+-        free(st_fx);
+-    }
+-
+-    BASOP_end_noprint
+-
+-
+-    IF(f_input)
+-    fclose(f_input);
+-    IF(f_stream)
+-    fclose(f_stream);
+-    IF(f_rate)
+-    fclose(f_rate);
+-    IF(f_bwidth)
+-    fclose(f_bwidth);
+-
+-
+-    return 0;
+-}
+diff --color -urN src/c-code/lib_enc/io_enc_fx.c src_new/c-code/lib_enc/io_enc_fx.c
+--- src/c-code/lib_enc/io_enc_fx.c	2026-03-12 15:11:38.359225852 +0800
++++ src_new/c-code/lib_enc/io_enc_fx.c	2026-03-12 14:15:14.443264797 +0800
+@@ -8,13 +8,18 @@
+ #include "stl.h"
+ #include "options.h"        /* Compilation switches                   */
+ #include "cnst_fx.h"        /* Common constants                       */
++#include "disclaimer.h"     /* for disclaimer */
+ #include "prot_fx.h"        /* Function prototypes                    */
+ #include "rom_com_fx.h"     /* Static table prototypes                */
+-#include "disclaimer.h"     /* for disclaimer */
+ #include <ctype.h>
+ #include "mime.h"
+ #include <assert.h>
+ 
++extern unsigned char enc_input[];
++extern size_t enc_input_len;
++extern uint8_t enc_output[];
++extern size_t enc_output_len;
++
+ /*-------------------------------------------------------------------*
+  * Local functions
+  *-------------------------------------------------------------------*/
+@@ -130,7 +135,7 @@
+             {
+                 st->max_bwidth_fx = max_bwidth_user = FB;
+             }
+-            else if ( (*f_bwidth = fopen(argv[i+1], "rb")) == NULL )
++            else if ( (*f_bwidth = fopen_notsupported(argv[i+1], "rb")) == NULL )
+             {
+                 fprintf(stderr, "Error: incorect bandwidth specification or the bandwidth profile file could not be opened: %s\n\n", argv[i+1]);
+                 usage_enc();
+@@ -281,7 +286,7 @@
+                     first_char = rf_file_name[0];
+                     if ( first_char != '-' )
+                     {
+-                        if ( (*f_rf = fopen(rf_file_name, "r")) == NULL )
++                        if ( (*f_rf = fopen_notsupported(rf_file_name, "r")) == NULL )
+                         {
+                             fprintf(stderr, "Error: Incorrect specification of channal aware configuration or the CA configuration file could not be opened: %s\n\n", argv[i]);
+                             usage_enc();
+@@ -329,7 +334,7 @@
+         /* check if profile file has been entered instead of a fixed bitrate */
+         if (sscanf(argv[i], "%d", &tmp) != 1)
+         {
+-            if ( (*f_rate = fopen(argv[i], "rb")) == NULL )
++            if ( (*f_rate = fopen_notsupported(argv[i], "rb")) == NULL )
+             {
+                 fprintf(stderr, "Error: bitrate profile file %s could not be opened\n\n", argv[i]);
+                 usage_enc();
+@@ -449,7 +454,7 @@
+ 
+     if( i < argc-1 )
+     {
+-        if ( (*f_input = fopen(argv[i], "rb")) == NULL )
++        if ( (*f_input = memfopen(enc_input, enc_input_len)) == NULL )
+         {
+             fprintf(stderr, "Error: input audio file %s could not be opened\n\n", argv[i]);
+             usage_enc();
+@@ -470,7 +475,7 @@
+ 
+     if( i < argc )
+     {
+-        if ( (*f_stream = fopen(argv[i], "wb")) == NULL)
++        if ( (*f_stream = memfopen(enc_output, enc_output_len)) == NULL)
+         {
+             fprintf(stderr, "Error: output bitstream file %s could not be opened\n\n", argv[i]);
+             usage_enc();
