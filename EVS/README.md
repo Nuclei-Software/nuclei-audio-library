@@ -3,18 +3,21 @@
 This project provides the **EVS(Enhanced Voice Services) codec** optimized for **Nuclei CPUs**.
 
 The source code comes from [3GPP TS 26.442](https://portal.3gpp.org/desktopmodules/Specifications/SpecificationDetails.aspx?specificationId=1464)
-(current version :[18.0.0](https://www.3gpp.org/ftp/Specs/archive/26_series/26.442/26442-i00.zip)).
+(current version :[19.0.0](https://www.3gpp.org/ftp/Specs/archive/26_series/26.442/26442-j00.zip)).
+
+Because EVS source code cannot be redistributed by this repository, only the
+patches and helper scripts are kept in-tree. The actual EVS source files must
+be downloaded from the official 3GPP archive and reconstructed locally before
+building.
 
 ## File Structure
 
 | Directory | Description |
 | -- | -- |
-| basic_math | source files |
-| basic_op | source files |
 | data | test data and reference results |
-| lib_com | source files |
-| lib_dec | source files |
-| lib_enc | source files |
+| scripts | source download script and local patches |
+| src | locally reconstructed EVS source tree after running the helper script |
+| npk.tmp.yml | NPK template file, kept as a template because the repository does not ship EVS source code |
 
 ## Prerequests
 
@@ -22,6 +25,24 @@ Please refer to the [Prerequests](../README.md#prerequests) section in the paren
 directory's README.
 
 ## Build
+
+Before building, run the helper script below to download the official EVS
+archive, verify its checksum, extract the required source package, and apply the
+Nuclei-specific patches:
+
+```shell
+./scripts/download_and_patch.sh
+```
+
+`scripts/download_and_patch.sh` downloads the EVS release archive from 3GPP,
+checks the MD5 checksum, extracts the codec sources into `EVS/src`, applies
+`rv32p_opt.patch` and `baremetal.patch`, and removes files that are not needed
+for the bare-metal demo.
+
+Since the repository only provides patches instead of redistributing EVS source
+code, the package description file is also kept as [`npk.tmp.yml`](./npk.tmp.yml)
+rather than `npk.yml`. If you need an actual NPK package file, generate or
+rename it locally after reconstructing the source tree.
 
 Switch to the directory containing the `Makefile`.  
 Below are build examples for the **Nuclei N900 CPU**.
