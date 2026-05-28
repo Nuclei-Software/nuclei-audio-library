@@ -105,7 +105,7 @@ popd > /dev/null
 
 # extract baremetal needed source code
 rm -rf ../src
-cp -r src ../
+mv src ../
 pushd ../src/c-code > /dev/null
 rm *.exe Makefile readme.txt basic_op/basop.rme
 rm -rf Workspace_msvc
