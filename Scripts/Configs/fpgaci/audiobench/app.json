@@ -29,7 +29,8 @@
         "AMR-WB/amrwb_dec",
         "AMR-WB/amrwb_enc",
         "EVS",
-        "EVRC"
+        "EVRC",
+        "MP3/minimp3"
     ],
     "appdirs_ignore": [
     ],

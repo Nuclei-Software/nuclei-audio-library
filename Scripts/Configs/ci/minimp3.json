@@ -1,0 +1,105 @@
+{
+    "run_config": {
+        "target" : "qemu",
+        "hardware" : {
+            "baudrate": 115200,
+            "timeout": 60
+        },
+        "qemu": {
+            "qemu32": "qemu-system-riscv32",
+            "qemu64": "qemu-system-riscv64",
+            "timeout": 60
+        }
+    },
+    "build_target": "clean all",
+    "build_config": {
+        "SOC": "evalsoc"
+    },
+    "checks": {
+        "PASS": ["PASS"],
+        "FAIL": ["MEPC", "FAIL", "error"]
+    },
+    "appdirs": [
+        "MP3/minimp3"
+    ],
+    "matrix": {
+        "PATTERN1": {"PATTERN": 1},
+        "PATTERN2": {"PATTERN": 2},
+        "PATTERN3": {"PATTERN": 3},
+        "PATTERN4": {"PATTERN": 4},
+        "PATTERN5": {"PATTERN": 5}
+    },
+    "appdirs_ignore": [
+    ],
+    "appconfig": {
+    },
+    "extra_patterns": {
+        "PATTERN6": {"PATTERN": 6},
+        "PATTERN7": {"PATTERN": 7},
+        "PATTERN8": {"PATTERN": 8},
+        "PATTERN9": {"PATTERN": 9},
+        "PATTERN10": {"PATTERN": 10},
+        "PATTERN11": {"PATTERN": 11},
+        "PATTERN12": {"PATTERN": 12},
+        "PATTERN13": {"PATTERN": 13},
+        "PATTERN14": {"PATTERN": 14},
+        "PATTERN15": {"PATTERN": 15},
+        "PATTERN16": {"PATTERN": 16},
+        "PATTERN17": {"PATTERN": 17},
+        "PATTERN18": {"PATTERN": 18},
+        "PATTERN19": {"PATTERN": 19},
+        "PATTERN20": {"PATTERN": 20},
+        "PATTERN21": {"PATTERN": 21},
+        "PATTERN22": {"PATTERN": 22},
+        "PATTERN23": {"PATTERN": 23},
+        "PATTERN24": {"PATTERN": 24},
+        "PATTERN25": {"PATTERN": 25},
+        "PATTERN26": {"PATTERN": 26},
+        "PATTERN27": {"PATTERN": 27},
+        "PATTERN28": {"PATTERN": 28},
+        "PATTERN29": {"PATTERN": 29},
+        "PATTERN30": {"PATTERN": 30},
+        "PATTERN31": {"PATTERN": 31},
+        "PATTERN32": {"PATTERN": 32},
+        "PATTERN33": {"PATTERN": 33},
+        "PATTERN34": {"PATTERN": 34},
+        "PATTERN35": {"PATTERN": 35},
+        "PATTERN36": {"PATTERN": 36},
+        "PATTERN37": {"PATTERN": 37},
+        "PATTERN38": {"PATTERN": 38},
+        "PATTERN39": {"PATTERN": 39},
+        "PATTERN40": {"PATTERN": 40},
+        "PATTERN41": {"PATTERN": 41},
+        "PATTERN42": {"PATTERN": 42},
+        "PATTERN43": {"PATTERN": 43},
+        "PATTERN44": {"PATTERN": 44},
+        "PATTERN45": {"PATTERN": 45},
+        "PATTERN46": {"PATTERN": 46},
+        "PATTERN47": {"PATTERN": 47},
+        "PATTERN48": {"PATTERN": 48},
+        "PATTERN49": {"PATTERN": 49},
+        "PATTERN50": {"PATTERN": 50},
+        "PATTERN51": {"PATTERN": 51},
+        "PATTERN52": {"PATTERN": 52},
+        "PATTERN53": {"PATTERN": 53},
+        "PATTERN54": {"PATTERN": 54},
+        "PATTERN55": {"PATTERN": 55},
+        "PATTERN56": {"PATTERN": 56},
+        "PATTERN57": {"PATTERN": 57},
+        "PATTERN58": {"PATTERN": 58},
+        "PATTERN59": {"PATTERN": 59},
+        "PATTERN60": {"PATTERN": 60},
+        "PATTERN61": {"PATTERN": 61},
+        "PATTERN62": {"PATTERN": 62},
+        "PATTERN63": {"PATTERN": 63},
+        "PATTERN64": {"PATTERN": 64},
+        "PATTERN65": {"PATTERN": 65},
+        "PATTERN66": {"PATTERN": 66},
+        "PATTERN67": {"PATTERN": 67},
+        "PATTERN68": {"PATTERN": 68},
+        "PATTERN69": {"PATTERN": 69},
+        "PATTERN70": {"PATTERN": 70},
+        "PATTERN71": {"PATTERN": 71}
+    }
+}
+

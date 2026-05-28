@@ -15,7 +15,7 @@ audio processing.
   & [Decoder](./AMR-WB/amrwb_dec/)
 - EVS: [Enhanced Voice Services Codec](./EVS/)
 - EVRC: [Enhanced Variable Rate Codec](./EVRC/)
-- MP3: [Helix MP3 Decoder](./MP3/Helix/)
+- MP3: [Helix MP3 Decoder](./MP3/Helix/), [minimp3 decoder](./MP3/minimp3/)
 - SBC: [Sub-Band Codec](./SBC/)
 - Opus: [Opus Interactive Audio Codec](./Opus/)
 - [SpeexDSP](./SpeexDSP/): Noise Reduction, Acoustic Echo Cancellation,
