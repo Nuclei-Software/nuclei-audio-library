@@ -15,7 +15,6 @@ audio processing.
   & [Decoder](./AMR-WB/amrwb_dec/)
 - EVS: [Enhanced Voice Services Codec](./EVS/)
 - EVRC: [Enhanced Variable Rate Codec](./EVRC/)
-- ADPCM: Adaptive Differential Pulse-Code Modulation. [IMA-ADPCM codec](./ADPCM/IMA/)
 - MP3: [Helix MP3 Decoder](./MP3/Helix/)
 - SBC: [Sub-Band Codec](./SBC/)
 - Opus: [Opus Interactive Audio Codec](./Opus/)
