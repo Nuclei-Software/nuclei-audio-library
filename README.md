@@ -19,7 +19,6 @@ audio processing.
 - MP3: [Helix MP3 Decoder](./MP3/Helix/)
 - SBC: [Sub-Band Codec](./SBC/)
 - Opus: [Opus Interactive Audio Codec](./Opus/)
-- LC3plus: [Low Complexity Communication Codec](./LC3plus/)
 - [SpeexDSP](./SpeexDSP/): Noise Reduction, Acoustic Echo Cancellation,
   Automatic Gain Control ...
 
